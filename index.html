@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="container">
+          <div class="header-content">
+            <h1 class="logo">
+              <i class="fas fa-chart-line"></i>
+              Habit Tracker
+            </h1>
+            <div class="header-controls">
+              <div class="user-profile-header">
+                <div class="user-xp">
+                  <i class="fas fa-star"></i>
+                  <span id="header-xp">0 XP</span>
+                </div>
+                <div
+                  class="user-avatar"
+                  onclick="habitTracker.showPage('profile')"
+                >
+                  <img
+                    id="header-avatar"
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%233b82f6'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='white' font-size='40' font-family='Arial'%3EU%3C/text%3E%3C/svg%3E"
+                    alt="Profile"
+                  />
+                </div>
+              </div>
+              <button
+                id="theme-toggle"
+                class="theme-toggle"
+                aria-label="Toggle theme"
+              >
+                <i class="fas fa-moon"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Navigation -->
+      <nav class="nav">
+        <div class="container">
+          <div class="nav-content">
+            <button class="nav-btn active" data-page="dashboard">
+              <i class="fas fa-home"></i>
+              Dashboard
+            </button>
+            <button class="nav-btn" data-page="add-habit">
+              <i class="fas fa-plus"></i>
+              Add Habit
+            </button>
+            <button class="nav-btn" data-page="templates">
+              <i class="fas fa-template"></i>
+              Templates
+            </button>
+            <button class="nav-btn" data-page="groups">
+              <i class="fas fa-users"></i>
+              Groups
+            </button>
+            <button class="nav-btn" data-page="friends">
+              <i class="fas fa-user-friends"></i>
+              Friends
+            </button>
+            <button class="nav-btn" data-page="reports">
+              <i class="fas fa-chart-bar"></i>
+              Reports
+            </button>
+            <button class="nav-btn" data-page="discover">
+              <i class="fas fa-search"></i>
+              Discover
+            </button>
+            <button class="nav-btn" data-page="profile">
+              <i class="fas fa-user"></i>
+              Profile
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="main">
+        <div class="container">
+          <!-- Dashboard Page -->
+          <div id="dashboard-page" class="page active">
+            <div class="page-header">
+              <h2>Your Habits</h2>
+              <div class="page-actions">
+                <button class="btn btn-secondary" data-page="templates">
+                  <i class="fas fa-template"></i>
+                  Add from Template
+                </button>
+                <button class="btn btn-primary" data-page="add-habit">
+                  <i class="fas fa-plus"></i>
+                  Add New Habit
+                </button>
+              </div>
+            </div>
+
+            <div id="habits-grid" class="habits-grid">
+              <!-- Habits will be dynamically inserted here -->
+            </div>
+
+            <div id="empty-state" class="empty-state">
+              <i class="fas fa-seedling"></i>
+              <h3>No habits yet</h3>
+              <p>Start building healthy habits today!</p>
+              <button class="btn btn-primary" data-page="add-habit">
+                Create Your First Habit
+              </button>
+            </div>
+          </div>
+
+          <!-- Add Habit Page -->
+          <div id="add-habit-page" class="page">
+            <div class="page-header">
+              <h2>Add New Habit</h2>
+              <button class="btn btn-ghost" data-page="dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+              </button>
+            </div>
+
+            <div class="form-container">
+              <form id="habit-form" class="habit-form">
+                <div class="form-group">
+                  <label for="habit-name">Habit Name</label>
+                  <input
+                    type="text"
+                    id="habit-name"
+                    name="habitName"
+                    placeholder="e.g., Drink 8 glasses of water"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="habit-category">Category</label>
+                  <select id="habit-category" name="category" required>
+                    <option value="">Select a category</option>
+                    <option value="health">Health</option>
+                    <option value="sport">Sport</option>
+                    <option value="learning">Learning</option>
+                    <option value="productivity">Productivity</option>
+                    <option value="mindfulness">Mindfulness</option>
+                    <option value="social">Social</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="habit-frequency">Frequency</label>
+                  <select id="habit-frequency" name="frequency" required>
+                    <option value="">Select frequency</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="weekdays">Weekdays Only</option>
+                    <option value="weekends">Weekends Only</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="habit-notes">Notes (Optional)</label>
+                  <textarea
+                    id="habit-notes"
+                    name="notes"
+                    placeholder="Any additional details or motivation..."
+                  ></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-page="dashboard"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Save Habit
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Templates Page -->
+          <div id="templates-page" class="page">
+            <div class="page-header">
+              <h2>Habit Templates</h2>
+              <button class="btn btn-ghost" data-page="dashboard">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+              </button>
+            </div>
+
+            <div class="templates-container">
+              <div class="template-category">
+                <h3 class="category-title">
+                  <i class="fas fa-heart category-icon health"></i>
+                  Health
+                </h3>
+                <div class="templates-grid">
+                  <div
+                    class="template-card"
+                    data-template='{"name":"Drink 2L Water","category":"health","frequency":"daily","notes":"Stay hydrated throughout the day"}'
+                  >
+                    <div class="template-icon">💧</div>
+                    <h4>Drink 2L Water</h4>
+                    <p>Stay hydrated throughout the day</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                  <div
+                    class="template-card"
+                    data-template='{"name":"10,000 Steps","category":"health","frequency":"daily","notes":"Take 10,000 steps daily for better health"}'
+                  >
+                    <div class="template-icon">👟</div>
+                    <h4>10,000 Steps</h4>
+                    <p>Walk 10,000 steps daily</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                  <div
+                    class="template-card"
+                    data-template='{"name":"8 Hours Sleep","category":"health","frequency":"daily","notes":"Get quality sleep for better recovery"}'
+                  >
+                    <div class="template-icon">😴</div>
+                    <h4>8 Hours Sleep</h4>
+                    <p>Get quality sleep every night</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="template-category">
+                <h3 class="category-title">
+                  <i class="fas fa-dumbbell category-icon sport"></i>
+                  Sport
+                </h3>
+                <div class="templates-grid">
+                  <div
+                    class="template-card"
+                    data-template='{"name":"Run 3 Times a Week","category":"sport","frequency":"weekly","notes":"Go for a 30-minute run 3 times per week"}'
+                  >
+                    <div class="template-icon">🏃‍♂️</div>
+                    <h4>Run 3 Times a Week</h4>
+                    <p>30-minute runs, 3x weekly</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                  <div
+                    class="template-card"
+                    data-template='{"name":"20 Push-ups","category":"sport","frequency":"daily","notes":"Build upper body strength with daily push-ups"}'
+                  >
+                    <div class="template-icon">💪</div>
+                    <h4>20 Push-ups</h4>
+                    <p>Build strength daily</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                  <div
+                    class="template-card"
+                    data-template='{"name":"Yoga Session","category":"sport","frequency":"daily","notes":"15-minute daily yoga for flexibility and mindfulness"}'
+                  >
+                    <div class="template-icon">🧘‍♀️</div>
+                    <h4>Yoga Session</h4>
+                    <p>15 minutes of daily yoga</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="template-category">
+                <h3 class="category-title">
+                  <i class="fas fa-book category-icon learning"></i>
+                  Learning
+                </h3>
+                <div class="templates-grid">
+                  <div
+                    class="template-card"
+                    data-template='{"name":"Read 20 Minutes","category":"learning","frequency":"daily","notes":"Read books, articles, or educational content daily"}'
+                  >
+                    <div class="template-icon">📚</div>
+                    <h4>Read 20 Minutes</h4>
+                    <p>Daily reading habit</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                  <div
+                    class="template-card"
+                    data-template='{"name":"Learn 1 New Word","category":"learning","frequency":"daily","notes":"Expand vocabulary with one new word daily"}'
+                  >
+                    <div class="template-icon">📖</div>
+                    <h4>Learn 1 New Word</h4>
+                    <p>Expand your vocabulary</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                  <div
+                    class="template-card"
+                    data-template='{"name":"Practice Language","category":"learning","frequency":"daily","notes":"Spend 15 minutes practicing a new language"}'
+                  >
+                    <div class="template-icon">🌍</div>
+                    <h4>Practice Language</h4>
+                    <p>15 minutes of language practice</p>
+                    <button class="btn btn-outline">Add to Habits</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Page -->
+          <div id="profile-page" class="page">
+            <div class="page-header">
+              <h2>My Profile</h2>
+              <button
+                class="btn btn-primary"
+                onclick="habitTracker.editProfile()"
+              >
+                <i class="fas fa-edit"></i>
+                Edit Profile
+              </button>
+            </div>
+
+            <div class="profile-container">
+              <div class="profile-card">
+                <div class="profile-header">
+                  <div class="profile-avatar-large">
+                    <img
+                      id="profile-avatar"
+                      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%233b82f6'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='white' font-size='40' font-family='Arial'%3EU%3C/text%3E%3C/svg%3E"
+                      alt="Profile"
+                    />
+                  </div>
+                  <div class="profile-info">
+                    <h3 id="profile-username">User</h3>
+                    <p id="profile-bio">
+                      Building healthy habits one day at a time!
+                    </p>
+                    <div class="profile-stats">
+                      <div class="stat">
+                        <span class="stat-number" id="profile-xp">0</span>
+                        <span class="stat-label">XP</span>
+                      </div>
+                      <div class="stat">
+                        <span class="stat-number" id="profile-level">1</span>
+                        <span class="stat-label">Level</span>
+                      </div>
+                      <div class="stat">
+                        <span class="stat-number" id="profile-habits">0</span>
+                        <span class="stat-label">Habits</span>
+                      </div>
+                      <div class="stat">
+                        <span class="stat-number" id="profile-friends">0</span>
+                        <span class="stat-label">Friends</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="profile-badges">
+                  <h4>Badges & Achievements</h4>
+                  <div id="badges-grid" class="badges-grid">
+                    <!-- Badges will be dynamically inserted -->
+                  </div>
+                </div>
+
+                <div class="profile-privacy">
+                  <h4>Privacy Settings</h4>
+                  <div class="privacy-controls">
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="share-progress" checked />
+                      <span class="slider"></span>
+                      Allow friends to see my progress
+                    </label>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="public-profile" />
+                      <span class="slider"></span>
+                      Make profile discoverable
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Friends Page -->
+          <div id="friends-page" class="page">
+            <div class="page-header">
+              <h2>Friends</h2>
+              <button
+                class="btn btn-primary"
+                onclick="habitTracker.showPage('discover')"
+              >
+                <i class="fas fa-user-plus"></i>
+                Find Friends
+              </button>
+            </div>
+
+            <div class="friends-container">
+              <div class="friends-tabs">
+                <button class="tab-btn active" data-tab="friends-list">
+                  My Friends
+                </button>
+                <button class="tab-btn" data-tab="friend-requests">
+                  Requests
+                </button>
+              </div>
+
+              <div id="friends-list" class="tab-content active">
+                <div id="friends-grid" class="friends-grid">
+                  <!-- Friends will be dynamically inserted -->
+                </div>
+                <div id="no-friends" class="empty-state">
+                  <i class="fas fa-user-friends"></i>
+                  <h3>No friends yet</h3>
+                  <p>Find and connect with other habit builders!</p>
+                  <button
+                    class="btn btn-primary"
+                    onclick="habitTracker.showPage('discover')"
+                  >
+                    Find Friends
+                  </button>
+                </div>
+              </div>
+
+              <div id="friend-requests" class="tab-content">
+                <div id="requests-grid" class="friends-grid">
+                  <!-- Friend requests will be dynamically inserted -->
+                </div>
+                <div id="no-requests" class="empty-state">
+                  <i class="fas fa-envelope"></i>
+                  <h3>No pending requests</h3>
+                  <p>You're all caught up!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Groups Page -->
+          <div id="groups-page" class="page">
+            <div class="page-header">
+              <h2>Habit Groups</h2>
+              <button
+                class="btn btn-primary"
+                onclick="habitTracker.showCreateGroupModal()"
+              >
+                <i class="fas fa-plus"></i>
+                Create Group
+              </button>
+            </div>
+
+            <div class="groups-container">
+              <div id="groups-grid" class="groups-grid">
+                <!-- Groups will be dynamically inserted -->
+              </div>
+              <div id="no-groups" class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>No groups yet</h3>
+                <p>Create or join groups to compete with friends!</p>
+                <button
+                  class="btn btn-primary"
+                  onclick="habitTracker.showCreateGroupModal()"
+                >
+                  Create Your First Group
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reports Page -->
+          <div id="reports-page" class="page">
+            <div class="page-header">
+              <h2>Progress Reports</h2>
+              <div class="report-controls">
+                <select id="report-period">
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="year">This Year</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="reports-container">
+              <div class="report-summary">
+                <div class="summary-card">
+                  <h3>Completion Rate</h3>
+                  <div class="big-number" id="completion-rate">0%</div>
+                </div>
+                <div class="summary-card">
+                  <h3>Current Streak</h3>
+                  <div class="big-number" id="current-streak">0 days</div>
+                </div>
+                <div class="summary-card">
+                  <h3>XP Earned</h3>
+                  <div class="big-number" id="xp-earned">0 XP</div>
+                </div>
+                <div class="summary-card">
+                  <h3>Best Habit</h3>
+                  <div class="big-number" id="best-habit">-</div>
+                </div>
+              </div>
+
+              <div class="report-charts">
+                <div class="chart-container">
+                  <h4>Daily Progress</h4>
+                  <div id="daily-chart" class="chart-placeholder">
+                    <p>Chart will be implemented with a charting library</p>
+                  </div>
+                </div>
+                <div class="chart-container">
+                  <h4>Habit Categories</h4>
+                  <div id="category-chart" class="chart-placeholder">
+                    <p>Category breakdown chart</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Discover Page -->
+          <div id="discover-page" class="page">
+            <div class="page-header">
+              <h2>Discover Users</h2>
+              <div class="search-controls">
+                <input
+                  type="text"
+                  id="user-search"
+                  placeholder="Search users..."
+                  class="search-input"
+                />
+                <button
+                  class="btn btn-primary"
+                  onclick="habitTracker.searchUsers()"
+                >
+                  <i class="fas fa-search"></i>
+                  Search
+                </button>
+              </div>
+            </div>
+
+            <div class="discover-container">
+              <div class="discover-filters">
+                <button class="filter-btn active" data-filter="all">
+                  All Users
+                </button>
+                <button class="filter-btn" data-filter="similar">
+                  Similar Habits
+                </button>
+                <button class="filter-btn" data-filter="top">
+                  Top Performers
+                </button>
+              </div>
+
+              <div id="users-grid" class="users-grid">
+                <!-- Discovered users will be dynamically inserted -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Create Group Modal -->
+    <div id="create-group-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Create Habit Group</h3>
+          <button
+            class="modal-close"
+            onclick="habitTracker.closeModal('create-group-modal')"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="create-group-form" class="modal-form">
+          <div class="form-group">
+            <label for="group-name">Group Name</label>
+            <input
+              type="text"
+              id="group-name"
+              name="groupName"
+              placeholder="e.g., Morning Warriors"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="group-description">Description</label>
+            <textarea
+              id="group-description"
+              name="description"
+              placeholder="What's this group about?"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="group-habit">Group Habit</label>
+            <select id="group-habit" name="habitId" required>
+              <option value="">Select a habit to compete with</option>
+              <!-- Will be populated dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="group-privacy">Privacy</label>
+            <select id="group-privacy" name="privacy">
+              <option value="public">Public - Anyone can join</option>
+              <option value="private">Private - Invite only</option>
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="habitTracker.closeModal('create-group-modal')"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Create Group</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Profile</h3>
+          <button
+            class="modal-close"
+            onclick="habitTracker.closeModal('edit-profile-modal')"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="edit-profile-form" class="modal-form">
+          <div class="form-group">
+            <label for="edit-username">Username</label>
+            <input type="text" id="edit-username" name="username" required />
+          </div>
+          <div class="form-group">
+            <label for="edit-bio">Bio</label>
+            <textarea
+              id="edit-bio"
+              name="bio"
+              placeholder="Tell others about yourself..."
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="edit-avatar-color">Avatar Color</label>
+            <div class="color-picker">
+              <input
+                type="color"
+                id="edit-avatar-color"
+                name="avatarColor"
+                value="#3b82f6"
+              />
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="habitTracker.closeModal('edit-profile-modal')"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="comment-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Add Comment</h3>
+          <button
+            class="modal-close"
+            onclick="habitTracker.closeModal('comment-modal')"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="comment-form" class="modal-form">
+          <div class="form-group">
+            <label for="habit-comment">How did it go today?</label>
+            <textarea
+              id="habit-comment"
+              name="comment"
+              placeholder="Share your thoughts, challenges, or victories..."
+              rows="4"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="mood-rating">How do you feel?</label>
+            <div class="mood-selector">
+              <button type="button" class="mood-btn" data-mood="excellent">
+                😄
+              </button>
+              <button type="button" class="mood-btn" data-mood="good">
+                😊
+              </button>
+              <button type="button" class="mood-btn" data-mood="okay">
+                😐
+              </button>
+              <button type="button" class="mood-btn" data-mood="bad">😔</button>
+              <button type="button" class="mood-btn" data-mood="terrible">
+                😢
+              </button>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="habitTracker.closeModal('comment-modal')"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Save Comment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Add error handling
+      window.addEventListener("error", function (e) {
+        console.error("Script error:", e.error);
+        console.error("Error message:", e.message);
+        console.error("Error filename:", e.filename);
+        console.error("Error line:", e.lineno);
+      });
+
+      // Test if script loads
+      console.log("Inline script running...");
+    </script>
+    <script src="script.js"></script>
+  </body>
+</html>
