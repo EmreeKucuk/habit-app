@@ -4,7 +4,10 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const { initDatabase } = require('./database');
-require('dotenv').config();
+const path = require('path');
+
+// Load environment variables from the backend/.env file
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const authRoutes = require('./routes/auth');
 const habitRoutes = require('./routes/habits');
@@ -33,7 +36,7 @@ app.use(limiter);
 // Auth rate limiting (more restrictive)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5 // limit each IP to 5 auth requests per windowMs
+  max: process.env.NODE_ENV === 'development' ? 100 : 5 // More lenient in development
 });
 
 // Middleware

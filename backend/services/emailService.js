@@ -14,7 +14,7 @@ class EmailService {
 
     switch (emailService.toLowerCase()) {
       case 'gmail':
-        this.transporter = nodemailer.createTransporter({
+        this.transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
             user: process.env.EMAIL_USER || process.env.GMAIL_USER,
@@ -24,7 +24,7 @@ class EmailService {
         break;
 
       case 'sendgrid':
-        this.transporter = nodemailer.createTransporter({
+        this.transporter = nodemailer.createTransport({
           service: 'SendGrid',
           auth: {
             user: 'apikey',
@@ -34,7 +34,7 @@ class EmailService {
         break;
 
       case 'mailgun':
-        this.transporter = nodemailer.createTransporter({
+        this.transporter = nodemailer.createTransport({
           service: 'Mailgun',
           auth: {
             user: process.env.MAILGUN_USER,
@@ -44,7 +44,7 @@ class EmailService {
         break;
 
       case 'smtp':
-        this.transporter = nodemailer.createTransporter(smtpTransport({
+        this.transporter = nodemailer.createTransport(smtpTransport({
           host: process.env.SMTP_HOST,
           port: parseInt(process.env.SMTP_PORT) || 587,
           secure: process.env.SMTP_SECURE === 'true',
@@ -57,7 +57,7 @@ class EmailService {
 
       default:
         // Fallback to Gmail
-        this.transporter = nodemailer.createTransporter({
+        this.transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
             user: process.env.EMAIL_USER,

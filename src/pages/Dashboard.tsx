@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Filter, SortAsc, Search, TrendingUp, Calendar, Flame } from 'lucide-react';
+import { Plus, Filter, Search, TrendingUp, Calendar, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { habitsApi } from '../services/api';
@@ -9,6 +9,35 @@ import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import HabitCard from '../components/HabitCard';
 import LoadingSpinner from '../components/LoadingSpinner';
+
+// Helper function to calculate streak
+function calculateStreak(completedDates: string[]): number {
+  if (completedDates.length === 0) return 0;
+
+  const today = new Date().toISOString().split('T')[0];
+  const sortedDates = [...completedDates].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  let streak = 0;
+  let currentDate = new Date(today);
+
+  for (const dateStr of sortedDates) {
+    const completionDate = new Date(dateStr);
+    const dayDiff = Math.floor((currentDate.getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (dayDiff === streak) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else if (dayDiff === streak + 1 && streak === 0) {
+      // Today not completed but yesterday was
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -32,37 +61,155 @@ const Dashboard: React.FC = () => {
     order: 'desc',
   });
 
+  const [loadingHabitId, setLoadingHabitId] = useState<string | null>(null);
+
   const [showFilters, setShowFilters] = useState(false);
 
   // Fetch habits
   const { data: habitsData, isLoading, error } = useQuery({
     queryKey: ['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order],
-    queryFn: () => habitsApi.getAll({
-      category: filters.category !== 'all' ? filters.category : undefined,
-      sort: sorting.field === 'created' ? 'created_at' : sorting.field,
-      order: sorting.order,
-    }),
+    queryFn: async () => {
+      console.log('🔍 Fetching habits from server...');
+      const result = await habitsApi.getAll({
+        category: filters.category !== 'all' ? filters.category : undefined,
+        sort: sorting.field === 'created' ? 'created_at' : sorting.field,
+        order: sorting.order,
+      });
+      console.log('📥 Received habits data:', result);
+      if (result.habits && result.habits.length > 0) {
+        const today = new Date().toISOString().split('T')[0];
+        result.habits.forEach(habit => {
+          const isCompletedToday = habit.completedDates.includes(today);
+          console.log(`📋 Habit "${habit.name}": completed today? ${isCompletedToday}, dates:`, habit.completedDates);
+        });
+      }
+      return result;
+    },
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   // Complete habit mutation
   const completeHabitMutation = useMutation({
     mutationFn: ({ habitId, data }: { habitId: string; data?: any }) => 
       habitsApi.complete(habitId, data),
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['habits'] });
+    onMutate: async ({ habitId }) => {
+      console.log('🔄 Starting optimistic update for habit:', habitId);
+      setLoadingHabitId(habitId);
+      
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['habits'] });
+
+      // Snapshot the previous value
+      const queryKey = ['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order];
+      const previousHabits = queryClient.getQueryData(queryKey);
+
+      // Store the snapshot but DON'T do optimistic update yet
+      // We'll wait for the server response to know what actually happened
+      console.log('📸 Snapshot taken, waiting for server response...');
+
+      // Return a context object with the snapshotted value
+      return { previousHabits, queryKey };
+    },
+    onSuccess: (data, { habitId }, context) => {
+      console.log('🎉 Habit completion successful:', data);
+      console.log('📊 Backend says completed:', data.completed);
+      setLoadingHabitId(null);
+      
+      // Update the cache based on the actual backend response
+      if (context?.queryKey) {
+        queryClient.setQueryData(context.queryKey, (old: any) => {
+          if (!old?.habits) return old;
+
+          const today = new Date().toISOString().split('T')[0];
+          const updatedHabits = old.habits.map((habit: Habit) => {
+            if (habit.id === habitId) {
+              let newCompletedDates: string[];
+              
+              if (data.completed) {
+                // Backend says it's completed - ensure today is in the array
+                newCompletedDates = habit.completedDates.includes(today) 
+                  ? habit.completedDates 
+                  : [...habit.completedDates, today].sort();
+                console.log('✅ Backend confirms completion, final dates:', newCompletedDates);
+              } else {
+                // Backend says it's not completed - ensure today is NOT in the array
+                newCompletedDates = habit.completedDates.filter(date => date !== today);
+                console.log('❌ Backend confirms un-completion, final dates:', newCompletedDates);
+              }
+
+              // Recalculate streak based on actual completion dates
+              const newStreak = calculateStreak(newCompletedDates);
+              console.log('🔥 Final streak calculated:', newStreak);
+
+              return {
+                ...habit,
+                completedDates: newCompletedDates,
+                streak: newStreak
+              };
+            }
+            return habit;
+          });
+
+          console.log('✅ Cache updated with server response');
+          return { ...old, habits: updatedHabits };
+        });
+      }
       
       // Show XP gain notification if applicable
       if (data.xpGained && user) {
-        // Update user XP in context
-        // You can add a toast notification here
+        console.log(`Gained ${data.xpGained} XP!`);
       }
+    },
+    onError: (error, { habitId: _habitId }, context) => {
+      console.error('❌ Habit completion failed:', error);
+      setLoadingHabitId(null);
+      
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousHabits && context?.queryKey) {
+        console.log('🔙 Rolling back to previous state');
+        queryClient.setQueryData(context.queryKey, context.previousHabits);
+      }
+    },
+    onSettled: () => {
+      setLoadingHabitId(null);
+      // Don't invalidate - our manual cache update is authoritative
+      console.log('✅ Mutation settled, cache is up to date');
     },
   });
 
   // Delete habit mutation
   const deleteHabitMutation = useMutation({
     mutationFn: (habitId: string) => habitsApi.delete(habitId),
+    onMutate: async (habitId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['habits'] });
+
+      // Snapshot the previous value
+      const previousHabits = queryClient.getQueryData(['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order]);
+
+      // Optimistically remove the habit
+      queryClient.setQueryData(['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order], (old: any) => {
+        if (!old?.habits) return old;
+
+        const updatedHabits = old.habits.filter((habit: Habit) => habit.id !== habitId);
+        return { ...old, habits: updatedHabits };
+      });
+
+      return { previousHabits };
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+    },
+    onError: (error, _variables, context) => {
+      console.error('Delete habit failed:', error);
+      
+      // Rollback on error
+      if (context?.previousHabits) {
+        queryClient.setQueryData(['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order], context.previousHabits);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
     },
   });
@@ -100,7 +247,20 @@ const Dashboard: React.FC = () => {
   }, [habitsData?.habits, filters]);
 
   const handleCompleteHabit = (habitId: string) => {
-    completeHabitMutation.mutate({ habitId });
+    console.log('🎯 Starting habit completion for:', habitId);
+    console.log('🔍 Current user:', user?.id);
+    console.log('🔍 Mutation status:', completeHabitMutation.status);
+    
+    completeHabitMutation.mutate(
+      { habitId, data: {} }, // Always provide data object
+      {
+        onError: (error: any) => {
+          console.error('❌ Completion failed:', error);
+          console.error('Error response:', error.response?.data);
+          console.error('Error status:', error.response?.status);
+        }
+      }
+    );
   };
 
   const handleDeleteHabit = (habitId: string) => {
@@ -338,7 +498,7 @@ const Dashboard: React.FC = () => {
                     habit={habit}
                     onComplete={() => handleCompleteHabit(habit.id)}
                     onDelete={() => handleDeleteHabit(habit.id)}
-                    isLoading={completeHabitMutation.isPending}
+                    isLoading={loadingHabitId === habit.id}
                   />
                 </motion.div>
               ))}

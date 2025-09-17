@@ -156,7 +156,19 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
         <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 mb-4">
           <Calendar className="w-3 h-3" />
           <span>
-            Last completed: {new Date(habit.completedDates[habit.completedDates.length - 1]).toLocaleDateString()}
+            Last completed: {(() => {
+              const lastDate = habit.completedDates[habit.completedDates.length - 1];
+              try {
+                // Handle both ISO string and date string formats
+                const date = new Date(lastDate);
+                if (isNaN(date.getTime())) {
+                  return 'Recently';
+                }
+                return date.toLocaleDateString();
+              } catch (error) {
+                return 'Recently';
+              }
+            })()}
           </span>
         </div>
       )}
@@ -180,15 +192,15 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
           onClick={onComplete}
           disabled={isLoading}
           whileTap={{ scale: 0.95 }}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+          className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
             isCompletedToday
-              ? 'bg-green-500 text-white shadow-lg'
-              : 'bg-primary-600 hover:bg-primary-700 text-white shadow-md hover:shadow-lg'
+              ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg'
+              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <Check className="w-4 h-4" />
           <span>
-            {isCompletedToday ? 'Completed' : 'Complete'}
+            {isCompletedToday ? 'Completed ✓' : 'Mark Complete'}
           </span>
         </motion.button>
 
@@ -196,9 +208,10 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-green-500"
+            transition={{ duration: 0.3 }}
+            className="text-green-500 bg-green-100 dark:bg-green-900 rounded-full p-2"
           >
-            <Check className="w-6 h-6" />
+            <Check className="w-5 h-5" />
           </motion.div>
         )}
       </div>
@@ -206,9 +219,12 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
       {/* Completion animation */}
       {isCompletedToday && (
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: [0, 1.2, 1] }}
-          transition={{ duration: 0.5 }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ 
+            scale: [0, 1.1, 1], 
+            opacity: [0, 0.2, 0.1]
+          }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           className="absolute inset-0 pointer-events-none flex items-center justify-center"
         >
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center opacity-20">

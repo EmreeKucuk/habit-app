@@ -2,7 +2,7 @@ const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../database');
+const { getDatabase } = require('../database');
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.get('/', authenticateToken, async (req, res) => {
     let query = `
       SELECT h.*, 
              COUNT(hc.id) as completion_count,
-             MAX(hc.completed_date) as last_completion
+             MAX(hc.date) as last_completion
       FROM habits h
       LEFT JOIN habit_completions hc ON h.id = hc.habit_id
       WHERE h.user_id = ?
@@ -40,31 +40,34 @@ router.get('/', authenticateToken, async (req, res) => {
       query += ' ORDER BY h.created_at DESC';
     }
 
-    const habits = await new Promise((resolve, reject) => {
-      db.all(query, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+    const habits = await getDatabase().all(query, params);
 
     // Get completions for each habit to calculate streaks
     const habitsWithStreaks = await Promise.all(habits.map(async (habit) => {
-      const completions = await new Promise((resolve, reject) => {
-        db.all(
-          'SELECT completed_date FROM habit_completions WHERE habit_id = ? ORDER BY completed_date DESC',
-          [habit.id],
-          (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows.map(row => row.completed_date));
-          }
-        );
-      });
+      const completions = await getDatabase().all(
+        'SELECT date FROM habit_completions WHERE habit_id = ? ORDER BY date DESC',
+        [habit.id]
+      );
 
-      const streak = calculateStreak(completions);
+      const streak = calculateStreak(completions.map(row => row.date));
       
       return {
         ...habit,
-        completedDates: completions,
+        completedDates: completions.map(row => {
+          // Ensure we always return dates as YYYY-MM-DD strings
+          const dateValue = row.date;
+          
+          if (typeof dateValue === 'string') {
+            // If it's already a string, check if it's ISO format and extract date part
+            return dateValue.includes('T') ? dateValue.split('T')[0] : dateValue;
+          } else if (dateValue instanceof Date) {
+            // If it's a Date object, convert to YYYY-MM-DD
+            return dateValue.toISOString().split('T')[0];
+          } else {
+            // Fallback: convert to string and extract date
+            return new Date(dateValue).toISOString().split('T')[0];
+          }
+        }),
         streak
       };
     }));
@@ -98,25 +101,14 @@ router.post('/', authenticateToken, [
     const { name, category, frequency, notes, target, unit, color, icon } = req.body;
     const habitId = uuidv4();
 
-    await new Promise((resolve, reject) => {
-      db.run(
-        `INSERT INTO habits (
-          id, user_id, name, category, frequency, notes, target, unit, color, icon
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [habitId, req.user.id, name, category, frequency, notes || null, target || 1, unit || null, color || null, icon || null],
-        function(err) {
-          if (err) reject(err);
-          else resolve(this.lastID);
-        }
-      );
-    });
+    await getDatabase().run(
+      `INSERT INTO habits (
+        id, user_id, name, category, frequency, notes, target, unit, color, icon
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [habitId, req.user.id, name, category, frequency, notes || null, target || 1, unit || null, color || null, icon || null]
+    );
 
-    const habit = await new Promise((resolve, reject) => {
-      db.get('SELECT * FROM habits WHERE id = ?', [habitId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    const habit = await getDatabase().get('SELECT * FROM habits WHERE id = ?', [habitId]);
 
     res.status(201).json({ 
       message: 'Habit created successfully', 
@@ -132,78 +124,63 @@ router.post('/', authenticateToken, [
 // Complete/uncomplete a habit
 router.post('/:id/complete', authenticateToken, async (req, res) => {
   try {
+    console.log('🎯 Completion request received:', {
+      habitId: req.params.id,
+      userId: req.user?.id,
+      body: req.body
+    });
+    
     const { id } = req.params;
-    const { date, notes, mood, value } = req.body;
+    const { date, notes, mood, value } = req.body || {}; // Handle undefined body
     
     const completionDate = date || new Date().toISOString().split('T')[0];
 
     // Check if habit belongs to user
-    const habit = await new Promise((resolve, reject) => {
-      db.get('SELECT * FROM habits WHERE id = ? AND user_id = ?', [id, req.user.id], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    const habit = await getDatabase().get('SELECT * FROM habits WHERE id = ? AND user_id = ?', [id, req.user.id]);
+    console.log('🔍 Found habit:', habit ? 'Yes' : 'No');
 
     if (!habit) {
+      console.log('❌ Habit not found for user');
       return res.status(404).json({ message: 'Habit not found' });
     }
 
     // Check if already completed for this date
-    const existingCompletion = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT * FROM habit_completions WHERE habit_id = ? AND completed_date = ?',
-        [id, completionDate],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    const existingCompletion = await getDatabase().get(
+      'SELECT * FROM habit_completions WHERE habit_id = ? AND date = ?',
+      [id, completionDate]
+    );
+
+    console.log('🔍 Checking completion for date:', completionDate);
+    console.log('🔍 Existing completion found:', existingCompletion ? 'Yes' : 'No');
+    if (existingCompletion) {
+      console.log('🗓️ Existing completion data:', existingCompletion);
+    }
 
     if (existingCompletion) {
       // Remove completion
-      await new Promise((resolve, reject) => {
-        db.run(
-          'DELETE FROM habit_completions WHERE id = ?',
-          [existingCompletion.id],
-          (err) => {
-            if (err) reject(err);
-            else resolve();
-          }
-        );
-      });
+      await getDatabase().run(
+        'DELETE FROM habit_completions WHERE id = ?',
+        [existingCompletion.id]
+      );
 
       res.json({ message: 'Habit unmarked as completed', completed: false });
     } else {
       // Add completion
       const completionId = uuidv4();
       
-      await new Promise((resolve, reject) => {
-        db.run(
-          `INSERT INTO habit_completions (
-            id, habit_id, user_id, completed_date, value, notes, mood
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [completionId, id, req.user.id, completionDate, value || 1, notes || null, mood || null],
-          (err) => {
-            if (err) reject(err);
-            else resolve();
-          }
-        );
-      });
+      await getDatabase().run(
+        `INSERT INTO habit_completions (
+          id, habit_id, user_id, date, value, notes, mood
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [completionId, id, req.user.id, completionDate, value || 1, notes || null, mood || null]
+      );
 
       // Update user XP
       const xpGain = 10;
-      await new Promise((resolve, reject) => {
-        db.run(
-          'UPDATE users SET xp = xp + ? WHERE id = ?',
-          [xpGain, req.user.id],
-          (err) => {
-            if (err) reject(err);
-            else resolve();
-          }
-        );
-      });
+      await getDatabase().run(
+        'UPDATE users SET xp = xp + ? WHERE id = ?',
+        [xpGain, req.user.id]
+      );
 
       res.json({ message: 'Habit marked as completed', completed: true, xpGained: xpGain });
     }
@@ -220,24 +197,14 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
 
     // Check if habit belongs to user
-    const habit = await new Promise((resolve, reject) => {
-      db.get('SELECT * FROM habits WHERE id = ? AND user_id = ?', [id, req.user.id], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    const habit = await getDatabase().get('SELECT * FROM habits WHERE id = ? AND user_id = ?', [id, req.user.id]);
 
     if (!habit) {
       return res.status(404).json({ message: 'Habit not found' });
     }
 
     // Delete habit (cascading deletes will handle completions and comments)
-    await new Promise((resolve, reject) => {
-      db.run('DELETE FROM habits WHERE id = ?', [id], (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    await getDatabase().run('DELETE FROM habits WHERE id = ?', [id]);
 
     res.json({ message: 'Habit deleted successfully' });
 
@@ -253,37 +220,27 @@ router.get('/stats', authenticateToken, async (req, res) => {
     const { period = 'week' } = req.query;
     
     // Get basic stats
-    const stats = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT 
-          COUNT(DISTINCT h.id) as total_habits,
-          COUNT(DISTINCT CASE WHEN hc.completed_date = date('now') THEN h.id END) as completed_today,
-          COUNT(DISTINCT hc.id) as total_completions
-        FROM habits h
-        LEFT JOIN habit_completions hc ON h.id = hc.habit_id
-        WHERE h.user_id = ?
-      `, [req.user.id], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    const stats = await getDatabase().get(`
+      SELECT 
+        COUNT(DISTINCT h.id) as total_habits,
+        COUNT(DISTINCT CASE WHEN hc.date = CURRENT_DATE THEN h.id END) as completed_today,
+        COUNT(DISTINCT hc.id) as total_completions
+      FROM habits h
+      LEFT JOIN habit_completions hc ON h.id = hc.habit_id
+      WHERE h.user_id = ?
+    `, [req.user.id]);
 
     // Get category breakdown
-    const categoryStats = await new Promise((resolve, reject) => {
-      db.all(`
-        SELECT 
-          h.category,
-          COUNT(h.id) as count,
-          COUNT(hc.id) as completions
-        FROM habits h
-        LEFT JOIN habit_completions hc ON h.id = hc.habit_id
-        WHERE h.user_id = ?
-        GROUP BY h.category
-      `, [req.user.id], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+    const categoryStats = await getDatabase().all(`
+      SELECT 
+        h.category,
+        COUNT(h.id) as count,
+        COUNT(hc.id) as completions
+      FROM habits h
+      LEFT JOIN habit_completions hc ON h.id = hc.habit_id
+      WHERE h.user_id = ?
+      GROUP BY h.category
+    `, [req.user.id]);
 
     res.json({
       ...stats,

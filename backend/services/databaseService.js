@@ -10,6 +10,12 @@ class DatabaseService {
     this.initializeDatabase();
   }
 
+  // Convert SQLite-style queries to PostgreSQL format
+  convertSqlToPostgreSQL(sql) {
+    let paramIndex = 1;
+    return sql.replace(/\?/g, () => `$${paramIndex++}`);
+  }
+
   initializeDatabase() {
     if (this.dbType === 'postgresql') {
       // PostgreSQL configuration
@@ -56,7 +62,8 @@ class DatabaseService {
   async run(sql, params = []) {
     if (this.dbType === 'postgresql') {
       try {
-        const result = await this.db.query(sql, params);
+        const convertedSql = this.convertSqlToPostgreSQL(sql);
+        const result = await this.db.query(convertedSql, params);
         return { lastID: result.insertId, changes: result.rowCount };
       } catch (error) {
         console.error('PostgreSQL run error:', error);
@@ -80,7 +87,8 @@ class DatabaseService {
   async get(sql, params = []) {
     if (this.dbType === 'postgresql') {
       try {
-        const result = await this.db.query(sql + ' LIMIT 1', params);
+        const convertedSql = this.convertSqlToPostgreSQL(sql);
+        const result = await this.db.query(convertedSql + ' LIMIT 1', params);
         return result.rows[0] || null;
       } catch (error) {
         console.error('PostgreSQL get error:', error);
@@ -95,6 +103,31 @@ class DatabaseService {
             reject(err);
           } else {
             resolve(row || null);
+          }
+        });
+      });
+    }
+  }
+
+  async all(sql, params = []) {
+    if (this.dbType === 'postgresql') {
+      try {
+        const convertedSql = this.convertSqlToPostgreSQL(sql);
+        const result = await this.db.query(convertedSql, params);
+        return result.rows || [];
+      } catch (error) {
+        console.error('PostgreSQL all error:', error);
+        throw error;
+      }
+    } else {
+      // SQLite
+      return new Promise((resolve, reject) => {
+        this.db.all(sql, params, (err, rows) => {
+          if (err) {
+            console.error('SQLite all error:', err);
+            reject(err);
+          } else {
+            resolve(rows || []);
           }
         });
       });

@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-const { db } = require('../database');
+const { getDatabase } = require('../database');
 
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -9,23 +9,25 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ message: 'Access token required' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', async (err, user) => {
     if (err) {
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
     
-    // Verify user still exists in database
-    db.get('SELECT id, username, email FROM users WHERE id = ?', [user.id], (err, dbUser) => {
-      if (err) {
-        return res.status(500).json({ message: 'Database error' });
-      }
+    try {
+      // Verify user still exists in database
+      const dbUser = await getDatabase().get('SELECT id, username, email FROM users WHERE id = ?', [user.id]);
+      
       if (!dbUser) {
         return res.status(403).json({ message: 'User not found' });
       }
       
       req.user = dbUser;
       next();
-    });
+    } catch (error) {
+      console.error('Auth middleware database error:', error);
+      return res.status(500).json({ message: 'Database error' });
+    }
   });
 };
 

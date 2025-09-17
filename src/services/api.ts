@@ -20,7 +20,7 @@ class ApiClient {
   constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 10000,
+      timeout: 5000, // Reduced timeout for faster feedback
     });
 
     // Request interceptor to add auth token

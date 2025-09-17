@@ -66,16 +66,10 @@ router.post('/register', [
     const { username, email, password } = req.body;
 
     // Check if user already exists
-    const existingUser = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT id FROM users WHERE email = ? OR username = ?',
-        [email, username],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    const existingUser = await getDb().get(
+      'SELECT id FROM users WHERE email = ? OR username = ?',
+      [email, username]
+    );
 
     if (existingUser) {
       return res.status(400).json({ 
@@ -92,22 +86,16 @@ router.post('/register', [
     const userId = uuidv4();
 
     // Create user
-    await new Promise((resolve, reject) => {
-      db.run(
-        `INSERT INTO users (
-          id, username, email, password_hash, verification_token, 
-          avatar_color, xp, level, share_progress, public_profile
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          userId, username, email, passwordHash, verificationToken,
-          '#3b82f6', 0, 1, true, false
-        ],
-        function(err) {
-          if (err) reject(err);
-          else resolve(this.lastID);
-        }
-      );
-    });
+    await getDb().run(
+      `INSERT INTO users (
+        id, username, email, password_hash, verification_token, 
+        avatar_color, xp, level, share_progress, public_profile
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId, username, email, passwordHash, verificationToken,
+        '#3b82f6', 0, 1, true, false
+      ]
+    );
 
     // Send verification email
     try {
@@ -145,16 +133,10 @@ router.post('/login', [
     const { email, password } = req.body;
 
     // Find user
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT * FROM users WHERE email = ?',
-        [email],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    const user = await getDb().get(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
@@ -202,16 +184,10 @@ router.post('/verify-email', [
     const { token } = req.body;
 
     // Find user with verification token
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT * FROM users WHERE verification_token = ?',
-        [token],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    const user = await getDb().get(
+      'SELECT * FROM users WHERE verification_token = ?',
+      [token]
+    );
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired verification token' });
@@ -222,16 +198,10 @@ router.post('/verify-email', [
     }
 
     // Update user
-    await new Promise((resolve, reject) => {
-      db.run(
-        'UPDATE users SET email_verified = true, verification_token = NULL WHERE id = ?',
-        [user.id],
-        (err) => {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
-    });
+    await getDb().run(
+      'UPDATE users SET email_verified = true, verification_token = NULL WHERE id = ?',
+      [user.id]
+    );
 
     res.json({ message: 'Email verified successfully' });
 
@@ -248,16 +218,10 @@ router.post('/forgot-password', [
   try {
     const { email } = req.body;
 
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT * FROM users WHERE email = ?',
-        [email],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    const user = await getDb().get(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
 
     // Always return success to prevent email enumeration
     if (!user) {
@@ -270,16 +234,10 @@ router.post('/forgot-password', [
     const resetToken = uuidv4();
     const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    await new Promise((resolve, reject) => {
-      db.run(
-        'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
-        [resetToken, resetTokenExpires.toISOString(), user.id],
-        (err) => {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
-    });
+    await getDb().run(
+      'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
+      [resetToken, resetTokenExpires.toISOString(), user.id]
+    );
 
     // Send reset email
     try {
@@ -324,16 +282,10 @@ router.post('/reset-password', [
     const { token, password } = req.body;
 
     // Find user with valid reset token
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > ?',
-        [token, new Date().toISOString()],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    const user = await getDb().get(
+      'SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > ?',
+      [token, new Date().toISOString()]
+    );
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired reset token' });
@@ -343,16 +295,10 @@ router.post('/reset-password', [
     const passwordHash = await bcrypt.hash(password, 12);
 
     // Update password and clear reset token
-    await new Promise((resolve, reject) => {
-      db.run(
-        'UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
-        [passwordHash, user.id],
-        (err) => {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
-    });
+    await getDb().run(
+      'UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
+      [passwordHash, user.id]
+    );
 
     res.json({ message: 'Password reset successfully' });
 
@@ -365,16 +311,10 @@ router.post('/reset-password', [
 // Get current user
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT id, username, email, bio, avatar_color, xp, level, share_progress, public_profile, email_verified, created_at FROM users WHERE id = ?',
-        [req.user.id],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    const user = await getDb().get(
+      'SELECT id, username, email, bio, avatar_color, xp, level, share_progress, public_profile, email_verified, created_at FROM users WHERE id = ?',
+      [req.user.id]
+    );
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -406,16 +346,10 @@ router.post('/refresh', [
     }
 
     // Get user
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT * FROM users WHERE id = ?',
-        [decoded.id],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
+    const user = await getDb().get(
+      'SELECT * FROM users WHERE id = ?',
+      [decoded.id]
+    );
 
     if (!user) {
       return res.status(403).json({ message: 'User not found' });

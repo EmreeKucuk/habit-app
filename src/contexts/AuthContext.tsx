@@ -26,27 +26,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastVerified, setLastVerified] = useState<number>(0);
+
+  const VERIFICATION_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
   useEffect(() => {
     const initAuth = async () => {
       const savedToken = localStorage.getItem('token');
       const savedUser = localStorage.getItem('user');
+      const savedLastVerified = localStorage.getItem('lastVerified');
 
       if (savedToken && savedUser) {
         try {
           setToken(savedToken);
-          setUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
           
-          // Verify token with backend
-          const response = await authApi.me();
-          setUser(response.user);
-        } catch (error) {
+          const lastVerifiedTime = savedLastVerified ? parseInt(savedLastVerified) : 0;
+          const now = Date.now();
+          
+          // Only verify if more than 5 minutes have passed since last verification
+          if (now - lastVerifiedTime > VERIFICATION_INTERVAL) {
+            // Verify token with backend with a shorter timeout for initial load
+            const response = await authApi.me();
+            setUser(response.user);
+            setLastVerified(now);
+            localStorage.setItem('lastVerified', now.toString());
+          } else {
+            // Use cached user data
+            setLastVerified(lastVerifiedTime);
+          }
+        } catch (error: any) {
           console.error('Token verification failed:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          localStorage.removeItem('refreshToken');
-          setToken(null);
-          setUser(null);
+          
+          // If it's a timeout or network error, keep the user logged in locally
+          // but try to refresh in the background
+          if (error.code === 'ECONNABORTED' || error.code === 'NETWORK_ERROR') {
+            console.log('Network timeout, keeping user logged in locally');
+            // Don't clear the token immediately, just set loading to false
+          } else {
+            // Only clear auth on actual auth errors (401, 403)
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('lastVerified');
+            setToken(null);
+            setUser(null);
+            setLastVerified(0);
+          }
         }
       }
       setIsLoading(false);
@@ -61,10 +88,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(response.user);
       setToken(response.token);
+      const now = Date.now();
+      setLastVerified(now);
       
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       localStorage.setItem('refreshToken', response.refreshToken);
+      localStorage.setItem('lastVerified', now.toString());
     } catch (error) {
       throw error;
     }
@@ -81,9 +111,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     setToken(null);
+    setLastVerified(0);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('lastVerified');
   };
 
   const updateUser = (updatedUser: User) => {
