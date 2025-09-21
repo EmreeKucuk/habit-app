@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, TrendingUp } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, TrendingUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LoginRequest } from '../types';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginRequest>({
-    email: '',
+    emailOrUsername: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -97,20 +97,20 @@ const Login: React.FC = () => {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email address
+              <label htmlFor="emailOrUsername" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Email or Username
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
+                  id="emailOrUsername"
+                  name="emailOrUsername"
+                  type="text"
+                  value={formData.emailOrUsername}
                   onChange={handleChange}
                   required
                   className="input-field pl-10"
-                  placeholder="Enter your email"
+                  placeholder="Enter your email or username"
                 />
               </div>
             </div>

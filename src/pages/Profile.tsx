@@ -10,6 +10,7 @@ import ProfileStatistics from '../components/ProfileStatistics';
 import ProfileBadges from '../components/ProfileBadges';
 import CategoryActivityChart from '../components/CategoryActivityChart';
 import MotivationalQuoteComponent from '../components/MotivationalQuote';
+import HighestStreakCard from '../components/HighestStreakCard';
 import FriendsCard from '../components/FriendsCard';
 import { usersApi, habitsApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -349,13 +350,13 @@ const Profile: React.FC = () => {
         </motion.div>
 
         {/* Profile Components */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-          {/* Statistics */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Statistics - Takes full left column */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 h-fit"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
           >
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               📊 Statistics
@@ -363,15 +364,30 @@ const Profile: React.FC = () => {
             <ProfileStatistics stats={stats} isLoading={statsLoading} />
           </motion.div>
 
-          {/* Motivational Quote */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden h-fit max-h-fit"
-          >
-            <MotivationalQuoteComponent />
-          </motion.div>
+          {/* Right column with quote and streak cards */}
+          <div className="flex flex-col gap-6 h-full">
+            {/* Motivational Quote - Top right */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden flex-1"
+            >
+              <MotivationalQuoteComponent />
+            </motion.div>
+
+            {/* Highest Streak Habit - Bottom right */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="flex-1"
+            >
+              <div className="h-full">
+                <HighestStreakCard habits={habits?.habits || []} isLoading={habitsLoading} />
+              </div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Category Activity Chart */}

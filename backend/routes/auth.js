@@ -118,7 +118,7 @@ router.post('/register', [
 
 // Login
 router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
+  body('emailOrUsername').notEmpty().withMessage('Email or username is required'),
   body('password').notEmpty()
 ], async (req, res) => {
   try {
@@ -130,22 +130,27 @@ router.post('/login', [
       });
     }
 
-    const { email, password } = req.body;
+    const { emailOrUsername, password } = req.body;
 
-    // Find user
+    // Check if input is email or username
+    const isEmail = emailOrUsername.includes('@');
+    
+    // Find user by email or username
     const user = await getDb().get(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
+      isEmail 
+        ? 'SELECT * FROM users WHERE email = ?'
+        : 'SELECT * FROM users WHERE username = ?',
+      [emailOrUsername]
     );
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid email/username or password' });
     }
 
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     if (!isValidPassword) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid email/username or password' });
     }
 
     // Check if email is verified

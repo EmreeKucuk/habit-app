@@ -36,9 +36,9 @@ const MotivationalQuoteComponent: React.FC<MotivationalQuoteComponentProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`relative p-6 bg-gradient-to-br from-primary-500 to-primary-700 text-white ${className}`}
+      className={`relative p-6 bg-gradient-to-br from-primary-500 to-primary-700 text-white h-full min-h-[200px] flex flex-col ${className}`}
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-6">
         <div className="flex items-center space-x-2">
           <Quote className="h-6 w-6 text-primary-100" />
           <h2 className="text-lg font-semibold text-white">
@@ -64,12 +64,13 @@ const MotivationalQuoteComponent: React.FC<MotivationalQuoteComponentProps> = ({
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
+        className="flex-1 flex flex-col justify-center"
       >
-        <blockquote className="text-lg font-medium text-white mb-4 leading-relaxed">
-          "{quote.text}"
+        <blockquote className="text-lg font-medium text-white mb-6 leading-relaxed flex-1 flex items-center">
+          <span>"{quote.text}"</span>
         </blockquote>
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <cite className="text-primary-100 font-medium">
             — {quote.author}
           </cite>
