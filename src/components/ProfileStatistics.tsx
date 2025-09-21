@@ -11,11 +11,16 @@ interface ProfileStatisticsProps {
 const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading }) => {
   if (isLoading || !stats) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="card animate-pulse">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 animate-pulse">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              </div>
+              <div className="flex-shrink-0 w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg ml-3"></div>
+            </div>
           </div>
         ))}
       </div>
@@ -26,7 +31,7 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
     {
       icon: Target,
       label: 'Total Habits',
-      value: stats.totalHabits,
+      value: stats.totalHabits || 0,
       color: 'text-blue-600 dark:text-blue-400',
       bgColor: 'bg-blue-100 dark:bg-blue-900',
       suffix: ''
@@ -34,7 +39,7 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
     {
       icon: Calendar,
       label: 'Completed Today',
-      value: stats.completedToday,
+      value: stats.completedToday || 0,
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-100 dark:bg-green-900',
       suffix: ''
@@ -42,7 +47,7 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
     {
       icon: Flame,
       label: 'Current Streak',
-      value: stats.currentStreak,
+      value: stats.currentStreak || 0,
       color: 'text-orange-600 dark:text-orange-400',
       bgColor: 'bg-orange-100 dark:bg-orange-900',
       suffix: ' days'
@@ -50,7 +55,7 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
     {
       icon: Award,
       label: 'Longest Streak',
-      value: stats.longestStreak,
+      value: stats.longestStreak || 0,
       color: 'text-purple-600 dark:text-purple-400',
       bgColor: 'bg-purple-100 dark:bg-purple-900',
       suffix: ' days'
@@ -58,7 +63,7 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
     {
       icon: TrendingUp,
       label: 'Success Rate',
-      value: Math.round(stats.successPercentage),
+      value: Math.round(stats.successPercentage || 0),
       color: 'text-emerald-600 dark:text-emerald-400',
       bgColor: 'bg-emerald-100 dark:bg-emerald-900',
       suffix: '%'
@@ -66,7 +71,7 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
     {
       icon: BarChart3,
       label: 'Total Completions',
-      value: stats.totalCompletions,
+      value: stats.totalCompletions || 0,
       color: 'text-indigo-600 dark:text-indigo-400',
       bgColor: 'bg-indigo-100 dark:bg-indigo-900',
       suffix: ''
@@ -82,18 +87,18 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {statItems.map((item, index) => (
           <motion.div
             key={item.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="card hover:shadow-lg transition-shadow"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 truncate">
                   {item.label}
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -103,8 +108,8 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
                   </span>
                 </p>
               </div>
-              <div className={`p-3 rounded-lg ${item.bgColor}`}>
-                <item.icon className={`h-6 w-6 ${item.color}`} />
+              <div className={`flex-shrink-0 p-3 rounded-lg ${item.bgColor} ml-3`}>
+                <item.icon className={`h-6 w-6 ${item.color}`} style={{ minWidth: '24px', minHeight: '24px' }} />
               </div>
             </div>
           </motion.div>
@@ -116,30 +121,30 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.6 }}
-        className="card"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6"
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Weekly Performance
           </h3>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            Average: {stats.weeklyAverage.toFixed(1)} completions/day
+            Average: {(stats.weeklyAverage || 0).toFixed(1)} completions/day
           </div>
         </div>
         
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${Math.min((stats.weeklyAverage / 10) * 100, 100)}%` }}
+            animate={{ width: `${Math.min(((stats.weeklyAverage || 0) / 10) * 100, 100)}%` }}
             transition={{ duration: 1, delay: 0.8 }}
             className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full"
           />
         </div>
         
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          {stats.weeklyAverage >= 7 ? 'Excellent performance!' : 
-           stats.weeklyAverage >= 5 ? 'Good progress!' : 
-           stats.weeklyAverage >= 3 ? 'Keep it up!' : 
+          {(stats.weeklyAverage || 0) >= 7 ? 'Excellent performance!' : 
+           (stats.weeklyAverage || 0) >= 5 ? 'Good progress!' : 
+           (stats.weeklyAverage || 0) >= 3 ? 'Keep it up!' : 
            'Room for improvement'}
         </p>
       </motion.div>

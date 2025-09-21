@@ -28,7 +28,8 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
     avatarIcon: user.avatarIcon || '',
     profilePhoto: user.profilePhoto || '',
     shareProgress: user.shareProgress,
-    publicProfile: user.publicProfile
+    publicProfile: user.publicProfile,
+    privacyLevel: user.privacyLevel || (user.publicProfile ? 'public' : 'private')
   });
 
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);
@@ -65,8 +66,15 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('=== FORM SUBMIT DEBUG ===');
+    console.log('Form data being submitted:', formData);
+    console.log('Original user data:', user);
+    
     if (validateForm()) {
+      console.log('Form validation passed, calling onSave...');
       onSave(formData);
+    } else {
+      console.log('Form validation failed:', errors);
     }
   };
 
@@ -307,45 +315,73 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </h3>
               
               <div className="space-y-3">
-                <label className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Eye className="h-4 w-4 text-gray-500" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Public Profile
-                      </span>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Allow others to view your profile
-                      </p>
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.publicProfile}
-                    onChange={(e) => handleInputChange('publicProfile', e.target.checked)}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                </label>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Choose who can see your profile and progress
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <input
+                        type="radio"
+                        name="privacyLevel"
+                        value="public"
+                        checked={formData.privacyLevel === 'public'}
+                        onChange={(e) => handleInputChange('privacyLevel', e.target.value)}
+                        className="text-primary-600 focus:ring-primary-500"
+                      />
+                      <Eye className="h-4 w-4 text-green-500" />
+                      <div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Public
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Everyone can see your profile and progress
+                        </p>
+                      </div>
+                    </label>
 
-                <label className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <EyeOff className="h-4 w-4 text-gray-500" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Share Progress
-                      </span>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Allow friends to see your habit progress
-                      </p>
-                    </div>
+                    <label className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <input
+                        type="radio"
+                        name="privacyLevel"
+                        value="friends"
+                        checked={formData.privacyLevel === 'friends'}
+                        onChange={(e) => handleInputChange('privacyLevel', e.target.value)}
+                        className="text-primary-600 focus:ring-primary-500"
+                      />
+                      <User className="h-4 w-4 text-blue-500" />
+                      <div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Friends Only
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Only your friends can see your progress
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <input
+                        type="radio"
+                        name="privacyLevel"
+                        value="private"
+                        checked={formData.privacyLevel === 'private'}
+                        onChange={(e) => handleInputChange('privacyLevel', e.target.value)}
+                        className="text-primary-600 focus:ring-primary-500"
+                      />
+                      <EyeOff className="h-4 w-4 text-red-500" />
+                      <div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Private
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Keep your profile and progress private
+                        </p>
+                      </div>
+                    </label>
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.shareProgress}
-                    onChange={(e) => handleInputChange('shareProgress', e.target.checked)}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                </label>
+                </div>
               </div>
             </div>
 

@@ -36,7 +36,7 @@ const MotivationalQuoteComponent: React.FC<MotivationalQuoteComponentProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`card bg-gradient-to-br from-primary-500 to-primary-700 text-white ${className}`}
+      className={`relative p-6 bg-gradient-to-br from-primary-500 to-primary-700 text-white ${className}`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-2">

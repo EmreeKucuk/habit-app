@@ -10,6 +10,7 @@ import Layout from '../components/Layout';
 import HabitCard from '../components/HabitCard';
 import HabitDeletionModal from '../components/HabitDeletionModal';
 import LoadingSpinner from '../components/LoadingSpinner';
+import FriendsCard from '../components/FriendsCard';
 
 // Helper function to calculate streak
 function calculateStreak(completedDates: string[]): number {
@@ -350,204 +351,212 @@ const Dashboard: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="space-y-6">
-        {/* Header with Stats */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">Welcome back, {user?.username}!</h1>
-              <p className="text-primary-100">Here's your habit progress for today</p>
+      <div className="flex flex-col xl:flex-row gap-6">
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
+          {/* Header with Stats */}
+          <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-xl p-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-2xl font-bold mb-2">Welcome back, {user?.username}!</h1>
+                <p className="text-primary-100">Here's your habit progress for today</p>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold">{user?.xp} XP</div>
+                <div className="text-primary-200">Level {user?.level}</div>
+              </div>
             </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold">{user?.xp} XP</div>
-              <div className="text-primary-200">Level {user?.level}</div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{todayStats.completed}/{todayStats.total}</div>
+                    <div className="text-primary-200">Today's Progress</div>
+                  </div>
+                  <Calendar className="h-8 w-8 text-primary-200" />
+                </div>
+                <div className="mt-2 bg-white/20 rounded-full h-2">
+                  <div 
+                    className="bg-white rounded-full h-2 transition-all duration-300"
+                    style={{ width: `${todayStats.percentage}%` }}
+                  />
+                </div>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{habitsData?.habits?.length || 0}</div>
+                    <div className="text-primary-200">Total Habits</div>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-primary-200" />
+                </div>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">
+                      {Math.max(...(habitsData?.habits?.map(h => h.streak) || [0]))}
+                    </div>
+                    <div className="text-primary-200">Best Streak</div>
+                  </div>
+                  <Flame className="h-8 w-8 text-primary-200" />
+                </div>
+              </div>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white/10 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold">{todayStats.completed}/{todayStats.total}</div>
-                  <div className="text-primary-200">Today's Progress</div>
-                </div>
-                <Calendar className="h-8 w-8 text-primary-200" />
-              </div>
-              <div className="mt-2 bg-white/20 rounded-full h-2">
-                <div 
-                  className="bg-white rounded-full h-2 transition-all duration-300"
-                  style={{ width: `${todayStats.percentage}%` }}
+
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search habits..."
+                  value={filters.search}
+                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                  className="input-field pl-10 w-full sm:w-64"
                 />
               </div>
+
+              {/* Filter Toggle */}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="btn-secondary"
+              >
+                <Filter className="h-4 w-4" />
+                Filters
+              </button>
+
+              {/* Sort */}
+              <select
+                value={`${sorting.field}-${sorting.order}`}
+                onChange={(e) => {
+                  const [field, order] = e.target.value.split('-');
+                  setSorting({ field: field as SortType, order: order as 'asc' | 'desc' });
+                }}
+                className="input-field"
+              >
+                <option value="created-desc">Newest First</option>
+                <option value="created-asc">Oldest First</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+                <option value="streak-desc">Highest Streak</option>
+                <option value="streak-asc">Lowest Streak</option>
+              </select>
             </div>
-            
-            <div className="bg-white/10 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold">{habitsData?.habits?.length || 0}</div>
-                  <div className="text-primary-200">Total Habits</div>
-                </div>
-                <TrendingUp className="h-8 w-8 text-primary-200" />
-              </div>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold">
-                    {Math.max(...(habitsData?.habits?.map(h => h.streak) || [0]))}
+
+            <Link to="/add-habit" className="btn-primary">
+              <Plus className="h-4 w-4" />
+              Add Habit
+            </Link>
+          </div>
+
+          {/* Filters Panel */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="card"
+              >
+                <h3 className="text-lg font-semibold mb-4">Filters</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Category
+                    </label>
+                    <select
+                      value={filters.category}
+                      onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value as HabitCategory | 'all' }))}
+                      className="input-field"
+                    >
+                      <option value="all">All Categories</option>
+                      <option value="health">Health</option>
+                      <option value="sport">Sport</option>
+                      <option value="learning">Learning</option>
+                      <option value="productivity">Productivity</option>
+                      <option value="mindfulness">Mindfulness</option>
+                      <option value="social">Social</option>
+                      <option value="other">Other</option>
+                    </select>
                   </div>
-                  <div className="text-primary-200">Best Streak</div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={filters.status}
+                      onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as FilterType }))}
+                      className="input-field"
+                    >
+                      <option value="all">All Habits</option>
+                      <option value="completed">Completed Today</option>
+                      <option value="pending">Pending Today</option>
+                    </select>
+                  </div>
                 </div>
-                <Flame className="h-8 w-8 text-primary-200" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search habits..."
-                value={filters.search}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="input-field pl-10 w-full sm:w-64"
-              />
-            </div>
-
-            {/* Filter Toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="btn-secondary"
-            >
-              <Filter className="h-4 w-4" />
-              Filters
-            </button>
-
-            {/* Sort */}
-            <select
-              value={`${sorting.field}-${sorting.order}`}
-              onChange={(e) => {
-                const [field, order] = e.target.value.split('-');
-                setSorting({ field: field as SortType, order: order as 'asc' | 'desc' });
-              }}
-              className="input-field"
-            >
-              <option value="created-desc">Newest First</option>
-              <option value="created-asc">Oldest First</option>
-              <option value="name-asc">Name A-Z</option>
-              <option value="name-desc">Name Z-A</option>
-              <option value="streak-desc">Highest Streak</option>
-              <option value="streak-asc">Lowest Streak</option>
-            </select>
-          </div>
-
-          <Link to="/add-habit" className="btn-primary">
-            <Plus className="h-4 w-4" />
-            Add Habit
-          </Link>
-        </div>
-
-        {/* Filters Panel */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="card"
-            >
-              <h3 className="text-lg font-semibold mb-4">Filters</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={filters.category}
-                    onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value as HabitCategory | 'all' }))}
-                    className="input-field"
-                  >
-                    <option value="all">All Categories</option>
-                    <option value="health">Health</option>
-                    <option value="sport">Sport</option>
-                    <option value="learning">Learning</option>
-                    <option value="productivity">Productivity</option>
-                    <option value="mindfulness">Mindfulness</option>
-                    <option value="social">Social</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={filters.status}
-                    onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as FilterType }))}
-                    className="input-field"
-                  >
-                    <option value="all">All Habits</option>
-                    <option value="completed">Completed Today</option>
-                    <option value="pending">Pending Today</option>
-                  </select>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Habits Grid */}
-        {filteredHabits.length === 0 ? (
-          <div className="text-center py-12">
-            <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {filters.search || filters.status !== 'all' || filters.category !== 'all' 
-                ? 'No habits match your filters' 
-                : 'No habits yet'
-              }
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {filters.search || filters.status !== 'all' || filters.category !== 'all'
-                ? 'Try adjusting your filters to see more habits.'
-                : 'Start building healthy habits today!'
-              }
-            </p>
-            {(!filters.search && filters.status === 'all' && filters.category === 'all') && (
-              <Link to="/add-habit" className="btn-primary">
-                Create Your First Habit
-              </Link>
+              </motion.div>
             )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence mode="popLayout">
-              {filteredHabits.map((habit) => (
-                <motion.div
-                  key={habit.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <HabitCard
-                    habit={habit}
-                    onComplete={() => handleCompleteHabit(habit.id)}
-                    onDelete={() => handleDeleteHabit(habit.id)}
-                    isLoading={loadingHabitId === habit.id}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
+          </AnimatePresence>
+
+          {/* Habits Grid */}
+          {filteredHabits.length === 0 ? (
+            <div className="text-center py-12">
+              <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                {filters.search || filters.status !== 'all' || filters.category !== 'all' 
+                  ? 'No habits match your filters' 
+                  : 'No habits yet'
+                }
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                {filters.search || filters.status !== 'all' || filters.category !== 'all'
+                  ? 'Try adjusting your filters to see more habits.'
+                  : 'Start building healthy habits today!'
+                }
+              </p>
+              {(!filters.search && filters.status === 'all' && filters.category === 'all') && (
+                <Link to="/add-habit" className="btn-primary">
+                  Create Your First Habit
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <AnimatePresence mode="popLayout">
+                {filteredHabits.map((habit) => (
+                  <motion.div
+                    key={habit.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <HabitCard
+                      habit={habit}
+                      onComplete={() => handleCompleteHabit(habit.id)}
+                      onDelete={() => handleDeleteHabit(habit.id)}
+                      isLoading={loadingHabitId === habit.id}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar */}
+        <div className="w-full xl:w-80 space-y-6">
+          <FriendsCard />
+        </div>
       </div>
 
       {/* Habit Deletion Modal */}

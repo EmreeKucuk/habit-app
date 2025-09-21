@@ -105,6 +105,14 @@ router.get('/', authenticateToken, async (req, res) => {
       
       return {
         ...habit,
+        // Convert database column names to camelCase for frontend
+        createdAt: habit.created_at,
+        updatedAt: habit.updated_at,
+        userId: habit.user_id,
+        // Remove the original snake_case properties
+        created_at: undefined,
+        updated_at: undefined,
+        user_id: undefined,
         completedDates,
         streak
       };

@@ -182,6 +182,14 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     );
     const totalCompletions = totalCompletionsResult.count;
     
+    // Get completions for today
+    const today = new Date().toISOString().split('T')[0];
+    const completedTodayResult = await db.get(
+      'SELECT COUNT(*) as count FROM habit_completions WHERE user_id = ? AND date = ?',
+      [userId, today]
+    );
+    const completedToday = completedTodayResult.count;
+    
     // Get current streaks for all habits
     const habits = await db.all(
       'SELECT id FROM habits WHERE user_id = ?',
@@ -244,6 +252,32 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     const expectedCompletions = totalHabits * 30; // Rough estimate for last 30 days
     const successRate = expectedCompletions > 0 ? Math.round((totalCompletions / expectedCompletions) * 100) : 0;
     
+    // Calculate weekly average (last 7 days)
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekAgoString = weekAgo.toISOString().split('T')[0];
+    
+    const weeklyCompletionsResult = await db.get(
+      'SELECT COUNT(*) as count FROM habit_completions WHERE user_id = ? AND date >= ?',
+      [userId, weekAgoString]
+    );
+    const weeklyAverage = weeklyCompletionsResult.count / 7;
+    
+    // Get category breakdown
+    const categoryBreakdownResult = await db.all(
+      `SELECT h.category, COUNT(hc.id) as completions 
+       FROM habits h 
+       LEFT JOIN habit_completions hc ON h.id = hc.habit_id 
+       WHERE h.user_id = ? 
+       GROUP BY h.category`,
+      [userId]
+    );
+    
+    const categoryBreakdown = {};
+    categoryBreakdownResult.forEach(row => {
+      categoryBreakdown[row.category] = row.completions;
+    });
+    
     // Get most active category
     const categoryStats = await db.all(
       `SELECT h.category, COUNT(hc.id) as completions 
@@ -261,9 +295,12 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     res.json({
       totalHabits,
       totalCompletions,
+      completedToday,
       currentStreak,
       longestStreak,
-      successRate,
+      successPercentage: successRate,
+      weeklyAverage: Number(weeklyAverage.toFixed(1)),
+      categoryBreakdown,
       mostActiveCategory: mostActiveCategory ? {
         name: mostActiveCategory.category,
         completions: mostActiveCategory.completions

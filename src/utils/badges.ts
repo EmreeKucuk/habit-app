@@ -2,6 +2,7 @@ import { Badge, Habit, User } from '../types';
 
 // Predefined badges with their earning criteria
 export const AVAILABLE_BADGES: Omit<Badge, 'earned' | 'earnedAt'>[] = [
+  // Getting Started Badges
   {
     id: 'first-habit',
     name: 'Getting Started',
@@ -9,40 +10,62 @@ export const AVAILABLE_BADGES: Omit<Badge, 'earned' | 'earnedAt'>[] = [
     icon: '🌱'
   },
   {
-    id: 'first-week',
+    id: 'first-completion',
+    name: 'First Step',
+    description: 'Completed your first habit',
+    icon: '✅'
+  },
+  {
+    id: 'profile-setup',
+    name: 'Profile Master',
+    description: 'Complete your profile with photo and bio',
+    icon: '👤'
+  },
+
+  // Streak Badges
+  {
+    id: 'three-day-streak',
+    name: 'Streak Starter',
+    description: 'Complete a habit for 3 days straight',
+    icon: '🔥'
+  },
+  {
+    id: 'week-warrior',
     name: 'Week Warrior',
-    description: 'Completed a habit for 7 days straight',
+    description: 'Complete a habit for 7 days straight',
     icon: '📅'
   },
   {
-    id: 'first-month',
+    id: 'two-week-champion',
+    name: 'Two Week Champion',
+    description: 'Complete a habit for 14 days straight',
+    icon: '🏅'
+  },
+  {
+    id: 'monthly-master',
     name: 'Monthly Master',
-    description: 'Completed a habit for 30 days straight',
+    description: 'Complete a habit for 30 days straight',
     icon: '🏆'
   },
   {
-    id: 'early-bird',
-    name: 'Early Bird',
-    description: 'Complete 5 habits before 8 AM',
-    icon: '🌅'
+    id: 'hundred-day-legend',
+    name: 'Hundred Day Legend',
+    description: 'Complete a habit for 100 days straight',
+    icon: '👑'
+  },
+
+  // Volume Badges
+  {
+    id: 'ten-completions',
+    name: 'Getting Momentum',
+    description: 'Complete 10 total habit instances',
+    icon: '⚡'
   },
   {
-    id: 'habit-collector',
-    name: 'Habit Collector',
-    description: 'Have 10 active habits',
-    icon: '📚'
-  },
-  {
-    id: 'perfectionist',
-    name: 'Perfectionist',
-    description: 'Complete all habits for 3 days in a row',
-    icon: '💎'
-  },
-  {
-    id: 'category-master',
-    name: 'Category Master',
-    description: 'Have habits in all 7 categories',
-    icon: '🎯'
+    id: 'fifty-completions',
+    name: 'Half Century',
+    description: 'Complete 50 total habit instances',
+    icon: '🎖️'
   },
   {
     id: 'hundred-club',
@@ -51,28 +74,134 @@ export const AVAILABLE_BADGES: Omit<Badge, 'earned' | 'earnedAt'>[] = [
     icon: '💯'
   },
   {
-    id: 'streak-legend',
-    name: 'Streak Legend',
-    description: 'Achieve a 50-day streak',
-    icon: '🔥'
+    id: 'five-hundred-club',
+    name: 'Five Hundred Club',
+    description: 'Complete 500 total habit instances',
+    icon: '🌟'
+  },
+  {
+    id: 'thousand-club',
+    name: 'Thousand Club',
+    description: 'Complete 1000 total habit instances',
+    icon: '💎'
+  },
+
+  // Habit Collection Badges
+  {
+    id: 'habit-collector',
+    name: 'Habit Collector',
+    description: 'Have 5 active habits',
+    icon: '📚'
+  },
+  {
+    id: 'habit-enthusiast',
+    name: 'Habit Enthusiast',
+    description: 'Have 10 active habits',
+    icon: '🎯'
+  },
+  {
+    id: 'habit-master',
+    name: 'Habit Master',
+    description: 'Have 20 active habits',
+    icon: '🧠'
+  },
+
+  // Category Badges
+  {
+    id: 'health-focused',
+    name: 'Health Focused',
+    description: 'Complete 25 health-related habits',
+    icon: '💪'
+  },
+  {
+    id: 'fitness-fanatic',
+    name: 'Fitness Fanatic',
+    description: 'Complete 25 fitness habits',
+    icon: '🏃'
+  },
+  {
+    id: 'mindful-master',
+    name: 'Mindful Master',
+    description: 'Complete 25 mindfulness habits',
+    icon: '🧘'
+  },
+  {
+    id: 'productivity-pro',
+    name: 'Productivity Pro',
+    description: 'Complete 25 productivity habits',
+    icon: '�'
   },
   {
     id: 'social-butterfly',
     name: 'Social Butterfly',
-    description: 'Add 5 friends',
+    description: 'Complete 25 social habits',
     icon: '🦋'
   },
+
+  // Time-based Badges
   {
-    id: 'level-up',
-    name: 'Level Up',
-    description: 'Reach level 10',
-    icon: '⭐'
+    id: 'early-bird',
+    name: 'Early Bird',
+    description: 'Complete 10 habits before 8 AM',
+    icon: '🌅'
   },
   {
-    id: 'overachiever',
-    name: 'Overachiever',
-    description: 'Maintain 95% completion rate for a month',
+    id: 'night-owl',
+    name: 'Night Owl',
+    description: 'Complete 10 habits after 10 PM',
+    icon: '🦉'
+  },
+  {
+    id: 'weekend-warrior',
+    name: 'Weekend Warrior',
+    description: 'Complete habits on 10 different weekends',
+    icon: '🎉'
+  },
+
+  // Consistency Badges
+  {
+    id: 'perfectionist',
+    name: 'Perfectionist',
+    description: 'Complete all habits for 7 days in a row',
+    icon: '💎'
+  },
+  {
+    id: 'consistency-king',
+    name: 'Consistency King',
+    description: 'Complete habits for 30 days without missing any',
     icon: '👑'
+  },
+  {
+    id: 'daily-dedication',
+    name: 'Daily Dedication',
+    description: 'Complete at least one habit every day for 30 days',
+    icon: '🔄'
+  },
+
+  // Special Achievement Badges
+  {
+    id: 'comeback-story',
+    name: 'Comeback Story',
+    description: 'Restart a habit after a 7+ day break',
+    icon: '🔄'
+  },
+  {
+    id: 'habit-sharer',
+    name: 'Habit Sharer',
+    description: 'Make your profile public and share progress',
+    icon: '🤝'
+  },
+  {
+    id: 'goal-crusher',
+    name: 'Goal Crusher',
+    description: 'Complete 90% of your weekly habit goals',
+    icon: '🎯'
+  },
+  {
+    id: 'zen-master',
+    name: 'Zen Master',
+    description: 'Maintain a 30-day meditation streak',
+    icon: '☯️'
   }
 ];
 
@@ -85,20 +214,36 @@ export function calculateEarnedBadges(user: User, habits: Habit[]): Badge[] {
   const addBadge = (badgeId: string, earnedAt?: Date) => {
     const badge = AVAILABLE_BADGES.find(b => b.id === badgeId);
     if (badge) {
+      let earnedAtISO: string;
+      try {
+        earnedAtISO = earnedAt && !isNaN(earnedAt.getTime()) ? earnedAt.toISOString() : now.toISOString();
+      } catch (error) {
+        console.warn('Invalid date for badge:', badgeId, earnedAt);
+        earnedAtISO = now.toISOString();
+      }
+      
       earnedBadges.push({
         ...badge,
         earned: true,
-        earnedAt: earnedAt?.toISOString() || now.toISOString()
+        earnedAt: earnedAtISO
       });
     }
   };
 
   // Getting Started - Created first habit
   if (habits.length > 0) {
-    const firstHabit = habits.sort((a, b) => 
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    )[0];
-    addBadge('first-habit', new Date(firstHabit.createdAt));
+    const firstHabit = habits.sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0);
+      const dateB = new Date(b.createdAt || 0);
+      return dateA.getTime() - dateB.getTime();
+    })[0];
+    
+    const createdDate = new Date(firstHabit.createdAt || Date.now());
+    if (!isNaN(createdDate.getTime())) {
+      addBadge('first-habit', createdDate);
+    } else {
+      addBadge('first-habit'); // Use current time as fallback
+    }
   }
 
   // Week Warrior - 7 day streak

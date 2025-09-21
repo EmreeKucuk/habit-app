@@ -13,6 +13,7 @@ export interface User {
   level: number;
   shareProgress: boolean;
   publicProfile: boolean;
+  privacyLevel?: 'public' | 'friends' | 'private'; // New field for unified privacy
   joinedAt: string;
   emailVerified: boolean;
   createdAt: string;
@@ -191,4 +192,5 @@ export interface ProfileUpdateRequest {
   profilePhoto?: string;
   shareProgress?: boolean;
   publicProfile?: boolean;
+  privacyLevel?: 'public' | 'friends' | 'private'; // New field for unified privacy
 }

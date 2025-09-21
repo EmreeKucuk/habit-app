@@ -106,7 +106,25 @@ class ApiClient {
 
     me: async (): Promise<{ user: User }> => {
       const response = await this.client.get('/auth/me');
-      return response.data;
+      const userData = response.data.user;
+      
+      // Transform snake_case to camelCase
+      const transformedUser = {
+        ...userData,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
+        avatarColor: userData.avatar_color,
+        avatarIcon: userData.avatar_icon,
+        profilePhoto: userData.profile_photo,
+        shareProgress: userData.share_progress,
+        publicProfile: userData.public_profile,
+        emailVerified: userData.email_verified,
+        createdAt: userData.created_at,
+        updatedAt: userData.updated_at,
+        joinedAt: userData.created_at
+      };
+      
+      return { user: transformedUser };
     },
 
     refreshToken: async (refreshToken: string): Promise<{ token: string; refreshToken: string }> => {
@@ -152,12 +170,44 @@ class ApiClient {
 
     getMyProfile: async (): Promise<User> => {
       const response = await this.client.get('/users/me/profile');
-      return response.data;
+      const userData = response.data;
+      
+      // Transform snake_case to camelCase
+      return {
+        ...userData,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
+        avatarColor: userData.avatar_color,
+        avatarIcon: userData.avatar_icon,
+        profilePhoto: userData.profile_photo,
+        shareProgress: userData.share_progress,
+        publicProfile: userData.public_profile,
+        emailVerified: userData.email_verified,
+        createdAt: userData.created_at,
+        updatedAt: userData.updated_at,
+        joinedAt: userData.created_at
+      };
     },
 
     updateProfile: async (data: ProfileUpdateRequest): Promise<User> => {
       const response = await this.client.put('/users/profile', data);
-      return response.data;
+      const userData = response.data;
+      
+      // Transform snake_case to camelCase
+      return {
+        ...userData,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
+        avatarColor: userData.avatar_color,
+        avatarIcon: userData.avatar_icon,
+        profilePhoto: userData.profile_photo,
+        shareProgress: userData.share_progress,
+        publicProfile: userData.public_profile,
+        emailVerified: userData.email_verified,
+        createdAt: userData.created_at,
+        updatedAt: userData.updated_at,
+        joinedAt: userData.created_at
+      };
     },
 
     getStats: async (): Promise<ProfileStats> => {
