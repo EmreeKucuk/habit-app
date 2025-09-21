@@ -154,6 +154,7 @@ class DatabaseService {
             level INTEGER DEFAULT 1,
             share_progress BOOLEAN DEFAULT true,
             public_profile BOOLEAN DEFAULT false,
+            privacy_level VARCHAR(20) DEFAULT 'public',
             email_verified BOOLEAN DEFAULT false,
             verification_token VARCHAR(255),
             reset_token VARCHAR(255),
@@ -252,6 +253,7 @@ class DatabaseService {
             level INTEGER DEFAULT 1,
             share_progress BOOLEAN DEFAULT true,
             public_profile BOOLEAN DEFAULT false,
+            privacy_level TEXT DEFAULT 'public',
             email_verified BOOLEAN DEFAULT false,
             verification_token TEXT,
             reset_token TEXT,
@@ -361,6 +363,9 @@ class DatabaseService {
     await this.addColumnIfNotExists('users', 'age', 'INTEGER');
     await this.addColumnIfNotExists('users', 'avatar_icon', this.dbType === 'postgresql' ? 'VARCHAR(50)' : 'TEXT');
     await this.addColumnIfNotExists('users', 'profile_photo', 'TEXT');
+    
+    // Add privacy level column
+    await this.addColumnIfNotExists('users', 'privacy_level', this.dbType === 'postgresql' ? "VARCHAR(20) DEFAULT 'public'" : "TEXT DEFAULT 'public'");
     
     console.log('✓ Database migrations completed');
   }

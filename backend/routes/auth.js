@@ -317,7 +317,7 @@ router.post('/reset-password', [
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const user = await getDb().get(
-      'SELECT id, username, email, first_name, last_name, age, bio, avatar_color, avatar_icon, profile_photo, xp, level, share_progress, public_profile, email_verified, created_at FROM users WHERE id = ?',
+      'SELECT id, username, email, first_name, last_name, age, bio, avatar_color, avatar_icon, profile_photo, xp, level, share_progress, public_profile, privacy_level, email_verified, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 

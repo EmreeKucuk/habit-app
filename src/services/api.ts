@@ -118,6 +118,7 @@ class ApiClient {
         profilePhoto: userData.profile_photo,
         shareProgress: userData.share_progress,
         publicProfile: userData.public_profile,
+        privacyLevel: userData.privacy_level,
         emailVerified: userData.email_verified,
         createdAt: userData.created_at,
         updatedAt: userData.updated_at,
@@ -182,6 +183,7 @@ class ApiClient {
         profilePhoto: userData.profile_photo,
         shareProgress: userData.share_progress,
         publicProfile: userData.public_profile,
+        privacyLevel: userData.privacy_level,
         emailVerified: userData.email_verified,
         createdAt: userData.created_at,
         updatedAt: userData.updated_at,
@@ -203,6 +205,7 @@ class ApiClient {
         profilePhoto: userData.profile_photo,
         shareProgress: userData.share_progress,
         publicProfile: userData.public_profile,
+        privacyLevel: userData.privacy_level,
         emailVerified: userData.email_verified,
         createdAt: userData.created_at,
         updatedAt: userData.updated_at,
@@ -213,6 +216,43 @@ class ApiClient {
     getStats: async (): Promise<ProfileStats> => {
       const response = await this.client.get('/users/me/stats');
       return response.data;
+    },
+
+    getDiscoverUsers: async (params?: {
+      search?: string;
+      sortBy?: 'xp' | 'level' | 'streak' | 'recent';
+      filterBy?: 'all' | 'public' | 'active';
+    }): Promise<User[]> => {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.append('search', params.search);
+      if (params?.sortBy) searchParams.append('sortBy', params.sortBy);
+      if (params?.filterBy) searchParams.append('filterBy', params.filterBy);
+      
+      const response = await this.client.get(`/users/discover?${searchParams.toString()}`);
+      const users = response.data;
+      
+      // Transform each user's snake_case to camelCase
+      return users.map((userData: any) => ({
+        ...userData,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
+        avatarColor: userData.avatar_color,
+        avatarIcon: userData.avatar_icon,
+        profilePhoto: userData.profile_photo,
+        shareProgress: userData.share_progress,
+        publicProfile: userData.public_profile,
+        privacyLevel: userData.privacy_level,
+        emailVerified: userData.email_verified,
+        createdAt: userData.created_at,
+        updatedAt: userData.updated_at,
+        joinedAt: userData.created_at,
+        totalHabits: userData.total_habits,
+        highestStreak: userData.highest_streak,
+        successPercentage: userData.success_percentage,
+        friendStatus: userData.friendStatus,
+        mutualFriends: userData.mutualFriends,
+        recentActivity: userData.recentActivity
+      }));
     },
   };
 
@@ -225,6 +265,21 @@ class ApiClient {
 
     sendRequest: async (data: { userId: string }): Promise<{ message: string }> => {
       const response = await this.client.post('/friends/request', data);
+      return response.data;
+    },
+
+    acceptRequest: async (data: { userId: string }): Promise<{ message: string }> => {
+      const response = await this.client.post('/friends/accept', data);
+      return response.data;
+    },
+
+    rejectRequest: async (data: { userId: string }): Promise<{ message: string }> => {
+      const response = await this.client.post('/friends/reject', data);
+      return response.data;
+    },
+
+    remove: async (data: { userId: string }): Promise<{ message: string }> => {
+      const response = await this.client.delete('/friends/remove', { data });
       return response.data;
     },
   };
