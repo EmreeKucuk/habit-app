@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Plus, Search, Filter, Star } from 'lucide-react';
+import { Plus, Search, Filter, Star, AlertTriangle } from 'lucide-react';
 import Layout from '../components/Layout';
-import api from '../services/api';
+import { habitsApi } from '../services/api';
 import { HabitCategory, HabitFrequency } from '../types';
 
 interface HabitTemplate {
@@ -201,34 +202,65 @@ const HABIT_TEMPLATES: HabitTemplate[] = [
 
 const Templates: React.FC = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<HabitCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<'popularity' | 'difficulty' | 'name'>('popularity');
 
-  const handleUseTemplate = async (template: HabitTemplate) => {
-    setLoading(template.id);
-    try {
-      await api.habits.create({
-        name: template.name,
-        notes: template.description,
-        category: template.category,
-        frequency: template.frequency,
-        target: template.target,
-        unit: template.unit,
-        color: template.color,
-        icon: template.icon
-      });
+  // Fetch existing habits to check for duplicates
+  const { data: existingHabits } = useQuery({
+    queryKey: ['habits'],
+    queryFn: () => habitsApi.getAll(),
+  });
 
+  // Create habit mutation
+  const createHabitMutation = useMutation({
+    mutationFn: (habitData: any) => habitsApi.create(habitData),
+    onSuccess: (data, variables) => {
+      // Invalidate habits queries to refresh the dashboard
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      
       navigate('/dashboard', {
-        state: { message: `Added "${template.name}" habit from template!` }
+        state: { message: `Added "${variables.name}" habit from template!` }
       });
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       console.error('Error creating habit from template:', error);
       alert('Failed to create habit. Please try again.');
-    } finally {
-      setLoading(null);
     }
+  });
+
+  const checkForDuplicate = (templateName: string): boolean => {
+    if (!existingHabits?.habits) return false;
+    return existingHabits.habits.some(habit => 
+      habit.name.toLowerCase() === templateName.toLowerCase()
+    );
+  };
+
+  const handleUseTemplate = async (template: HabitTemplate) => {
+    // Check for duplicate
+    if (checkForDuplicate(template.name)) {
+      const confirmed = window.confirm(
+        `⚠️ You already have a habit named "${template.name}".\n\n` +
+        'Adding duplicate habits can make tracking confusing and less effective.\n\n' +
+        'Are you sure you want to add this duplicate habit?'
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    createHabitMutation.mutate({
+      name: template.name,
+      notes: template.description,
+      category: template.category,
+      frequency: template.frequency,
+      target: template.target,
+      unit: template.unit,
+      color: template.color,
+      icon: template.icon
+    });
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -360,9 +392,17 @@ const Templates: React.FC = () => {
                     {template.icon}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
-                      {template.name}
-                    </h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                        {template.name}
+                      </h3>
+                      {checkForDuplicate(template.name) && (
+                        <div className="flex items-center space-x-1 text-amber-500 bg-amber-100 dark:bg-amber-900 px-2 py-1 rounded-full text-xs">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Already added</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center space-x-2 mt-1">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(template.difficulty)}`}>
                         {template.difficulty}
@@ -405,10 +445,19 @@ const Templates: React.FC = () => {
               {/* Action Button */}
               <button
                 onClick={() => handleUseTemplate(template)}
-                disabled={loading === template.id}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors font-medium"
+                disabled={createHabitMutation.isPending}
+                className={`w-full py-2 px-4 rounded-lg transition-colors font-medium ${
+                  checkForDuplicate(template.name)
+                    ? 'bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white'
+                }`}
               >
-                {loading === template.id ? 'Adding...' : 'Use This Template'}
+                {createHabitMutation.isPending 
+                  ? 'Adding...' 
+                  : checkForDuplicate(template.name)
+                    ? 'Add Duplicate'
+                    : 'Use This Template'
+                }
               </button>
             </motion.div>
           ))}

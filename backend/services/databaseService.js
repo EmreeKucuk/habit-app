@@ -143,8 +143,13 @@ class DatabaseService {
             username VARCHAR(50) UNIQUE NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
             password_hash VARCHAR(255) NOT NULL,
+            first_name VARCHAR(100),
+            last_name VARCHAR(100),
+            age INTEGER,
             bio TEXT,
             avatar_color VARCHAR(7) DEFAULT '#3b82f6',
+            avatar_icon VARCHAR(50),
+            profile_photo TEXT,
             xp INTEGER DEFAULT 0,
             level INTEGER DEFAULT 1,
             share_progress BOOLEAN DEFAULT true,
@@ -236,8 +241,13 @@ class DatabaseService {
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
+            first_name TEXT,
+            last_name TEXT,
+            age INTEGER,
             bio TEXT,
             avatar_color TEXT DEFAULT '#3b82f6',
+            avatar_icon TEXT,
+            profile_photo TEXT,
             xp INTEGER DEFAULT 0,
             level INTEGER DEFAULT 1,
             share_progress BOOLEAN DEFAULT true,
@@ -323,6 +333,38 @@ class DatabaseService {
     }
   }
 
+  async addColumnIfNotExists(tableName, columnName, columnDefinition) {
+    try {
+      if (this.dbType === 'postgresql') {
+        await this.run(`ALTER TABLE ${tableName} ADD COLUMN IF NOT EXISTS ${columnName} ${columnDefinition}`);
+      } else {
+        // SQLite doesn't support IF NOT EXISTS for columns, so we need to check first
+        const tableInfo = await this.query(`PRAGMA table_info(${tableName})`);
+        const columnExists = tableInfo.some(col => col.name === columnName);
+        
+        if (!columnExists) {
+          await this.run(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`);
+        }
+      }
+    } catch (error) {
+      // Column might already exist, which is fine
+      console.log(`Column ${columnName} might already exist in ${tableName}:`, error.message);
+    }
+  }
+
+  async migrateDatabase() {
+    console.log('Running database migrations...');
+    
+    // Add new profile columns to users table
+    await this.addColumnIfNotExists('users', 'first_name', this.dbType === 'postgresql' ? 'VARCHAR(100)' : 'TEXT');
+    await this.addColumnIfNotExists('users', 'last_name', this.dbType === 'postgresql' ? 'VARCHAR(100)' : 'TEXT');
+    await this.addColumnIfNotExists('users', 'age', 'INTEGER');
+    await this.addColumnIfNotExists('users', 'avatar_icon', this.dbType === 'postgresql' ? 'VARCHAR(50)' : 'TEXT');
+    await this.addColumnIfNotExists('users', 'profile_photo', 'TEXT');
+    
+    console.log('✓ Database migrations completed');
+  }
+
   async close() {
     if (this.dbType === 'postgresql') {
       await this.db.end();
@@ -345,6 +387,9 @@ const initDatabase = async () => {
       await dbService.run(sql);
       console.log(`✓ Created table: ${tableName}`);
     }
+
+    // Run migrations for existing databases
+    await dbService.migrateDatabase();
 
     console.log('Database initialized successfully');
     return dbService;

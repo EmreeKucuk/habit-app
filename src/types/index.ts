@@ -2,8 +2,13 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  age?: number;
   bio?: string;
   avatarColor: string;
+  avatarIcon?: string;
+  profilePhoto?: string;
   xp: number;
   level: number;
   shareProgress: boolean;
@@ -12,6 +17,10 @@ export interface User {
   emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  badges?: Badge[];
+  totalHabits?: number;
+  highestStreak?: number;
+  successPercentage?: number;
 }
 
 export interface Habit {
@@ -153,3 +162,33 @@ export type SortType =
   | 'created'
   | 'streak'
   | 'category';
+
+export interface ProfileStats {
+  totalHabits: number;
+  completedToday: number;
+  currentStreak: number;
+  longestStreak: number;
+  successPercentage: number;
+  totalCompletions: number;
+  weeklyAverage: number;
+  categoryBreakdown: { [key in HabitCategory]?: number };
+}
+
+export interface MotivationalQuote {
+  id: string;
+  text: string;
+  author: string;
+  category?: string;
+}
+
+export interface ProfileUpdateRequest {
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  age?: number;
+  bio?: string;
+  avatarIcon?: string;
+  profilePhoto?: string;
+  shareProgress?: boolean;
+  publicProfile?: boolean;
+}

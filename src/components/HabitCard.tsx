@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Flame, Trash2, MessageCircle, Calendar } from 'lucide-react';
 import { Habit } from '../types';
@@ -13,6 +13,64 @@ interface HabitCardProps {
 const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLoading }) => {
   const today = new Date().toISOString().split('T')[0];
   const isCompletedToday = habit.completedDates.includes(today);
+  
+  // Hold-to-complete state
+  const [holdProgress, setHoldProgress] = useState(0);
+  const [isHolding, setIsHolding] = useState(false);
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const HOLD_DURATION = 1200; // 1.2 seconds (shortened from 2 seconds)
+  
+  const startHold = () => {
+    if (isLoading || isCompletedToday) return;
+    
+    setIsHolding(true);
+    setHoldProgress(0);
+    
+    // Start progress animation
+    const startTime = Date.now();
+    progressTimerRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / HOLD_DURATION) * 100, 100);
+      setHoldProgress(progress);
+    }, 16); // ~60fps
+    
+    // Set timer for completion
+    holdTimerRef.current = setTimeout(() => {
+      onComplete();
+      resetHold();
+    }, HOLD_DURATION);
+  };
+  
+  const resetHold = () => {
+    setIsHolding(false);
+    setHoldProgress(0);
+    
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+  };
+  
+  const handleMouseDown = () => startHold();
+  const handleMouseUp = () => resetHold();
+  const handleMouseLeave = () => resetHold();
+  const handleTouchStart = () => startHold();
+  const handleTouchEnd = () => resetHold();
+
+  // Clean up timers on unmount
+  React.useEffect(() => {
+    return () => {
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+    };
+  }, []);
   
   const getCategoryColor = (category: string) => {
     const colors = {
@@ -189,19 +247,51 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
       {/* Actions */}
       <div className="flex items-center justify-between">
         <motion.button
-          onClick={onComplete}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           disabled={isLoading}
           whileTap={{ scale: 0.95 }}
-          className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+          className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 overflow-hidden ${
             isCompletedToday
-              ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg'
-              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'
+              ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg cursor-default'
+              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg cursor-pointer select-none'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          <Check className="w-4 h-4" />
-          <span>
-            {isCompletedToday ? 'Completed ✓' : 'Mark Complete'}
+          {/* Progress bar background */}
+          {isHolding && !isCompletedToday && (
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-green-400 to-green-600 opacity-30"
+              initial={{ width: 0 }}
+              animate={{ width: `${holdProgress}%` }}
+              transition={{ duration: 0.1, ease: "linear" }}
+              style={{ left: 0, top: 0, height: "100%" }}
+            />
+          )}
+          
+          <Check className="w-4 h-4 relative z-10" />
+          <span className="relative z-10">
+            {isCompletedToday 
+              ? 'Completed ✓' 
+              : isHolding 
+                ? `Hold to complete...` 
+                : 'Hold to Complete'
+            }
           </span>
+          
+          {/* Progress indicator */}
+          {isHolding && !isCompletedToday && (
+            <div className="absolute top-1 right-1 w-2 h-2 bg-white rounded-full opacity-75 z-10">
+              <motion.div
+                className="w-full h-full bg-green-400 rounded-full"
+                initial={{ scale: 0 }}
+                animate={{ scale: holdProgress / 100 }}
+                transition={{ duration: 0.1, ease: "linear" }}
+              />
+            </div>
+          )}
         </motion.button>
 
         {isCompletedToday && (

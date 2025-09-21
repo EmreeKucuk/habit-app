@@ -10,6 +10,9 @@ const router = express.Router();
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const { category, sort, order } = req.query;
+    const userId = req.user.id;
+    
+    console.log(`🔍 Fetching fresh habits for user ${userId}`);
     
     let query = `
       SELECT h.*, 
@@ -20,7 +23,7 @@ router.get('/', authenticateToken, async (req, res) => {
       WHERE h.user_id = ?
     `;
     
-    const params = [req.user.id];
+    const params = [userId];
     
     if (category && category !== 'all') {
       query += ' AND h.category = ?';
@@ -41,6 +44,7 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 
     const habits = await getDatabase().all(query, params);
+    console.log(`📋 Found ${habits.length} habits in database`);
 
     // Get completions for each habit to calculate streaks
     const habitsWithStreaks = await Promise.all(habits.map(async (habit) => {
@@ -49,29 +53,64 @@ router.get('/', authenticateToken, async (req, res) => {
         [habit.id]
       );
 
+      console.log(`🔍 Raw completions for habit ${habit.id}:`, completions);
+
       const streak = calculateStreak(completions.map(row => row.date));
+      
+      // Get today's date for comparison
+      const today = new Date().toISOString().split('T')[0];
+      
+      const completedDates = completions.map(row => {
+        // Handle different date formats that might come from the database
+        let dateString = row.date;
+        
+        console.log(`🔍 Processing date for habit ${habit.id}:`, dateString, typeof dateString);
+        
+        // If it's a Date object (which it appears to be from PostgreSQL)
+        if (dateString instanceof Date) {
+          // Convert to local date string (YYYY-MM-DD)
+          const year = dateString.getFullYear();
+          const month = String(dateString.getMonth() + 1).padStart(2, '0');
+          const day = String(dateString.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+        
+        // If it's already a YYYY-MM-DD string, use it directly
+        if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+          return dateString;
+        }
+        
+        // If it's a string with time component, extract date part
+        if (typeof dateString === 'string' && dateString.includes('T')) {
+          return dateString.split('T')[0];
+        }
+        
+        // If it's a Date object or timestamp, convert carefully
+        try {
+          const date = new Date(dateString);
+          // Use UTC to avoid timezone issues
+          const year = date.getUTCFullYear();
+          const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(date.getUTCDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        } catch (error) {
+          console.error('Error converting date:', dateString, error);
+          return null;
+        }
+      }).filter(date => date !== null);
+      
+      const isCompletedToday = completedDates.includes(today);
+      
+      console.log(`📅 Habit "${habit.name}": ${completedDates.length} completions, completed today: ${isCompletedToday}, streak: ${streak}`);
       
       return {
         ...habit,
-        completedDates: completions.map(row => {
-          // Ensure we always return dates as YYYY-MM-DD strings
-          const dateValue = row.date;
-          
-          if (typeof dateValue === 'string') {
-            // If it's already a string, check if it's ISO format and extract date part
-            return dateValue.includes('T') ? dateValue.split('T')[0] : dateValue;
-          } else if (dateValue instanceof Date) {
-            // If it's a Date object, convert to YYYY-MM-DD
-            return dateValue.toISOString().split('T')[0];
-          } else {
-            // Fallback: convert to string and extract date
-            return new Date(dateValue).toISOString().split('T')[0];
-          }
-        }),
+        completedDates,
         streak
       };
     }));
 
+    console.log(`✅ Returning ${habitsWithStreaks.length} fresh habits from database`);
     res.json({ habits: habitsWithStreaks });
 
   } catch (error) {
@@ -131,9 +170,13 @@ router.post('/:id/complete', authenticateToken, async (req, res) => {
     });
     
     const { id } = req.params;
-    const { date, notes, mood, value } = req.body || {}; // Handle undefined body
+    const { date, notes, mood, value } = req.body || {};
     
-    const completionDate = date || new Date().toISOString().split('T')[0];
+    // Always use today's date as YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
+    const completionDate = date || today;
+    
+    console.log(`📅 Completion date: ${completionDate}`);
 
     // Check if habit belongs to user
     const habit = await getDatabase().get('SELECT * FROM habits WHERE id = ? AND user_id = ?', [id, req.user.id]);
@@ -146,23 +189,39 @@ router.post('/:id/complete', authenticateToken, async (req, res) => {
 
     // Check if already completed for this date
     const existingCompletion = await getDatabase().get(
-      'SELECT * FROM habit_completions WHERE habit_id = ? AND date = ?',
+      `SELECT * FROM habit_completions 
+       WHERE habit_id = ? AND date = ?`,
       [id, completionDate]
     );
 
     console.log('🔍 Checking completion for date:', completionDate);
     console.log('🔍 Existing completion found:', existingCompletion ? 'Yes' : 'No');
-    if (existingCompletion) {
-      console.log('🗓️ Existing completion data:', existingCompletion);
-    }
 
     if (existingCompletion) {
-      // Remove completion
+      // Remove completion (uncomplete)
       await getDatabase().run(
         'DELETE FROM habit_completions WHERE id = ?',
         [existingCompletion.id]
       );
 
+      // Deduct XP if this was the only completion for this habit today
+      const remainingCompletions = await getDatabase().get(`
+        SELECT COUNT(*) as count 
+        FROM habit_completions hc 
+        JOIN habits h ON hc.habit_id = h.id 
+        WHERE h.user_id = ? AND h.name = ? AND hc.date = ?
+      `, [req.user.id, habit.name, completionDate]);
+
+      if (remainingCompletions.count === 0) {
+        // Deduct XP since this was the last completion for this habit today
+        await getDatabase().run(
+          'UPDATE users SET xp = GREATEST(0, xp - ?) WHERE id = ?',
+          [10, req.user.id]
+        );
+        console.log(`💸 Deducted 10 XP for uncompleting "${habit.name}"`);
+      }
+
+      console.log('🗑️ Habit uncompleted');
       res.json({ message: 'Habit unmarked as completed', completed: false });
     } else {
       // Add completion
@@ -175,14 +234,57 @@ router.post('/:id/complete', authenticateToken, async (req, res) => {
         [completionId, id, req.user.id, completionDate, value || 1, notes || null, mood || null]
       );
 
-      // Update user XP
-      const xpGain = 10;
-      await getDatabase().run(
-        'UPDATE users SET xp = xp + ? WHERE id = ?',
-        [xpGain, req.user.id]
-      );
+      // Award XP (only once per day per habit name)
+      const todayXPCheck = await getDatabase().get(`
+        SELECT COUNT(*) as count 
+        FROM habit_completions hc 
+        JOIN habits h ON hc.habit_id = h.id 
+        WHERE h.user_id = ? AND h.name = ? AND hc.date = ?
+      `, [req.user.id, habit.name, completionDate]);
+      
+      let xpGain = 0;
+      if (todayXPCheck.count <= 1) { // <= 1 because we just added one
+        xpGain = 10;
+        await getDatabase().run(
+          'UPDATE users SET xp = xp + ? WHERE id = ?',
+          [xpGain, req.user.id]
+        );
+        console.log(`💎 Gained ${xpGain} XP for completing "${habit.name}"`);
+      } else {
+        console.log(`⚠️ No XP gained - already completed "${habit.name}" today`);
+      }
 
-      res.json({ message: 'Habit marked as completed', completed: true, xpGained: xpGain });
+      // Auto-complete duplicate habits with same name
+      const duplicateHabits = await getDatabase().all(`
+        SELECT id FROM habits 
+        WHERE user_id = ? AND name = ? AND id != ?
+      `, [req.user.id, habit.name, id]);
+      
+      let duplicatesSynced = 0;
+      for (const dupHabit of duplicateHabits) {
+        const dupExisting = await getDatabase().get(
+          'SELECT * FROM habit_completions WHERE habit_id = ? AND date = ?',
+          [dupHabit.id, completionDate]
+        );
+        
+        if (!dupExisting) {
+          await getDatabase().run(
+            `INSERT INTO habit_completions (
+              id, habit_id, user_id, date, value, notes, mood
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [uuidv4(), dupHabit.id, req.user.id, completionDate, value || 1, notes || null, mood || null]
+          );
+          duplicatesSynced++;
+        }
+      }
+
+      console.log(`✅ Habit completed. Duplicates synced: ${duplicatesSynced}`);
+      res.json({ 
+        message: 'Habit marked as completed', 
+        completed: true, 
+        xpGained: xpGain,
+        duplicatesSynced: duplicatesSynced 
+      });
     }
 
   } catch (error) {

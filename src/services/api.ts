@@ -7,7 +7,9 @@ import {
   RegisterRequest, 
   ForgotPasswordRequest, 
   ResetPasswordRequest,
-  HabitStats 
+  HabitStats,
+  ProfileStats,
+  ProfileUpdateRequest
 } from '../types';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
@@ -125,7 +127,7 @@ class ApiClient {
       return response.data;
     },
 
-    complete: async (habitId: string, data?: { date?: string; notes?: string; mood?: string; value?: number }): Promise<{ message: string; completed: boolean; xpGained?: number }> => {
+    complete: async (habitId: string, data?: { date?: string; notes?: string; mood?: string; value?: number }): Promise<{ message: string; completed: boolean; xpGained?: number; duplicatesSynced?: number }> => {
       const response = await this.client.post(`/habits/${habitId}/complete`, data);
       return response.data;
     },
@@ -143,13 +145,23 @@ class ApiClient {
 
   // Users endpoints
   users = {
-    getProfile: async (userId: string): Promise<{ user: User }> => {
+    getProfile: async (userId: string): Promise<User> => {
       const response = await this.client.get(`/users/${userId}`);
       return response.data;
     },
 
-    updateProfile: async (data: Partial<User>): Promise<{ user: User; message: string }> => {
+    getMyProfile: async (): Promise<User> => {
+      const response = await this.client.get('/users/me/profile');
+      return response.data;
+    },
+
+    updateProfile: async (data: ProfileUpdateRequest): Promise<User> => {
       const response = await this.client.put('/users/profile', data);
+      return response.data;
+    },
+
+    getStats: async (): Promise<ProfileStats> => {
+      const response = await this.client.get('/users/me/stats');
       return response.data;
     },
   };

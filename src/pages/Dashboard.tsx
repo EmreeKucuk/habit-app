@@ -8,6 +8,7 @@ import { Habit, HabitCategory, SortType, FilterType } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import HabitCard from '../components/HabitCard';
+import HabitDeletionModal from '../components/HabitDeletionModal';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 // Helper function to calculate streak
@@ -40,7 +41,7 @@ function calculateStreak(completedDates: string[]): number {
 }
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const queryClient = useQueryClient();
   
   const [filters, setFilters] = useState<{
@@ -62,8 +63,9 @@ const Dashboard: React.FC = () => {
   });
 
   const [loadingHabitId, setLoadingHabitId] = useState<string | null>(null);
-
+  const [xpNotification, setXpNotification] = useState<{ xp: number; visible: boolean }>({ xp: 0, visible: false });
   const [showFilters, setShowFilters] = useState(false);
+  const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
 
   // Fetch habits
   const { data: habitsData, isLoading, error } = useQuery({
@@ -76,6 +78,7 @@ const Dashboard: React.FC = () => {
         order: sorting.order,
       });
       console.log('📥 Received habits data:', result);
+      
       if (result.habits && result.habits.length > 0) {
         const today = new Date().toISOString().split('T')[0];
         result.habits.forEach(habit => {
@@ -85,8 +88,11 @@ const Dashboard: React.FC = () => {
       }
       return result;
     },
-    staleTime: 0, // Always consider data stale to ensure fresh data
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    staleTime: 0, // Always consider data stale (refetch on mount)
+    gcTime: 5 * 60 * 1000, // Keep data in garbage collection for 5 minutes for navigation
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: true, // Always refetch when component mounts
+    retry: 2, // Retry failed requests
   });
 
   // Complete habit mutation
@@ -104,62 +110,71 @@ const Dashboard: React.FC = () => {
       const queryKey = ['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order];
       const previousHabits = queryClient.getQueryData(queryKey);
 
-      // Store the snapshot but DON'T do optimistic update yet
-      // We'll wait for the server response to know what actually happened
-      console.log('📸 Snapshot taken, waiting for server response...');
+      // Optimistically update the cache
+      if (previousHabits) {
+        const today = new Date().toISOString().split('T')[0];
+        
+        queryClient.setQueryData(queryKey, (old: any) => {
+          if (!old?.habits) return old;
+          
+          return {
+            ...old,
+            habits: old.habits.map((habit: any) => {
+              if (habit.id === habitId) {
+                const isAlreadyCompleted = habit.completedDates.includes(today);
+                
+                if (isAlreadyCompleted) {
+                  // Remove today's completion (uncomplete)
+                  const newCompletedDates = habit.completedDates.filter((date: string) => date !== today);
+                  return {
+                    ...habit,
+                    completedDates: newCompletedDates,
+                    streak: Math.max(0, habit.streak - 1)
+                  };
+                } else {
+                  // Add today's completion
+                  return {
+                    ...habit,
+                    completedDates: [...habit.completedDates, today],
+                    streak: habit.streak + 1
+                  };
+                }
+              }
+              return habit;
+            })
+          };
+        });
+        
+        console.log('✨ Optimistic update applied - UI should show change immediately');
+      }
 
       // Return a context object with the snapshotted value
-      return { previousHabits, queryKey };
+      return { previousHabits, queryKey, habitId };
     },
-    onSuccess: (data, { habitId }, context) => {
+    onSuccess: (data) => {
       console.log('🎉 Habit completion successful:', data);
-      console.log('📊 Backend says completed:', data.completed);
       setLoadingHabitId(null);
       
-      // Update the cache based on the actual backend response
-      if (context?.queryKey) {
-        queryClient.setQueryData(context.queryKey, (old: any) => {
-          if (!old?.habits) return old;
-
-          const today = new Date().toISOString().split('T')[0];
-          const updatedHabits = old.habits.map((habit: Habit) => {
-            if (habit.id === habitId) {
-              let newCompletedDates: string[];
-              
-              if (data.completed) {
-                // Backend says it's completed - ensure today is in the array
-                newCompletedDates = habit.completedDates.includes(today) 
-                  ? habit.completedDates 
-                  : [...habit.completedDates, today].sort();
-                console.log('✅ Backend confirms completion, final dates:', newCompletedDates);
-              } else {
-                // Backend says it's not completed - ensure today is NOT in the array
-                newCompletedDates = habit.completedDates.filter(date => date !== today);
-                console.log('❌ Backend confirms un-completion, final dates:', newCompletedDates);
-              }
-
-              // Recalculate streak based on actual completion dates
-              const newStreak = calculateStreak(newCompletedDates);
-              console.log('🔥 Final streak calculated:', newStreak);
-
-              return {
-                ...habit,
-                completedDates: newCompletedDates,
-                streak: newStreak
-              };
-            }
-            return habit;
-          });
-
-          console.log('✅ Cache updated with server response');
-          return { ...old, habits: updatedHabits };
+      // Handle XP gain notification
+      if (data.xpGained && data.xpGained > 0 && user) {
+        const newXP = user.xp + data.xpGained;
+        const newLevel = Math.floor(newXP / 100) + 1;
+        
+        updateUser({
+          ...user,
+          xp: newXP,
+          level: newLevel
         });
+        
+        setXpNotification({ xp: data.xpGained, visible: true });
+        setTimeout(() => {
+          setXpNotification(prev => ({ ...prev, visible: false }));
+        }, 3000);
       }
       
-      // Show XP gain notification if applicable
-      if (data.xpGained && user) {
-        console.log(`Gained ${data.xpGained} XP!`);
-      }
+      // Immediately refetch fresh data from database to sync with reality
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      console.log('🔄 Invalidated cache, fresh data will be fetched');
     },
     onError: (error, { habitId: _habitId }, context) => {
       console.error('❌ Habit completion failed:', error);
@@ -173,8 +188,7 @@ const Dashboard: React.FC = () => {
     },
     onSettled: () => {
       setLoadingHabitId(null);
-      // Don't invalidate - our manual cache update is authoritative
-      console.log('✅ Mutation settled, cache is up to date');
+      console.log('✅ Mutation settled');
     },
   });
 
@@ -264,8 +278,16 @@ const Dashboard: React.FC = () => {
   };
 
   const handleDeleteHabit = (habitId: string) => {
-    if (window.confirm('Are you sure you want to delete this habit?')) {
-      deleteHabitMutation.mutate(habitId);
+    const habit = habitsData?.habits?.find(h => h.id === habitId);
+    if (habit) {
+      setHabitToDelete(habit);
+    }
+  };
+
+  const confirmDeleteHabit = () => {
+    if (habitToDelete) {
+      deleteHabitMutation.mutate(habitToDelete.id);
+      setHabitToDelete(null);
     }
   };
 
@@ -276,6 +298,13 @@ const Dashboard: React.FC = () => {
     const dailyHabits = habitsData.habits.filter(h => h.frequency === 'daily');
     const completedToday = dailyHabits.filter(h => h.completedDates.includes(today));
     
+    console.log('📊 Calculating today stats:', {
+      today,
+      totalDailyHabits: dailyHabits.length,
+      completedToday: completedToday.length,
+      habitsData: habitsData.habits.map(h => ({ name: h.name, completed: h.completedDates.includes(today) }))
+    });
+    
     return {
       completed: completedToday.length,
       total: dailyHabits.length,
@@ -283,7 +312,7 @@ const Dashboard: React.FC = () => {
     };
   };
 
-  const todayStats = getTodayStats();
+  const todayStats = React.useMemo(() => getTodayStats(), [habitsData]);
 
   if (isLoading) {
     return (
@@ -307,6 +336,20 @@ const Dashboard: React.FC = () => {
 
   return (
     <Layout>
+      {/* XP Notification */}
+      <AnimatePresence>
+        {xpNotification.visible && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.8 }}
+            className="fixed top-4 right-4 z-50 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold"
+          >
+            🎉 +{xpNotification.xp} XP Gained!
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="space-y-6">
         {/* Header with Stats */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-xl p-6 text-white">
@@ -506,6 +549,15 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Habit Deletion Modal */}
+      <HabitDeletionModal
+        habit={habitToDelete}
+        isOpen={!!habitToDelete}
+        onClose={() => setHabitToDelete(null)}
+        onConfirm={confirmDeleteHabit}
+        isLoading={deleteHabitMutation.isPending}
+      />
     </Layout>
   );
 };
