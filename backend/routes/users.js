@@ -19,9 +19,18 @@ router.get('/discover', authenticateToken, async (req, res) => {
         u.share_progress, u.public_profile, u.created_at, u.updated_at
       FROM users u
       WHERE u.id != ?
+      AND u.id NOT IN (
+        SELECT CASE 
+          WHEN f.user_id = ? THEN f.friend_id
+          ELSE f.user_id
+        END
+        FROM friends f
+        WHERE (f.user_id = ? OR f.friend_id = ?) 
+        AND f.status = 'accepted'
+      )
     `;
     
-    const params = [currentUserId];
+    const params = [currentUserId, currentUserId, currentUserId, currentUserId];
     
     // Try to add privacy_level if column exists
     try {
@@ -34,6 +43,15 @@ router.get('/discover', authenticateToken, async (req, res) => {
           u.share_progress, u.public_profile, u.created_at, u.updated_at
         FROM users u
         WHERE u.id != ?
+        AND u.id NOT IN (
+          SELECT CASE 
+            WHEN f.user_id = ? THEN f.friend_id
+            ELSE f.user_id
+          END
+          FROM friends f
+          WHERE (f.user_id = ? OR f.friend_id = ?) 
+          AND f.status = 'accepted'
+        )
       `;
       
       // Privacy filtering

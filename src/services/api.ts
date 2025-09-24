@@ -258,7 +258,7 @@ class ApiClient {
 
   // Friends endpoints
   friends = {
-    getAll: async (): Promise<{ friends: any[] }> => {
+    getAll: async (): Promise<{ friends: any[], sentRequests: any[], receivedRequests: any[] }> => {
       const response = await this.client.get('/friends');
       return response.data;
     },

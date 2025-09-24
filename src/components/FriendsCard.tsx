@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, Search, Trophy, Flame, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, UserPlus, Search, Trophy, Star } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { friendsApi, usersApi } from '../services/api';
+import { Link } from 'react-router-dom';
 
 interface Friend {
   id: string;
@@ -8,11 +11,9 @@ interface Friend {
   lastName?: string;
   level: number;
   xp: number;
-  highestStreak: number;
-  successPercentage: number;
   avatarColor: string;
-  isOnline?: boolean;
-  lastActivity?: string;
+  avatarIcon?: string;
+  friend_status?: 'friends' | 'pending' | 'received' | 'none';
 }
 
 interface FriendsCardProps {
@@ -20,112 +21,47 @@ interface FriendsCardProps {
 }
 
 const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [suggestions, setSuggestions] = useState<Friend[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'friends' | 'suggestions'>('friends');
 
   const generateAvatar = (username: string, color: string) => {
     return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='${encodeURIComponent(color)}'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='white' font-size='40' font-family='Arial'%3E${username.charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E`;
   };
 
-  const fetchFriends = async () => {
-    try {
-      // Mock friends data for now
-      const mockFriends: Friend[] = [
-        {
-          id: '1',
-          username: 'alex_fit',
-          firstName: 'Alex',
-          lastName: 'Johnson',
-          level: 12,
-          xp: 2450,
-          highestStreak: 45,
-          successPercentage: 87,
-          avatarColor: '#10b981',
-          isOnline: true,
-          lastActivity: '2 hours ago'
-        },
-        {
-          id: '2',
-          username: 'sarah_goals',
-          firstName: 'Sarah',
-          lastName: 'Wilson',
-          level: 8,
-          xp: 1680,
-          highestStreak: 23,
-          successPercentage: 92,
-          avatarColor: '#8b5cf6',
-          isOnline: false,
-          lastActivity: '1 day ago'
-        },
-        {
-          id: '3',
-          username: 'mike_healthy',
-          firstName: 'Mike',
-          lastName: 'Chen',
-          level: 15,
-          xp: 3200,
-          highestStreak: 67,
-          successPercentage: 94,
-          avatarColor: '#f59e0b',
-          isOnline: true,
-          lastActivity: '30 minutes ago'
-        }
-      ];
+  // Fetch friends data
+  const { data: friendsData, isLoading: friendsLoading } = useQuery({
+    queryKey: ['friends'],
+    queryFn: friendsApi.getAll,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-      const mockSuggestions: Friend[] = [
-        {
-          id: '4',
-          username: 'emma_wellness',
-          firstName: 'Emma',
-          lastName: 'Brown',
-          level: 6,
-          xp: 1200,
-          highestStreak: 18,
-          successPercentage: 85,
-          avatarColor: '#ef4444'
-        },
-        {
-          id: '5',
-          username: 'david_runner',
-          firstName: 'David',
-          lastName: 'Lee',
-          level: 10,
-          xp: 2100,
-          highestStreak: 34,
-          successPercentage: 89,
-          avatarColor: '#3b82f6'
-        }
-      ];
+  // Fetch discover users data
+  const { data: discoverData, isLoading: discoverLoading } = useQuery({
+    queryKey: ['discover'],
+    queryFn: () => usersApi.getDiscoverUsers(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-      setFriends(mockFriends);
-      setSuggestions(mockSuggestions);
-    } catch (error) {
-      console.error('Error fetching friends:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFriends();
-  }, []);
+  // Send friend request mutation
+  const sendRequestMutation = useMutation({
+    mutationFn: ({ userId }: { userId: string }) => friendsApi.sendRequest({ userId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['discover'] });
+    },
+  });
 
   const handleAddFriend = async (friendId: string) => {
     try {
-      // Mock add friend functionality
-      console.log('Adding friend:', friendId);
-      // Move from suggestions to friends
-      const friend = suggestions.find(s => s.id === friendId);
-      if (friend) {
-        setFriends(prev => [...prev, friend]);
-        setSuggestions(prev => prev.filter(s => s.id !== friendId));
-      }
+      await sendRequestMutation.mutateAsync({ userId: friendId });
     } catch (error) {
       console.error('Error adding friend:', error);
     }
   };
+
+  const friends = friendsData?.friends || [];
+  const suggestions = discoverData || [];
+  const loading = friendsLoading || discoverLoading;
 
   const renderFriendItem = (friend: Friend, showAddButton = false) => (
     <div key={friend.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -135,9 +71,6 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
           alt={friend.username}
           className="w-10 h-10 rounded-full"
         />
-        {friend.isOnline && (
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
-        )}
       </div>
       
       <div className="flex-1 min-w-0">
@@ -157,30 +90,19 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
         
         <div className="flex items-center space-x-3 mt-1">
           <div className="flex items-center space-x-1">
-            <Flame className="w-3 h-3 text-orange-500" />
+            <Trophy className="w-3 h-3 text-primary-500" />
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {friend.highestStreak}
-            </span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Trophy className="w-3 h-3 text-green-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {friend.successPercentage}%
+              {friend.xp} XP
             </span>
           </div>
         </div>
-        
-        {friend.lastActivity && (
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            {friend.lastActivity}
-          </p>
-        )}
       </div>
       
       {showAddButton && (
         <button
           onClick={() => handleAddFriend(friend.id)}
-          className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+          disabled={sendRequestMutation.isPending}
+          className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors disabled:opacity-50"
         >
           <UserPlus className="w-4 h-4" />
         </button>
@@ -284,9 +206,12 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
       
       {/* Footer */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <button className="w-full py-2 px-4 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors text-sm font-medium">
+        <Link 
+          to="/friends"
+          className="w-full py-2 px-4 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors text-sm font-medium flex items-center justify-center"
+        >
           View All Friends
-        </button>
+        </Link>
       </div>
     </div>
   );

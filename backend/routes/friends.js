@@ -149,7 +149,7 @@ router.post('/accept', authenticateToken, async (req, res) => {
   }
 });
 
-// Reject friend request
+// Reject friend request (or cancel sent request)
 router.post('/reject', authenticateToken, async (req, res) => {
   try {
     const db = getDatabase();
@@ -160,22 +160,27 @@ router.post('/reject', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Friend user ID is required' });
     }
 
-    // Find pending request where current user is the recipient
+    // Find pending request where current user is either the recipient or sender
     const request = await db.get(`
-      SELECT id FROM friends 
-      WHERE user_id = ? AND friend_id = ? AND status = 'pending'
-    `, [friendId, userId]);
+      SELECT id, user_id, friend_id FROM friends 
+      WHERE ((user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?))
+      AND status = 'pending'
+    `, [friendId, userId, userId, friendId]);
 
     if (!request) {
       return res.status(404).json({ error: 'Friend request not found' });
     }
 
-    // Delete the request (reject)
+    // Delete the request (reject/cancel)
     await db.run(`DELETE FROM friends WHERE id = ?`, [request.id]);
 
-    res.json({ message: 'Friend request rejected' });
+    const message = request.user_id === userId 
+      ? 'Friend request canceled' 
+      : 'Friend request rejected';
+
+    res.json({ message });
   } catch (error) {
-    console.error('Error rejecting friend request:', error);
+    console.error('Error rejecting/canceling friend request:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

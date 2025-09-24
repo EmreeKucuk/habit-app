@@ -49,6 +49,13 @@ const Friends: React.FC = () => {
     }
   });
 
+  const cancelRequestMutation = useMutation({
+    mutationFn: (data: { userId: string }) => friendsApi.rejectRequest(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+    }
+  });
+
   const filteredData = () => {
     let data: any[] = [];
     switch (activeTab) {
@@ -126,8 +133,18 @@ const Friends: React.FC = () => {
         )}
         
         {activeTab === 'sent' && (
-          <div className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg text-sm font-medium">
-            Pending
+          <div className="flex items-center space-x-2">
+            <div className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg text-sm font-medium">
+              Pending
+            </div>
+            <button
+              onClick={() => cancelRequestMutation.mutate({ userId: person.friend_user_id })}
+              disabled={cancelRequestMutation.isPending}
+              className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Cancel friend request"
+            >
+              <UserMinus className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>
