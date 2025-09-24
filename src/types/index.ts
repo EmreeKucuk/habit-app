@@ -66,21 +66,53 @@ export interface Friend {
 export interface Group {
   id: string;
   name: string;
-  description?: string;
-  habitId: string;
-  habitName: string;
-  privacy: 'public' | 'private';
-  createdBy: string;
-  members: GroupMember[];
-  createdAt: string;
+  description: string;
+  habit_name: string;
+  habit_category: string;
+  creator_id: string;
+  creator_username: string;
+  creator_first_name: string;
+  creator_last_name: string;
+  start_date: string;
+  end_date: string;
+  target_frequency: number;
+  is_public: boolean;
+  status: 'upcoming' | 'active' | 'completed';
+  member_count: number;
+  is_member: boolean;
+  is_creator?: boolean;
+  members?: GroupMember[];
+  created_at: string;
 }
 
 export interface GroupMember {
-  userId: string;
+  id: string;
+  user_id: string;
+  group_id: string;
   username: string;
-  avatarColor: string;
-  xp: number;
-  joinedAt: string;
+  first_name: string;
+  last_name: string;
+  avatar_color: string;
+  avatar_icon: string;
+  role: 'admin' | 'member';
+  total_completions: number;
+  completion_rate: number;
+  current_streak: number;
+  last_completion_date: string;
+  rank: number;
+  daily_completions: Record<string, boolean>;
+  joined_at: string;
+}
+
+export interface CreateGroupRequest {
+  name: string;
+  description: string;
+  habit_name: string;
+  habit_category: string;
+  start_date: string;
+  end_date: string;
+  target_frequency: number;
+  is_public: boolean;
 }
 
 export interface Badge {

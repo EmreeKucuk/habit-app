@@ -212,12 +212,17 @@ class DatabaseService {
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             name VARCHAR(255) NOT NULL,
             description TEXT,
+            habit_name VARCHAR(255) NOT NULL,
+            habit_category VARCHAR(50) NOT NULL,
             creator_id UUID NOT NULL,
-            privacy VARCHAR(20) DEFAULT 'public',
-            habit_id UUID,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            target_frequency INTEGER NOT NULL DEFAULT 7,
+            is_public BOOLEAN DEFAULT true,
+            status VARCHAR(20) DEFAULT 'upcoming',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (creator_id) REFERENCES users (id) ON DELETE CASCADE,
-            FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE SET NULL
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (creator_id) REFERENCES users (id) ON DELETE CASCADE
           )
         `,
         group_members: `
@@ -227,9 +232,26 @@ class DatabaseService {
             user_id UUID NOT NULL,
             role VARCHAR(20) DEFAULT 'member',
             joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            total_completions INTEGER DEFAULT 0,
+            completion_rate DECIMAL(5,2) DEFAULT 0.00,
+            current_streak INTEGER DEFAULT 0,
+            last_completion_date DATE,
             FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(group_id, user_id)
+          )
+        `,
+        group_completions: `
+          CREATE TABLE IF NOT EXISTS group_completions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            group_id UUID NOT NULL,
+            user_id UUID NOT NULL,
+            completion_date DATE NOT NULL,
+            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            notes TEXT,
+            FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            UNIQUE(group_id, user_id, completion_date)
           )
         `
       };
@@ -311,12 +333,17 @@ class DatabaseService {
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             description TEXT,
+            habit_name TEXT NOT NULL,
+            habit_category TEXT NOT NULL,
             creator_id TEXT NOT NULL,
-            privacy TEXT DEFAULT 'public',
-            habit_id TEXT,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            target_frequency INTEGER NOT NULL DEFAULT 7,
+            is_public BOOLEAN DEFAULT true,
+            status TEXT DEFAULT 'upcoming',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (creator_id) REFERENCES users (id) ON DELETE CASCADE,
-            FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE SET NULL
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (creator_id) REFERENCES users (id) ON DELETE CASCADE
           )
         `,
         group_members: `
@@ -326,9 +353,26 @@ class DatabaseService {
             user_id TEXT NOT NULL,
             role TEXT DEFAULT 'member',
             joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            total_completions INTEGER DEFAULT 0,
+            completion_rate REAL DEFAULT 0.00,
+            current_streak INTEGER DEFAULT 0,
+            last_completion_date DATE,
             FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(group_id, user_id)
+          )
+        `,
+        group_completions: `
+          CREATE TABLE IF NOT EXISTS group_completions (
+            id TEXT PRIMARY KEY,
+            group_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            completion_date DATE NOT NULL,
+            completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            notes TEXT,
+            FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            UNIQUE(group_id, user_id, completion_date)
           )
         `
       };
