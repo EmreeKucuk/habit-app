@@ -1,4 +1,11 @@
-const sqlite3 = require('sqlite3').verbose();
+let sqlite3;
+if (process.env.DATABASE_TYPE !== 'postgresql') {
+  try {
+    sqlite3 = require('sqlite3').verbose();
+  } catch (e) {
+    console.warn('sqlite3 not available, ensure you are using PostgreSQL');
+  }
+}
 const { Pool } = require('pg');
 const path = require('path');
 require('dotenv').config();
