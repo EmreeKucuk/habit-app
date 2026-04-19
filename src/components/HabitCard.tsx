@@ -17,8 +17,8 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
   // Hold-to-complete state
   const [holdProgress, setHoldProgress] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
-  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   const HOLD_DURATION = 1200; // 1.2 seconds (shortened from 2 seconds)
   
