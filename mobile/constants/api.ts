@@ -33,6 +33,13 @@ export const API_ENDPOINTS = {
   friendReject: '/api/friends/reject',
   friendRemove: '/api/friends/remove',
 
+  // Motivation
+  motivationLog: '/api/motivation/log',
+  motivationScore: '/api/motivation/score',
+  motivationChat: '/api/motivation/chat',
+  motivationChatHistory: '/api/motivation/chat/history',
+  motivationInsights: '/api/motivation/insights',
+
   // Health
   health: '/api/health',
 } as const;
