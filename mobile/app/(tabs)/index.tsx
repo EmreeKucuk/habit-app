@@ -25,6 +25,7 @@ import { Colors, Spacing, Radius, Shadows, FontFamily } from '@/constants/theme'
 import { API_ENDPOINTS } from '@/constants/api';
 import api from '@/services/api';
 import { fetchMotivationScore, MotivationScore } from '@/services/motivation';
+import { requestNotificationPermissionsAsync, scheduleMotivationReminder } from '@/services/notifications';
 
 interface HabitData {
   id: string;
@@ -79,6 +80,8 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      // Request notification permissions when dashboard is focused
+      requestNotificationPermissionsAsync();
       loadData();
     }, [])
   );
@@ -106,6 +109,9 @@ export default function HomeScreen() {
       if (mScore) {
         setMotivationScore(mScore);
       }
+
+      // Schedule tomorrow's reminder based on current score
+      scheduleMotivationReminder(mScore);
     } catch (error) {
       console.log('Failed to load dashboard data:', error);
     } finally {
