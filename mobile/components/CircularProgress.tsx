@@ -1,20 +1,22 @@
 /**
  * CircularProgress — Animated circular progress indicator.
- * Pure React Native implementation using rotating half-circles (no SVG dependency).
+ * Uses react-native-svg for accurate arc rendering.
  */
 
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
-  useAnimatedStyle,
+  useAnimatedProps,
   withTiming,
   Easing,
-  interpolate,
 } from 'react-native-reanimated';
 import Typography from '@/components/ui/Typography';
 import { FontFamily } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface CircularProgressProps {
   completed: number;
@@ -36,8 +38,12 @@ export default function CircularProgress({
   const { Colors } = useTheme();
   const resolvedColor = color || Colors.accent;
   const resolvedBgColor = bgColor || Colors.overlayLight;
-  const progress = useSharedValue(0);
+
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
   const percentage = total > 0 ? Math.min(completed / total, 1) : 0;
+
+  const progress = useSharedValue(0);
 
   useEffect(() => {
     progress.value = withTiming(percentage, {
@@ -46,117 +52,38 @@ export default function CircularProgress({
     });
   }, [completed, total]);
 
-  const halfSize = size / 2;
-  const innerSize = size - strokeWidth * 2;
-
-  // Right half rotation (0% to 50%)
-  const rightHalfStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(
-      progress.value,
-      [0, 0.5, 1],
-      [0, 180, 180],
-    );
-    return {
-      transform: [{ rotate: `${rotation}deg` }],
-    };
-  });
-
-  // Left half rotation (50% to 100%)
-  const leftHalfStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(
-      progress.value,
-      [0, 0.5, 1],
-      [0, 0, 180],
-    );
-    return {
-      transform: [{ rotate: `${rotation}deg` }],
-    };
-  });
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: circumference * (1 - progress.value),
+  }));
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
-      {/* Background circle */}
-      <View
-        style={[
-          styles.bgCircle,
-          {
-            width: size,
-            height: size,
-            borderRadius: halfSize,
-            borderWidth: strokeWidth,
-            borderColor: resolvedBgColor,
-          },
-        ]}
-      />
-
-      {/* Right half (0-50%) */}
-      <View
-        style={[
-          styles.halfContainer,
-          {
-            width: halfSize,
-            height: size,
-            left: halfSize,
-            overflow: 'hidden',
-          },
-        ]}
-      >
-        <Animated.View
-          style={[
-            styles.halfCircle,
-            {
-              width: size,
-              height: size,
-              borderRadius: halfSize,
-              borderWidth: strokeWidth,
-              borderColor: resolvedColor,
-              left: -halfSize,
-            },
-            rightHalfStyle,
-          ]}
+      <Svg width={size} height={size}>
+        {/* Background circle */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={resolvedBgColor}
+          strokeWidth={strokeWidth}
+          fill="none"
         />
-      </View>
-
-      {/* Left half (50-100%) */}
-      <View
-        style={[
-          styles.halfContainer,
-          {
-            width: halfSize,
-            height: size,
-            left: 0,
-            overflow: 'hidden',
-          },
-        ]}
-      >
-        <Animated.View
-          style={[
-            styles.halfCircle,
-            {
-              width: size,
-              height: size,
-              borderRadius: halfSize,
-              borderWidth: strokeWidth,
-              borderColor: resolvedColor,
-              left: 0,
-            },
-            leftHalfStyle,
-          ]}
+        {/* Progress arc */}
+        <AnimatedCircle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={resolvedColor}
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={circumference}
+          animatedProps={animatedProps}
+          strokeLinecap="round"
+          rotation="-90"
+          originX={size / 2}
+          originY={size / 2}
         />
-      </View>
-
-      {/* Inner white circle (creates the ring effect) */}
-      <View
-        style={[
-          styles.innerCircle,
-          {
-            width: innerSize,
-            height: innerSize,
-            borderRadius: innerSize / 2,
-            backgroundColor: Colors.cardLight,
-          },
-        ]}
-      />
+      </Svg>
 
       {/* Center text */}
       <View style={styles.center}>
@@ -185,23 +112,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-  },
-  bgCircle: {
-    position: 'absolute',
-  },
-  halfContainer: {
-    position: 'absolute',
-    top: 0,
-  },
-  halfCircle: {
-    position: 'absolute',
-    top: 0,
-    borderLeftColor: 'transparent',
-    borderBottomColor: 'transparent',
-    transformOrigin: 'center center',
-  },
-  innerCircle: {
-    position: 'absolute',
   },
   center: {
     position: 'absolute',
