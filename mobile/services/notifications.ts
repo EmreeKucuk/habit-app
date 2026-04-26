@@ -21,12 +21,12 @@ export async function requestNotificationPermissionsAsync(): Promise<boolean> {
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
-  
+
   if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
-  
+
   if (finalStatus !== 'granted') {
     console.log('Failed to get notification token for local notifications!');
     return false;
@@ -44,7 +44,7 @@ export async function scheduleMotivationReminder(score: MotivationScore | null) 
   await Notifications.cancelAllScheduledNotificationsAsync();
 
   const level = score?.level || 'medium';
-  
+
   let title = "Sprout here! 🌱";
   let body = "It's time to log your daily habits!";
 
