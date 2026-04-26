@@ -560,87 +560,135 @@ router.post('/refresh', [
   }
 });
 
-// Google OAuth callback — serves a minimal page that the mobile WebBrowser intercepts
-router.get('/google-callback', (req, res) => {
-  // The access_token is in the URL fragment (#access_token=...) which
-  // doesn't reach the server. This page simply redirects back so that
-  // expo-web-browser's openAuthSessionAsync can capture the full URL.
-  res.send(`
-    <html>
-    <head><title>Redirecting...</title></head>
-    <body>
-      <p>Signing you in...</p>
-      <script>
-        // The token is in the hash fragment — just let the page load
-        // so the browser redirect is captured by the app
-      </script>
-    </body>
-    </html>
-  `);
+// ─── Google OAuth (Server-Side Authorization Code Flow) ─────────────
+
+// Step 1: Mobile app opens this URL in a browser
+router.get('/google-signin', (req, res) => {
+  const appRedirect = req.query.redirect; // The mobile app's deep link URL
+  if (!appRedirect) {
+    return res.status(400).send('Missing redirect parameter');
+  }
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    const errorRedirect = `${appRedirect}?error=${encodeURIComponent('Google Sign-In is not configured on the server.')}`;
+    return res.redirect(errorRedirect);
+  }
+
+  const backendUrl = process.env.BACKEND_URL || 'https://habit-app-backend-nfhj.onrender.com';
+  const callbackUrl = `${backendUrl}/api/auth/google-callback`;
+
+  // Store the app redirect URL in the state parameter so we can use it in the callback
+  const state = Buffer.from(JSON.stringify({ redirect: appRedirect })).toString('base64url');
+
+  const googleAuthUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(clientId)}` +
+    `&redirect_uri=${encodeURIComponent(callbackUrl)}` +
+    `&response_type=code` +
+    `&scope=${encodeURIComponent('openid profile email')}` +
+    `&state=${state}` +
+    `&access_type=offline` +
+    `&prompt=select_account`;
+
+  res.redirect(googleAuthUrl);
 });
 
-// Google OAuth — accept an ID token from the mobile app
-router.post('/google-auth', async (req, res) => {
+// Step 2: Google redirects back here with an authorization code
+router.get('/google-callback', async (req, res) => {
   try {
-    const { idToken, email, name, googleId } = req.body;
+    const { code, state, error: googleError } = req.query;
 
-    if (!email || !googleId) {
-      return res.status(400).json({ message: 'Missing required Google auth data' });
+    // Decode the app redirect URL from state
+    let appRedirect;
+    try {
+      const stateData = JSON.parse(Buffer.from(state, 'base64url').toString());
+      appRedirect = stateData.redirect;
+    } catch {
+      return res.status(400).send('Invalid state parameter');
     }
 
-    // Check if user already exists with this email
-    let user = await getDb().get(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
+    if (googleError || !code) {
+      return res.redirect(`${appRedirect}?error=${encodeURIComponent(googleError || 'Authorization failed')}`);
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const backendUrl = process.env.BACKEND_URL || 'https://habit-app-backend-nfhj.onrender.com';
+    const callbackUrl = `${backendUrl}/api/auth/google-callback`;
+
+    // Exchange authorization code for tokens
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: callbackUrl,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    const tokenData = await tokenRes.json();
+
+    if (!tokenData.access_token) {
+      console.error('Google token exchange failed:', tokenData);
+      return res.redirect(`${appRedirect}?error=${encodeURIComponent('Failed to get access token from Google')}`);
+    }
+
+    // Get user info from Google
+    const userInfoRes = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const userInfo = await userInfoRes.json();
+
+    if (!userInfo.email) {
+      return res.redirect(`${appRedirect}?error=${encodeURIComponent('Could not get email from Google')}`);
+    }
+
+    // Find or create user
+    let user = await getDb().get('SELECT * FROM users WHERE email = ?', [userInfo.email]);
 
     if (user) {
-      // User exists — just log them in
       if (!user.email_verified) {
-        await getDb().run(
-          'UPDATE users SET email_verified = true WHERE id = ?',
-          [user.id]
-        );
+        await getDb().run('UPDATE users SET email_verified = true WHERE id = ?', [user.id]);
       }
     } else {
-      // Create a new user from Google data
       const userId = uuidv4();
-      const username = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 20);
-      // Generate a random password hash (user won't use it — they log in via Google)
+      const username = userInfo.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 20);
       const randomPass = uuidv4();
       const passwordHash = await bcrypt.hash(randomPass, 12);
-
-      const firstName = name ? name.split(' ')[0] : '';
-      const lastName = name ? name.split(' ').slice(1).join(' ') : '';
+      const firstName = userInfo.given_name || '';
+      const lastName = userInfo.family_name || '';
 
       await getDb().run(
         `INSERT INTO users (
           id, username, email, password_hash, email_verified,
           first_name, last_name, avatar_color, xp, level, share_progress, public_profile
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          userId, username, email, passwordHash, true,
-          firstName, lastName, '#3b82f6', 0, 1, true, false
-        ]
+        [userId, username, userInfo.email, passwordHash, true, firstName, lastName, '#3b82f6', 0, 1, true, false]
       );
 
       user = await getDb().get('SELECT * FROM users WHERE id = ?', [userId]);
     }
 
-    // Generate tokens
-    const token = generateToken(user);
-    const refreshToken = generateRefreshToken(user);
-    const { password_hash, verification_token, reset_token, ...safeUser } = user;
+    // Generate JWT tokens
+    const jwtToken = generateToken(user);
+    const jwtRefreshToken = generateRefreshToken(user);
 
-    res.json({
-      message: 'Login successful',
-      user: safeUser,
-      token,
-      refreshToken
-    });
+    // Redirect back to the mobile app with the tokens
+    const successRedirect = `${appRedirect}?token=${encodeURIComponent(jwtToken)}&refreshToken=${encodeURIComponent(jwtRefreshToken)}`;
+    res.redirect(successRedirect);
+
   } catch (error) {
-    console.error('Google auth error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Google callback error:', error);
+    try {
+      const stateData = JSON.parse(Buffer.from(req.query.state, 'base64url').toString());
+      res.redirect(`${stateData.redirect}?error=${encodeURIComponent('Server error during Google sign-in')}`);
+    } catch {
+      res.status(500).send('Google sign-in failed');
+    }
   }
 });
 

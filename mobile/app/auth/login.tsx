@@ -30,7 +30,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
-import * as Crypto from 'expo-crypto';
+import * as Linking from 'expo-linking';
 import Typography from '@/components/ui/Typography';
 import { Colors, Spacing, Radius, Shadows, FontFamily, FontSize } from '@/constants/theme';
 import { API_ENDPOINTS, API_BASE_URL } from '@/constants/api';
@@ -47,80 +47,33 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     setIsSocialLoading('Google');
     try {
-      const clientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-      if (!clientId) {
-        Alert.alert('Configuration Required', 'Google Sign-In requires a Google Cloud OAuth Client ID. Please set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID in your .env file.');
-        setIsSocialLoading(null);
-        return;
-      }
+      // The app's deep link URL that the backend will redirect to after OAuth
+      const appRedirectUri = Linking.createURL('auth/google-callback');
 
-      // Build Google OAuth URL
-      const redirectUri = `${API_BASE_URL}/api/auth/google-callback`;
-      const state = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        Date.now().toString()
-      );
-      const authUrl =
-        `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${encodeURIComponent(clientId)}` +
-        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-        `&response_type=token` +
-        `&scope=${encodeURIComponent('openid profile email')}` +
-        `&state=${state}`;
+      // Open the backend's Google sign-in endpoint in a browser
+      // The backend handles the entire OAuth flow and redirects back with tokens
+      const authUrl = `${API_BASE_URL}/api/auth/google-signin?redirect=${encodeURIComponent(appRedirectUri)}`;
 
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, appRedirectUri);
 
       if (result.type === 'success' && result.url) {
-        // Extract access_token from the redirect URL fragment
-        const fragment = result.url.split('#')[1];
-        if (fragment) {
-          const params = new URLSearchParams(fragment);
-          const accessToken = params.get('access_token');
-          if (accessToken) {
-            await handleGoogleResponse(accessToken);
-            return;
-          }
+        // Parse tokens from the redirect URL
+        const url = new URL(result.url);
+        const token = url.searchParams.get('token');
+        const refreshToken = url.searchParams.get('refreshToken');
+
+        if (token && refreshToken) {
+          await saveAuthTokens(token, refreshToken);
+          router.replace('/(tabs)');
+        } else {
+          const error = url.searchParams.get('error');
+          Alert.alert('Sign-In Failed', error || 'Could not sign in with Google.');
         }
-        Alert.alert('Error', 'Could not get access token from Google.');
       }
     } catch (err) {
       Alert.alert('Error', 'Could not start Google sign-in.');
     } finally {
       setIsSocialLoading(null);
-    }
-  };
-
-  const handleGoogleResponse = async (accessToken: string) => {
-    try {
-      // Fetch user info from Google using the access token
-      const userInfoRes = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const userInfo = await userInfoRes.json();
-
-      // Send to our backend
-      const { data, error } = await api.post<{
-        token: string;
-        refreshToken: string;
-        user: any;
-      }>(API_ENDPOINTS.googleAuth, {
-        idToken: accessToken,
-        email: userInfo.email,
-        name: userInfo.name,
-        googleId: userInfo.id,
-      });
-
-      if (error) {
-        Alert.alert('Google Sign-In Failed', error);
-        return;
-      }
-
-      if (data?.token) {
-        await saveAuthTokens(data.token, data.refreshToken);
-        router.replace('/(tabs)');
-      }
-    } catch (err) {
-      Alert.alert('Error', 'Google sign-in failed. Please try again.');
     }
   };
 
