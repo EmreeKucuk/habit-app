@@ -29,6 +29,9 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Nice run! 🏃 How far did you go?",
       "Great job getting out there! 💪 How did the run feel?",
       "Running is amazing for you! 🌟 Was it a tough one today?",
+      "Whoosh! 💨 You're speedy! Did you beat your personal best?",
+      "Running clears the mind, doesn't it? 🌿 How are your legs feeling?",
+      "That's some serious cardio! ❤️ Keep up the great work!",
     ],
   },
   {
@@ -38,6 +41,9 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Walking is so underrated! 🚶 How long were you out?",
       "Every step counts! 👣 How was the walk?",
       "Love that you're staying active! 🌿 Was it a relaxing walk?",
+      "Getting outside does wonders for the soul! ☀️ See anything interesting?",
+      "A good walk is my favorite! 🌳 Did you go anywhere new?",
+      "Stretching those legs! 🦵 Great job hitting your step goals!",
     ],
   },
   {
@@ -47,6 +53,9 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Beast mode! 💪 What did you work on today?",
       "Crushing it at the gym! 🔥 How was the session?",
       "That's dedication! 🏋️ How intense was it?",
+      "Pumping iron! 🦾 Are you feeling the burn yet?",
+      "You're getting stronger every day! 📈 What was your favorite exercise?",
+      "Sweat is just weakness leaving the body! 💦 Great workout!",
     ],
   },
   {
@@ -56,6 +65,9 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Finding your calm 🧘 How long did you meditate?",
       "Mindfulness is a superpower! ✨ How do you feel now?",
       "Love that you took time for yourself 🌸 Was your mind busy today?",
+      "Namaste! 🙏 Taking a breather is so important. Do you feel centered?",
+      "Inhale... exhale... 🌬️ Sounds like a wonderful mindful moment.",
+      "Yoga and meditation are the best ways to ground yourself. 🌍 Good job!",
     ],
   },
   {
@@ -65,6 +77,9 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Knowledge is power! 📚 What are you reading?",
       "Growing your mind! 🧠 How long did you study?",
       "That's awesome! 📖 Did you learn something interesting?",
+      "Leveling up your brain! 🎓 What's the topic today?",
+      "A chapter a day keeps the mind sharp! 🤓 Enjoying the material?",
+      "Always be learning! 💡 Was it a difficult subject?",
     ],
   },
   {
@@ -74,6 +89,8 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Staying hydrated! 💧 How many glasses so far?",
       "Water is life! 🌊 Keep it up!",
       "Great habit! 💦 Are you hitting your daily goal?",
+      "Gulp gulp! 🚰 Nothing beats a cold glass of water. Feel refreshed?",
+      "Your skin and brain will thank you for this! 🧊 Good job hydrating!",
     ],
   },
   {
@@ -83,6 +100,8 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Rest is so important! 😴 How many hours did you get?",
       "Good sleep = good habits! 🌙 How do you feel today?",
       "Sleep quality matters! ⭐ Did you sleep well?",
+      "Catching those Zzzs! 🛌 Feeling energized?",
+      "A well-rested mind is a productive mind! 🌅 Ready for the day?",
     ],
   },
   {
@@ -92,6 +111,8 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Eating well! 🥗 What did you make?",
       "Fueling your body right! 🍳 Was it tasty?",
       "Healthy choices! 🥑 Are you meal prepping?",
+      "Master chef in the house! 🧑‍🍳 Did it turn out well?",
+      "Good food is good mood! 🍲 Bon appétit!",
     ],
   },
   {
@@ -101,6 +122,8 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Journaling is powerful! ✍️ What did you write about?",
       "Putting thoughts on paper 📝 How did it feel?",
       "Great reflection habit! 🪞 Any insights today?",
+      "Capturing moments! 📔 Is your journal filling up?",
+      "Writing is thinking! 🖋️ Did it help clear your mind?",
     ],
   },
   {
@@ -110,6 +133,8 @@ const HABIT_PATTERNS: HabitPattern[] = [
       "Clean space, clear mind! 🧹 How does it feel?",
       "Getting organized! 📦 What area did you tackle?",
       "Productivity boost! ✨ Feels good, right?",
+      "Sparking joy! 🪄 Everything in its right place?",
+      "A tidy environment does wonders! 🧺 Great job sorting things out!",
     ],
   },
 ];
@@ -129,6 +154,14 @@ const FOLLOW_UP_QUESTIONS = [
     text: "Would you like to do more of this? 🌱",
     quickReplies: ['Definitely!', 'Maybe tomorrow', 'Need a break'],
   },
+  {
+    text: "What was the best part of doing it? ✨",
+    quickReplies: ['Finishing it! 🎉', 'The process 🧘', 'Feeling productive 💪'],
+  },
+  {
+    text: "Did you encounter any challenges? 🧗",
+    quickReplies: ['No, smooth sailing! ⛵', 'A little bit 🤏', 'Yes, it was tough 🧱'],
+  }
 ];
 
 // ─── General Responses ───────────────────────────────────────────
@@ -139,6 +172,9 @@ const GENERAL_RESPONSES = [
   "Sounds good! 🌿 Did you complete any habits today?",
   "Keep going! Every small step matters 🚀",
   "I love your energy! ✨ What else have you been up to?",
+  "Fascinating! 🧐 Let's make sure we log your core habits though—did you exercise, read, or meditate?",
+  "Oh, I see! 🌱 By the way, have you hit your water goal for today?",
+  "Got it! 📝 Don't forget, I'm here to log your daily routines. What's on the checklist today?",
 ];
 
 const GREETING_MESSAGES: ChatMessage[] = [
@@ -150,7 +186,7 @@ const GREETING_MESSAGES: ChatMessage[] = [
   },
   {
     id: 'greeting-2',
-    text: "Tell me about your habits today — like \"I just ran 5km\" or \"I meditated for 10 minutes\" and I'll log it for you! 📝",
+    text: "Tell me about your habits today — or just tap one of your quick replies below! 📝",
     sender: 'mascot',
     timestamp: new Date(),
     quickReplies: ['I exercised today 💪', 'I read a book 📚', 'I drank water 💧', 'I meditated 🧘'],
@@ -238,7 +274,9 @@ export function generateBotResponse(userMessage: string): ChatMessage[] {
     if (matched) {
       lastDetectedCategory = pattern.category;
       const response = pattern.responses[Math.floor(Math.random() * pattern.responses.length)];
-      responses.push(createMascotMessage(response));
+      const msg = createMascotMessage(response);
+      msg.habitDetected = pattern.category;
+      responses.push(msg);
 
       // Set state to expect follow-up
       conversationState = 'follow_up';
@@ -299,4 +337,48 @@ export function createUserMessage(text: string): ChatMessage {
     sender: 'user',
     timestamp: new Date(),
   };
+}
+
+import api from '@/services/api';
+import { API_ENDPOINTS } from '@/constants/api';
+
+export async function processHabitLoggingAsync(category: string): Promise<void> {
+  try {
+    // Fetch user's habits
+    const { data } = await api.get<{ habits: any[] }>(API_ENDPOINTS.habits);
+    const habits = data?.habits || [];
+
+    // Find the first habit that matches the category
+    const matchingHabit = habits.find((h: any) => h.category === category);
+
+    const today = new Date().toISOString().split('T')[0];
+
+    if (matchingHabit) {
+      // Complete the habit for today
+      await api.post(API_ENDPOINTS.habitComplete(matchingHabit.id), { date: today });
+    } else {
+      // Create a new habit for this category
+      const defaultNames: Record<string, string> = {
+        'sport': 'Exercise',
+        'health': 'Healthy Choice',
+        'mindfulness': 'Mindfulness Practice',
+        'learning': 'Learning Session',
+        'productivity': 'Productive Work',
+      };
+      const name = defaultNames[category] || 'New Habit';
+      
+      const createRes = await api.post<{ habit: any }>(API_ENDPOINTS.habits, {
+        name,
+        category,
+        frequency: 'daily',
+      });
+
+      if (createRes.data?.habit) {
+        // Complete the newly created habit
+        await api.post(API_ENDPOINTS.habitComplete(createRes.data.habit.id), { date: today });
+      }
+    }
+  } catch (error) {
+    console.log('Error processing habit log in backend:', error);
+  }
 }

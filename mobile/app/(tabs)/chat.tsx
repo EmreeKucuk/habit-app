@@ -38,6 +38,7 @@ import {
   generateBotResponse,
   createUserMessage,
   getLastDetectedCategory,
+  processHabitLoggingAsync,
 } from '@/services/chatBot';
 import {
   fetchMotivationScore,
@@ -46,12 +47,15 @@ import {
   getMotivationGreeting,
   MotivationScore,
 } from '@/services/motivation';
+import api from '@/services/api';
+import { API_ENDPOINTS } from '@/constants/api';
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [motivationScore, setMotivationScore] = useState<MotivationScore | null>(null);
+  const [userHabits, setUserHabits] = useState<any[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -62,6 +66,16 @@ export default function ChatScreen() {
     // Fetch motivation score in the background
     const score = await fetchMotivationScore();
     setMotivationScore(score);
+
+    // Fetch user habits for quick replies
+    try {
+      const habitsRes = await api.get<{ habits: any[] }>(API_ENDPOINTS.habits);
+      if (habitsRes.data?.habits) {
+        setUserHabits(habitsRes.data.habits);
+      }
+    } catch (e) {
+      console.log('Failed to fetch habits for quick replies', e);
+    }
 
     // Build greeting based on score
     const greetings = getGreetingMessages();
@@ -139,6 +153,12 @@ export default function ChatScreen() {
     setTimeout(() => {
       const botResponses = generateBotResponse(text);
 
+      // Check if a habit was detected and log it to the backend asynchronously
+      const detectedHabit = botResponses.find((r) => r.habitDetected)?.habitDetected;
+      if (detectedHabit) {
+        processHabitLoggingAsync(detectedHabit);
+      }
+
       // Add responses one by one with small delays
       botResponses.forEach((response, index) => {
         setTimeout(() => {
@@ -176,6 +196,12 @@ export default function ChatScreen() {
     const delay = 600 + Math.random() * 500;
     setTimeout(() => {
       const botResponses = generateBotResponse(reply);
+      
+      const detectedHabit = botResponses.find((r) => r.habitDetected)?.habitDetected;
+      if (detectedHabit) {
+        processHabitLoggingAsync(detectedHabit);
+      }
+
       botResponses.forEach((response, index) => {
         setTimeout(() => {
           setMessages((prev) => [...prev, response]);
@@ -297,6 +323,28 @@ export default function ChatScreen() {
             isTyping ? <TypingIndicator /> : null
           }
         />
+
+        {/* Habit Quick Replies (Dynamic) */}
+        {userHabits.length > 0 && !isTyping && (
+          <View style={styles.dynamicQuickRepliesContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dynamicQuickRepliesScroll}>
+              {userHabits.map((habit) => (
+                <Pressable
+                  key={habit.id}
+                  style={styles.dynamicQuickReplyChip}
+                  onPress={() => {
+                    const text = `I completed my ${habit.name} habit today!`;
+                    handleQuickReply(text);
+                  }}
+                >
+                  <Typography variant="bodySmall" color={Colors.white}>
+                    {habit.icon || '✅'} {habit.name}
+                  </Typography>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Input Bar */}
         <View style={styles.inputBar}>
@@ -555,7 +603,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.7)',
   },
 
-  // Input Bar
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -565,6 +612,21 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.overlayLight,
     gap: Spacing.sm,
+  },
+  dynamicQuickRepliesContainer: {
+    backgroundColor: Colors.background,
+    paddingVertical: Spacing.sm,
+  },
+  dynamicQuickRepliesScroll: {
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.sm,
+  },
+  dynamicQuickReplyChip: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+    borderRadius: Radius.full,
+    ...Shadows.sm,
   },
   inputContainer: {
     flex: 1,
