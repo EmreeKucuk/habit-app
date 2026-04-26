@@ -28,7 +28,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { Colors, Spacing, Radius, Shadows, FontFamily, FontSize } from '@/constants/theme';
+import { Spacing, Radius, Shadows, FontFamily, FontSize } from '@/constants/theme';
+import { useTheme, ThemePreference } from '@/context/ThemeContext';
 import { API_ENDPOINTS } from '@/constants/api';
 import api, { clearAuthTokens } from '@/services/api';
 
@@ -46,10 +47,14 @@ interface UserProfile {
 }
 
 export default function ProfileScreen() {
+  const { Colors, isDark, themePreference, setThemePreference } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
 
   // Entrance animations
   const avatarScale = useSharedValue(0);
@@ -204,17 +209,20 @@ export default function ProfileScreen() {
               icon="person-outline"
               label="Edit Profile"
               onPress={() => setEditModalVisible(true)}
+              Colors={Colors}
             />
             <SettingsRow
               icon="lock-closed-outline"
               label="Change Password"
               onPress={() => setPasswordModalVisible(true)}
+              Colors={Colors}
             />
             <SettingsRow
               icon="mail-outline"
               label="Email"
               value={profile?.email || 'Not set'}
               disabled
+              Colors={Colors}
             />
           </View>
         </Animated.View>
@@ -232,18 +240,21 @@ export default function ProfileScreen() {
               label="Notifications"
               value="Coming soon"
               disabled
+              Colors={Colors}
             />
             <SettingsRow
               icon="color-palette-outline"
               label="Appearance"
-              value="Light"
-              disabled
+              value={themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}
+              onPress={() => setThemeModalVisible(true)}
+              Colors={Colors}
             />
             <SettingsRow
               icon="information-circle-outline"
               label="About HabitFlow"
               value="v1.0.0"
               disabled
+              Colors={Colors}
             />
           </View>
         </Animated.View>
@@ -272,6 +283,8 @@ export default function ProfileScreen() {
           setProfile((prev) => prev ? { ...prev, ...updatedProfile } : prev);
           setEditModalVisible(false);
         }}
+        Colors={Colors}
+        styles={styles}
       />
 
       {/* ─── Change Password Modal ─── */}
@@ -279,8 +292,84 @@ export default function ProfileScreen() {
         visible={passwordModalVisible}
         email={profile?.email || ''}
         onClose={() => setPasswordModalVisible(false)}
+        Colors={Colors}
+        styles={styles}
+      />
+
+      {/* ─── Theme Selection Modal ─── */}
+      <ThemeSelectionModal
+        visible={themeModalVisible}
+        currentTheme={themePreference}
+        onClose={() => setThemeModalVisible(false)}
+        onSelect={(pref) => {
+          setThemePreference(pref);
+          setThemeModalVisible(false);
+        }}
+        Colors={Colors}
+        styles={styles}
       />
     </SafeAreaView>
+  );
+}
+
+// ─── Theme Selection Modal ──────────────────────────────────────
+
+function ThemeSelectionModal({
+  visible,
+  currentTheme,
+  onClose,
+  onSelect,
+  Colors,
+  styles,
+}: {
+  visible: boolean;
+  currentTheme: ThemePreference;
+  onClose: () => void;
+  onSelect: (pref: ThemePreference) => void;
+  Colors: any;
+  styles: any;
+}) {
+  return (
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Typography variant="h3" color={Colors.text}>Appearance</Typography>
+            <Pressable onPress={onClose}>
+              <Ionicons name="close" size={24} color={Colors.text} />
+            </Pressable>
+          </View>
+
+          <View style={styles.modalInputGroup}>
+            {[
+              { id: 'system', label: 'System Default', icon: 'phone-portrait-outline' },
+              { id: 'light', label: 'Light Mode', icon: 'sunny-outline' },
+              { id: 'dark', label: 'Dark Mode', icon: 'moon-outline' },
+            ].map((option) => (
+              <Pressable
+                key={option.id}
+                style={[
+                  styles.settingsRow,
+                  { borderBottomWidth: 0, paddingVertical: Spacing.sm, borderRadius: Radius.md },
+                  currentTheme === option.id && { backgroundColor: Colors.overlayLight },
+                ]}
+                onPress={() => onSelect(option.id as ThemePreference)}
+              >
+                <View style={styles.settingsRowLeft}>
+                  <Ionicons name={option.icon as any} size={20} color={currentTheme === option.id ? Colors.accent : Colors.text} />
+                  <Typography variant="body" color={currentTheme === option.id ? Colors.accent : Colors.text}>
+                    {option.label}
+                  </Typography>
+                </View>
+                {currentTheme === option.id && (
+                  <Ionicons name="checkmark" size={20} color={Colors.accent} />
+                )}
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -292,28 +381,42 @@ function SettingsRow({
   value,
   onPress,
   disabled,
+  Colors,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value?: string;
   onPress?: () => void;
   disabled?: boolean;
+  Colors: any;
 }) {
   return (
     <Pressable
-      style={styles.settingsRow}
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: Spacing.md,
+        paddingHorizontal: Spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.overlayLight,
+      }}
       onPress={onPress}
       disabled={disabled || !onPress}
     >
-      <View style={styles.settingsRowLeft}>
-        <View style={styles.settingsIconCircle}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+        <View style={{
+          width: 36, height: 36, borderRadius: 18,
+          backgroundColor: Colors.overlayLight,
+          justifyContent: 'center', alignItems: 'center',
+        }}>
           <Ionicons name={icon} size={20} color={Colors.text} />
         </View>
         <Typography variant="body" color={Colors.text}>
           {label}
         </Typography>
       </View>
-      <View style={styles.settingsRowRight}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }}>
         {value && (
           <Typography variant="bodySmall" color={Colors.textMuted}>
             {value}
@@ -334,11 +437,15 @@ function EditProfileModal({
   profile,
   onClose,
   onSave,
+  Colors,
+  styles,
 }: {
   visible: boolean;
   profile: UserProfile | null;
   onClose: () => void;
   onSave: (data: Partial<UserProfile>) => void;
+  Colors: any;
+  styles: any;
 }) {
   const [firstName, setFirstName] = useState(profile?.first_name || '');
   const [lastName, setLastName] = useState(profile?.last_name || '');
@@ -445,10 +552,14 @@ function ChangePasswordModal({
   visible,
   email,
   onClose,
+  Colors,
+  styles,
 }: {
   visible: boolean;
   email: string;
   onClose: () => void;
+  Colors: any;
+  styles: any;
 }) {
   const handleSendReset = async () => {
     if (!email) {
@@ -511,7 +622,7 @@ function ChangePasswordModal({
 
 // ─── Styles ─────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any) => StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,

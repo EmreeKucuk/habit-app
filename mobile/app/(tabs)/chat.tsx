@@ -31,7 +31,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Mascot from '@/components/Mascot';
 import Typography from '@/components/ui/Typography';
-import { Colors, Spacing, Radius, Shadows, FontFamily, FontSize } from '@/constants/theme';
+import { Spacing, Radius, Shadows, FontFamily, FontSize } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import {
   ChatMessage,
   getGreetingMessages,
@@ -51,6 +52,9 @@ import api from '@/services/api';
 import { API_ENDPOINTS } from '@/constants/api';
 
 export default function ChatScreen() {
+  const { Colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -320,7 +324,7 @@ export default function ChatScreen() {
           showsVerticalScrollIndicator={false}
           onContentSizeChange={scrollToBottom}
           ListFooterComponent={
-            isTyping ? <TypingIndicator /> : null
+            isTyping ? <TypingIndicator styles={styles} /> : null
           }
         />
 
@@ -382,7 +386,7 @@ export default function ChatScreen() {
 
 // ─── Typing Indicator ────────────────────────────────────────────
 
-function TypingIndicator() {
+function TypingIndicator({ styles }: { styles: any }) {
   return (
     <Animated.View
       entering={FadeInLeft.duration(300)}
@@ -392,19 +396,19 @@ function TypingIndicator() {
         <Mascot mood="thinking" size="sm" animated={false} />
       </View>
       <View style={styles.typingBubble}>
-        <TypingDots />
+        <TypingDots styles={styles} />
       </View>
     </Animated.View>
   );
 }
 
-function TypingDots() {
+function TypingDots({ styles }: { styles: any }) {
   const dot1 = useSharedValue(0);
   const dot2 = useSharedValue(0);
   const dot3 = useSharedValue(0);
 
   useEffect(() => {
-    const animate = (sv: Animated.SharedValue<number>, delay: number) => {
+    const animate = (sv: any, delay: number) => {
       sv.value = withDelay(
         delay,
         withSpring(1, { damping: 3, stiffness: 200 }, () => {
@@ -448,7 +452,7 @@ function formatTime(date: Date): string {
 
 // ─── Styles ──────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any) => StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,

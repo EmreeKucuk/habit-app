@@ -21,7 +21,8 @@ import { Ionicons } from '@expo/vector-icons';
 import CircularProgress from '@/components/CircularProgress';
 import HeatMap from '@/components/HeatMap';
 import Typography from '@/components/ui/Typography';
-import { Colors, Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
+import { Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { API_ENDPOINTS } from '@/constants/api';
 import api from '@/services/api';
 import { fetchMotivationScore, MotivationScore } from '@/services/motivation';
@@ -45,6 +46,9 @@ interface StatsData {
 }
 
 export default function HomeScreen() {
+  const { Colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
+
   const [habits, setHabits] = useState<HabitData[]>([]);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [userName, setUserName] = useState('');
@@ -294,19 +298,25 @@ export default function HomeScreen() {
               icon="checkmark-circle"
               iconColor={Colors.success}
               label="Total Done"
-              value={String(stats?.totalCompletions || Object.values(heatmapData).reduce((a, b) => a + b, 0))}
+              value={String(Object.values(heatmapData).reduce((a, b) => a + b, 0))}
+              Colors={Colors}
+              styles={styles}
             />
             <QuickStatCard
               icon="trophy"
               iconColor={Colors.accent}
               label="Longest Streak"
               value={`${stats?.longestStreak || bestStreak}d`}
+              Colors={Colors}
+              styles={styles}
             />
             <QuickStatCard
               icon="fitness"
               iconColor="#E76F51"
               label="Success"
               value={`${stats?.successPercentage || 0}%`}
+              Colors={Colors}
+              styles={styles}
             />
           </View>
         </Animated.View>
@@ -320,11 +330,15 @@ function QuickStatCard({
   iconColor,
   label,
   value,
+  Colors,
+  styles,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   iconColor: string;
   label: string;
   value: string;
+  Colors: any;
+  styles: any;
 }) {
   return (
     <View style={styles.quickStatCard}>
@@ -349,7 +363,7 @@ function getMotivationalMessage(completed: number, total: number): string {
   return "☀️ Fresh day ahead — let's make it count!";
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any) => StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,

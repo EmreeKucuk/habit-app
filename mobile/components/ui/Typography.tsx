@@ -5,7 +5,8 @@
 
 import React from 'react';
 import { Text, TextStyle, StyleSheet, TextProps } from 'react-native';
-import { Colors, FontFamily, FontSize, LineHeight } from '@/constants/theme';
+import { FontFamily, FontSize, LineHeight } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 type TypographyVariant =
   | 'display'
@@ -27,17 +28,20 @@ interface TypographyProps extends TextProps {
 
 export default function Typography({
   variant = 'body',
-  color = Colors.text,
+  color,
   align,
   style,
   children,
   ...rest
 }: TypographyProps) {
+  const { Colors } = useTheme();
+  const textColor = color || Colors.text;
+
   return (
     <Text
       style={[
         styles[variant],
-        { color },
+        { color: textColor },
         align ? { textAlign: align } : undefined,
         style,
       ]}

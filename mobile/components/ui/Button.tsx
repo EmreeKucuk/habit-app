@@ -16,7 +16,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import Typography from './Typography';
-import { Colors, Spacing, Radius, Shadows } from '@/constants/theme';
+import { Spacing, Radius, Shadows } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -48,6 +49,7 @@ export default function Button({
   fullWidth = false,
   style,
 }: ButtonProps) {
+  const { Colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -62,7 +64,7 @@ export default function Button({
     scale.value = withSpring(1, { damping: 15, stiffness: 300 });
   };
 
-  const variantStyles = getVariantStyles(variant);
+  const variantStyles = getVariantStyles(variant, Colors);
   const sizeStyles = getSizeStyles(size);
 
   return (
@@ -93,8 +95,8 @@ export default function Button({
             variant="button"
             color={variantStyles.textColor}
             style={[
-              icon && iconPosition === 'left' && { marginLeft: Spacing.sm },
-              icon && iconPosition === 'right' && { marginRight: Spacing.sm },
+              icon && iconPosition === 'left' ? { marginLeft: Spacing.sm } : undefined,
+              icon && iconPosition === 'right' ? { marginRight: Spacing.sm } : undefined,
             ]}
           >
             {title}
@@ -106,7 +108,7 @@ export default function Button({
   );
 }
 
-function getVariantStyles(variant: ButtonVariant) {
+function getVariantStyles(variant: ButtonVariant, Colors: any) {
   switch (variant) {
     case 'primary':
       return {

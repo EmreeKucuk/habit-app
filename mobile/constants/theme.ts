@@ -4,7 +4,7 @@
  */
 
 // ─── Color Palette ───────────────────────────────────────────────
-export const Colors = {
+export const lightColors = {
   // Primary palette
   background: '#FEFAE0',
   card: '#A3B18A',
@@ -35,6 +35,43 @@ export const Colors = {
   tabBarActive: '#344E41',
   tabBarInactive: '#A3B18A',
 };
+
+export const darkColors = {
+  // Primary palette
+  background: '#121413',
+  card: '#243328',
+  text: '#EAEAEA',
+  accent: '#E9C46A',
+
+  // Derived / utility colors
+  cardLight: '#2C3E30',
+  cardDark: '#1A241C',
+  textLight: '#B0B0B0',
+  textMuted: '#808080',
+  accentDark: '#D4AB4A',
+  accentLight: '#F0D78A',
+
+  // Semantic colors
+  white: '#FFFFFF',
+  black: '#1A1A1A',
+  error: '#E57373',
+  success: '#81C784',
+  warning: '#FFB74D',
+
+  // Opacity overlays
+  overlay: 'rgba(0, 0, 0, 0.6)',
+  overlayLight: 'rgba(255, 255, 255, 0.1)',
+
+  // Tab bar / navigation
+  tabBarBackground: '#121413',
+  tabBarActive: '#E9C46A',
+  tabBarInactive: '#808080',
+};
+
+export type ThemeColors = typeof lightColors;
+
+// Legacy export for temporary compatibility during refactor
+export const Colors = lightColors;
 
 // ─── Spacing ─────────────────────────────────────────────────────
 export const Spacing = {

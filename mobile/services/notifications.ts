@@ -8,6 +8,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -58,9 +60,10 @@ export async function scheduleMotivationReminder(score: MotivationScore | null) 
   }
 
   // Schedule for 24 hours from now
-  const trigger = {
+  const trigger: Notifications.NotificationTriggerInput = {
+    type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
     seconds: 60 * 60 * 24, // 24 hours
-    repeats: false, // We'll just schedule a new one each time they open the app
+    repeats: false,
   };
 
   // For testing purposes during development, you can uncomment this to test the notification after 5 seconds
