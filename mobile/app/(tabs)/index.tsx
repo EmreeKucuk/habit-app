@@ -102,8 +102,8 @@ export default function HomeScreen() {
         setHabits(habitsRes.data.habits);
       }
 
-      // Fetch stats
-      const statsRes = await api.get<StatsData>('/api/users/me/stats');
+      // Fetch stats from the proper endpoint
+      const statsRes = await api.get<StatsData>(API_ENDPOINTS.userStats);
       if (statsRes.data) {
         setStats(statsRes.data);
       }

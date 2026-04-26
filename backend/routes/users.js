@@ -359,7 +359,7 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
         const today = new Date().toISOString().split('T')[0];
         let currentDate = new Date(today);
         
-        // Check current streak
+        // Check current streak (allow today to not yet be completed)
         for (const completion of completions) {
           const completionDate = completion.date;
           const expectedDate = currentDate.toISOString().split('T')[0];
@@ -367,6 +367,17 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
           if (completionDate === expectedDate) {
             habitCurrentStreak++;
             currentDate.setDate(currentDate.getDate() - 1);
+          } else if (habitCurrentStreak === 0) {
+            // Today not yet completed — check if streak starts from yesterday
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (completionDate === yesterday.toISOString().split('T')[0]) {
+              habitCurrentStreak++;
+              currentDate = new Date(yesterday);
+              currentDate.setDate(currentDate.getDate() - 1);
+            } else {
+              break;
+            }
           } else {
             break;
           }
@@ -393,9 +404,34 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
       longestStreak = Math.max(longestStreak, habitLongestStreak);
     }
     
-    // Calculate success rate
-    const expectedCompletions = totalHabits * 30; // Rough estimate for last 30 days
-    const successRate = expectedCompletions > 0 ? Math.round((totalCompletions / expectedCompletions) * 100) : 0;
+    // Calculate success rate (completions in last 30 days / expected completions)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+    
+    const last30Completions = await db.get(
+      'SELECT COUNT(DISTINCT habit_id || date) as count FROM habit_completions WHERE user_id = ? AND date >= ?',
+      [userId, thirtyDaysAgoStr]
+    );
+    
+    // Count how many habit-days were possible in the last 30 days
+    // (each habit counts for each day since it was created, up to 30 days)
+    const habitsWithDates = await db.all(
+      'SELECT created_at FROM habits WHERE user_id = ?',
+      [userId]
+    );
+    
+    let expectedCompletions = 0;
+    habitsWithDates.forEach(h => {
+      const created = new Date(h.created_at);
+      const start = created > thirtyDaysAgo ? created : thirtyDaysAgo;
+      const daysActive = Math.max(1, Math.ceil((new Date() - start) / (1000 * 60 * 60 * 24)));
+      expectedCompletions += daysActive;
+    });
+    
+    const successRate = expectedCompletions > 0 
+      ? Math.min(100, Math.round((last30Completions.count / expectedCompletions) * 100)) 
+      : 0;
     
     // Calculate weekly average (last 7 days)
     const weekAgo = new Date();

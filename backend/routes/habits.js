@@ -374,24 +374,23 @@ function calculateStreak(completedDates) {
   if (completedDates.length === 0) return 0;
 
   const today = new Date().toISOString().split('T')[0];
-  const sortedDates = completedDates.sort((a, b) => new Date(b) - new Date(a));
+  const sortedDates = [...new Set(completedDates)].sort((a, b) => new Date(b) - new Date(a));
 
   let streak = 0;
-  let currentDate = new Date(today);
+  let checkDate = new Date(today);
+
+  // If today is not completed, start checking from yesterday
+  if (sortedDates[0] !== today) {
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
 
   for (const dateStr of sortedDates) {
-    const completionDate = new Date(dateStr);
-    const dayDiff = Math.floor((currentDate - completionDate) / (1000 * 60 * 60 * 24));
-
-    if (dayDiff === streak) {
+    const expected = checkDate.toISOString().split('T')[0];
+    if (dateStr === expected) {
       streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else if (dayDiff === streak + 1 && streak === 0) {
-      // Today not completed but yesterday was
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else {
-      break;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else if (new Date(dateStr) < checkDate) {
+      break; // Gap found, stop counting
     }
   }
 
