@@ -102,7 +102,7 @@ export default function ProfileScreen() {
         onPress: async () => {
           await clearAuthTokens();
           await AsyncStorage.removeItem('@habitflow_onboarding_complete');
-          router.replace('/');
+          router.replace('/(auth)/login');
         },
       },
     ]);

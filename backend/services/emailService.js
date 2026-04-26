@@ -86,7 +86,8 @@ class EmailService {
   }
 
   async sendVerificationEmail(email, username, verificationToken) {
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+    const backendUrl = process.env.BACKEND_URL || 'https://habit-app-backend-nfhj.onrender.com';
+    const verificationUrl = `${backendUrl}/api/auth/verify-email?token=${verificationToken}`;
     
     const subject = 'Verify your Habit Tracker account';
     const text = `
@@ -144,7 +145,8 @@ The Habit Tracker Team
   }
 
   async sendPasswordResetEmail(email, username, resetToken) {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const backendUrl = process.env.BACKEND_URL || 'https://habit-app-backend-nfhj.onrender.com';
+    const resetUrl = `${backendUrl}/api/auth/reset-password-page?token=${resetToken}`;
     
     const subject = 'Reset your Habit Tracker password';
     const text = `

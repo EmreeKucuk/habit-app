@@ -181,7 +181,70 @@ router.post('/login', [
   }
 });
 
-// Verify email
+// Verify email (HTML page for email link)
+router.get('/verify-email', async (req, res) => {
+  try {
+    const token = req.query.token;
+    if (!token) {
+      return res.status(400).send(`
+        <html><body>
+        <h1 style="color:red; text-align:center; font-family:sans-serif; margin-top:50px;">Invalid or missing token</h1>
+        </body></html>
+      `);
+    }
+
+    const user = await getDb().get(
+      'SELECT * FROM users WHERE verification_token = ?',
+      [token]
+    );
+
+    if (!user) {
+      return res.status(400).send(`
+        <html><body style="background:#FEFAE0; font-family:sans-serif; text-align:center; padding:50px;">
+        <h1 style="color:#344E41;">Invalid or Expired Link</h1>
+        <p style="color:#344E41;">This verification link is invalid or has expired.</p>
+        </body></html>
+      `);
+    }
+
+    if (!user.email_verified) {
+      await getDb().run(
+        'UPDATE users SET email_verified = true, verification_token = NULL WHERE id = ?',
+        [user.id]
+      );
+    }
+
+    res.send(`
+      <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body { background-color: #FEFAE0; font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+          .card { background-color: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 90%; }
+          .icon { font-size: 60px; margin-bottom: 20px; }
+          h1 { color: #344E41; margin-top: 0; }
+          p { color: #666; line-height: 1.5; margin-bottom: 30px; }
+          .button { background-color: #E9C46A; color: #344E41; text-decoration: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(233,196,106,0.3); }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="icon">✨</div>
+          <h1>Email Verified!</h1>
+          <p>Your email has been successfully verified. You can now log into your HabitFlow account and start tracking your progress.</p>
+          <a href="#" class="button" onclick="window.close(); return false;">Return to App</a>
+        </div>
+      </body>
+      </html>
+    `);
+
+  } catch (error) {
+    console.error('Email verification GET error:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+// Verify email (JSON API)
 router.post('/verify-email', [
   body('token').notEmpty()
 ], async (req, res) => {
