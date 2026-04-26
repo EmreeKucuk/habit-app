@@ -28,17 +28,127 @@ import Animated, {
   withSpring,
   FadeInDown,
 } from 'react-native-reanimated';
+import * as Google from 'expo-auth-session/providers/google';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as WebBrowser from 'expo-web-browser';
 import Typography from '@/components/ui/Typography';
 import { Colors, Spacing, Radius, Shadows, FontFamily, FontSize } from '@/constants/theme';
 import { API_ENDPOINTS } from '@/constants/api';
 import api, { saveAuthTokens } from '@/services/api';
+
+// Required for expo-auth-session to work on web
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
   const passwordRef = useRef<TextInput>(null);
+
+  // Google Auth setup
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    // You MUST replace these with your real Google Cloud Console OAuth Client IDs
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      handleGoogleResponse(response.authentication?.accessToken);
+    }
+  }, [response]);
+
+  const handleGoogleResponse = async (accessToken: string | undefined) => {
+    if (!accessToken) return;
+    setIsSocialLoading('Google');
+    try {
+      // Fetch user info from Google using the access token
+      const userInfoRes = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const userInfo = await userInfoRes.json();
+
+      // Send to our backend
+      const { data, error } = await api.post<{
+        token: string;
+        refreshToken: string;
+        user: any;
+      }>(API_ENDPOINTS.googleAuth, {
+        idToken: accessToken,
+        email: userInfo.email,
+        name: userInfo.name,
+        googleId: userInfo.id,
+      });
+
+      if (error) {
+        Alert.alert('Google Sign-In Failed', error);
+        return;
+      }
+
+      if (data?.token) {
+        await saveAuthTokens(data.token, data.refreshToken);
+        router.replace('/(tabs)');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Google sign-in failed. Please try again.');
+    } finally {
+      setIsSocialLoading(null);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await promptAsync();
+    } catch (err) {
+      Alert.alert('Error', 'Could not start Google sign-in.');
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    if (Platform.OS !== 'ios') {
+      Alert.alert('Not Available', 'Apple Sign-In is only available on iOS devices.');
+      return;
+    }
+    setIsSocialLoading('Apple');
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      const { data, error } = await api.post<{
+        token: string;
+        refreshToken: string;
+        user: any;
+      }>(API_ENDPOINTS.appleAuth, {
+        identityToken: credential.identityToken,
+        email: credential.email,
+        fullName: credential.fullName,
+        appleUserId: credential.user,
+      });
+
+      if (error) {
+        Alert.alert('Apple Sign-In Failed', error);
+        return;
+      }
+
+      if (data?.token) {
+        await saveAuthTokens(data.token, data.refreshToken);
+        router.replace('/(tabs)');
+      }
+    } catch (err: any) {
+      if (err.code !== 'ERR_REQUEST_CANCELED') {
+        Alert.alert('Error', 'Apple sign-in failed. Please try again.');
+      }
+    } finally {
+      setIsSocialLoading(null);
+    }
+  };
 
   // Entrance animations
   const logoOpacity = useSharedValue(0);
@@ -126,12 +236,7 @@ export default function LoginScreen() {
     );
   };
 
-  const handleSocialLogin = (provider: string) => {
-    Alert.alert(
-      'Coming Soon',
-      `${provider} sign-in will be available in a future update.`,
-    );
-  };
+
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -169,27 +274,41 @@ export default function LoginScreen() {
             <Animated.View style={[styles.card, cardAnim]}>
               {/* Social Buttons */}
               <Pressable
-                style={styles.socialButton}
-                onPress={() => handleSocialLogin('Google')}
+                style={[styles.socialButton, isSocialLoading === 'Google' && { opacity: 0.7 }]}
+                onPress={handleGoogleLogin}
+                disabled={!!isSocialLoading || !request}
               >
-                <View style={styles.socialIconContainer}>
-                  <Ionicons name="logo-google" size={20} color="#4285F4" />
-                </View>
-                <Typography variant="body" color={Colors.text} style={styles.socialText}>
-                  Continue with Google
-                </Typography>
+                {isSocialLoading === 'Google' ? (
+                  <ActivityIndicator size="small" color="#4285F4" />
+                ) : (
+                  <>
+                    <View style={styles.socialIconContainer}>
+                      <Ionicons name="logo-google" size={20} color="#4285F4" />
+                    </View>
+                    <Typography variant="body" color={Colors.text} style={styles.socialText}>
+                      Continue with Google
+                    </Typography>
+                  </>
+                )}
               </Pressable>
 
               <Pressable
-                style={[styles.socialButton, styles.appleButton]}
-                onPress={() => handleSocialLogin('Apple')}
+                style={[styles.socialButton, styles.appleButton, isSocialLoading === 'Apple' && { opacity: 0.7 }]}
+                onPress={handleAppleLogin}
+                disabled={!!isSocialLoading}
               >
-                <View style={styles.socialIconContainer}>
-                  <Ionicons name="logo-apple" size={22} color={Colors.white} />
-                </View>
-                <Typography variant="body" color={Colors.white} style={styles.socialText}>
-                  Continue with Apple
-                </Typography>
+                {isSocialLoading === 'Apple' ? (
+                  <ActivityIndicator size="small" color={Colors.white} />
+                ) : (
+                  <>
+                    <View style={styles.socialIconContainer}>
+                      <Ionicons name="logo-apple" size={22} color={Colors.white} />
+                    </View>
+                    <Typography variant="body" color={Colors.white} style={styles.socialText}>
+                      Continue with Apple
+                    </Typography>
+                  </>
+                )}
               </Pressable>
 
               {/* Divider */}

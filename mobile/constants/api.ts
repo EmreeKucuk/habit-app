@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
   resetPassword: '/api/auth/reset-password',
   me: '/api/auth/me',
   refresh: '/api/auth/refresh',
+  googleAuth: '/api/auth/google-auth',
+  appleAuth: '/api/auth/apple-auth',
 
   // Habits
   habits: '/api/habits',

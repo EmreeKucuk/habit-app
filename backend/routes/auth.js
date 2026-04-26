@@ -324,6 +324,128 @@ router.post('/forgot-password', [
   }
 });
 
+// Reset password page (HTML form for email link)
+router.get('/reset-password-page', async (req, res) => {
+  const token = req.query.token;
+  if (!token) {
+    return res.status(400).send(`
+      <html><body style="background:#FEFAE0; font-family:sans-serif; text-align:center; padding:50px;">
+      <h1 style="color:#344E41;">Invalid Link</h1>
+      <p style="color:#344E41;">This reset link is invalid or missing a token.</p>
+      </body></html>
+    `);
+  }
+
+  // Verify token is still valid before showing the form
+  const user = await getDb().get(
+    'SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > ?',
+    [token, new Date().toISOString()]
+  );
+
+  if (!user) {
+    return res.status(400).send(`
+      <html><body style="background:#FEFAE0; font-family:sans-serif; text-align:center; padding:50px;">
+      <h1 style="color:#344E41;">Link Expired</h1>
+      <p style="color:#344E41;">This password reset link has expired. Please request a new one from the app.</p>
+      </body></html>
+    `);
+  }
+
+  const backendUrl = process.env.BACKEND_URL || 'https://habit-app-backend-nfhj.onrender.com';
+
+  res.send(`
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        body { background-color: #FEFAE0; font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background-color: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 100%; }
+        .icon { font-size: 50px; margin-bottom: 16px; }
+        h1 { color: #344E41; margin-top: 0; font-size: 24px; }
+        p { color: #666; line-height: 1.5; margin-bottom: 24px; font-size: 14px; }
+        label { display: block; text-align: left; color: #344E41; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; margin-bottom: 16px; outline: none; transition: border-color 0.2s; }
+        input:focus { border-color: #E9C46A; }
+        .btn { background-color: #E9C46A; color: #344E41; border: none; padding: 14px 30px; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; box-shadow: 0 4px 6px rgba(233,196,106,0.3); transition: opacity 0.2s; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { opacity: 0.9; }
+        .error { color: #D64545; font-size: 13px; margin-bottom: 12px; display: none; text-align: left; }
+        .success { color: #4CAF50; }
+        .hint { color: #999; font-size: 12px; text-align: left; margin-top: -10px; margin-bottom: 16px; }
+      </style>
+    </head>
+    <body>
+      <div class="card" id="formCard">
+        <div class="icon">🔐</div>
+        <h1>Reset Your Password</h1>
+        <p>Enter your new password below.</p>
+        <form id="resetForm" onsubmit="handleSubmit(event)">
+          <label for="password">New Password</label>
+          <input type="password" id="password" placeholder="Enter new password" required minlength="6" />
+          <p class="hint">Must contain uppercase, lowercase, and a number (min 6 chars)</p>
+
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" placeholder="Confirm new password" required />
+
+          <p class="error" id="errorMsg"></p>
+          <button type="submit" class="btn" id="submitBtn">Reset Password</button>
+        </form>
+      </div>
+
+      <script>
+        async function handleSubmit(e) {
+          e.preventDefault();
+          const password = document.getElementById('password').value;
+          const confirmPassword = document.getElementById('confirmPassword').value;
+          const errorMsg = document.getElementById('errorMsg');
+          const submitBtn = document.getElementById('submitBtn');
+
+          errorMsg.style.display = 'none';
+
+          if (password !== confirmPassword) {
+            errorMsg.textContent = 'Passwords do not match.';
+            errorMsg.style.display = 'block';
+            return;
+          }
+
+          if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)/.test(password)) {
+            errorMsg.textContent = 'Password must contain uppercase, lowercase, and a number.';
+            errorMsg.style.display = 'block';
+            return;
+          }
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Resetting...';
+
+          try {
+            const res = await fetch('${backendUrl}/api/auth/reset-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: '${token}', password, confirmPassword })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+              document.getElementById('formCard').innerHTML = '<div class="icon">✅</div><h1 class="success">Password Reset!</h1><p>Your password has been successfully changed. You can now return to the app and log in with your new password.</p>';
+            } else {
+              errorMsg.textContent = data.message || 'Failed to reset password. The link may have expired.';
+              errorMsg.style.display = 'block';
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Reset Password';
+            }
+          } catch (err) {
+            errorMsg.textContent = 'Network error. Please try again.';
+            errorMsg.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Reset Password';
+          }
+        }
+      </script>
+    </body>
+    </html>
+  `);
+});
+
 // Reset password
 router.post('/reset-password', [
   body('token').notEmpty(),
@@ -435,6 +557,133 @@ router.post('/refresh', [
   } catch (error) {
     console.error('Refresh token error:', error);
     res.status(403).json({ message: 'Invalid refresh token' });
+  }
+});
+
+// Google OAuth — accept an ID token from the mobile app
+router.post('/google-auth', async (req, res) => {
+  try {
+    const { idToken, email, name, googleId } = req.body;
+
+    if (!email || !googleId) {
+      return res.status(400).json({ message: 'Missing required Google auth data' });
+    }
+
+    // Check if user already exists with this email
+    let user = await getDb().get(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (user) {
+      // User exists — just log them in
+      if (!user.email_verified) {
+        await getDb().run(
+          'UPDATE users SET email_verified = true WHERE id = ?',
+          [user.id]
+        );
+      }
+    } else {
+      // Create a new user from Google data
+      const userId = uuidv4();
+      const username = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 20);
+      // Generate a random password hash (user won't use it — they log in via Google)
+      const randomPass = uuidv4();
+      const passwordHash = await bcrypt.hash(randomPass, 12);
+
+      const firstName = name ? name.split(' ')[0] : '';
+      const lastName = name ? name.split(' ').slice(1).join(' ') : '';
+
+      await getDb().run(
+        `INSERT INTO users (
+          id, username, email, password_hash, email_verified,
+          first_name, last_name, avatar_color, xp, level, share_progress, public_profile
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userId, username, email, passwordHash, true,
+          firstName, lastName, '#3b82f6', 0, 1, true, false
+        ]
+      );
+
+      user = await getDb().get('SELECT * FROM users WHERE id = ?', [userId]);
+    }
+
+    // Generate tokens
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+    const { password_hash, verification_token, reset_token, ...safeUser } = user;
+
+    res.json({
+      message: 'Login successful',
+      user: safeUser,
+      token,
+      refreshToken
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Apple OAuth — accept Apple identity data from the mobile app
+router.post('/apple-auth', async (req, res) => {
+  try {
+    const { identityToken, email, fullName, appleUserId } = req.body;
+
+    if (!appleUserId) {
+      return res.status(400).json({ message: 'Missing Apple user ID' });
+    }
+
+    // Apple only provides email/name on the FIRST sign-in, so we use appleUserId as the key
+    let user = null;
+
+    // First try to find by email (if provided)
+    if (email) {
+      user = await getDb().get('SELECT * FROM users WHERE email = ?', [email]);
+    }
+
+    if (user) {
+      if (!user.email_verified) {
+        await getDb().run('UPDATE users SET email_verified = true WHERE id = ?', [user.id]);
+      }
+    } else {
+      // Create new user
+      const userId = uuidv4();
+      const userEmail = email || `apple_${appleUserId.substring(0, 8)}@privaterelay.appleid.com`;
+      const username = userEmail.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 20);
+      const randomPass = uuidv4();
+      const passwordHash = await bcrypt.hash(randomPass, 12);
+
+      const firstName = fullName?.givenName || '';
+      const lastName = fullName?.familyName || '';
+
+      await getDb().run(
+        `INSERT INTO users (
+          id, username, email, password_hash, email_verified,
+          first_name, last_name, avatar_color, xp, level, share_progress, public_profile
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userId, username, userEmail, passwordHash, true,
+          firstName, lastName, '#3b82f6', 0, 1, true, false
+        ]
+      );
+
+      user = await getDb().get('SELECT * FROM users WHERE id = ?', [userId]);
+    }
+
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+    const { password_hash, verification_token, reset_token, ...safeUser } = user;
+
+    res.json({
+      message: 'Login successful',
+      user: safeUser,
+      token,
+      refreshToken
+    });
+  } catch (error) {
+    console.error('Apple auth error:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
