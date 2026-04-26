@@ -23,6 +23,7 @@ import Typography from '@/components/ui/Typography';
 import { Colors, Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
 import { API_ENDPOINTS } from '@/constants/api';
 import api from '@/services/api';
+import { fetchMotivationScore, MotivationScore } from '@/services/motivation';
 
 interface HabitData {
   id: string;
@@ -47,6 +48,7 @@ export default function HomeScreen() {
   const [userName, setUserName] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [motivationScore, setMotivationScore] = useState<MotivationScore | null>(null);
 
   // Entrance animations
   const headerOpacity = useSharedValue(0);
@@ -94,6 +96,12 @@ export default function HomeScreen() {
       const statsRes = await api.get<StatsData>('/api/users/me/stats');
       if (statsRes.data) {
         setStats(statsRes.data);
+      }
+
+      // Fetch motivation score
+      const mScore = await fetchMotivationScore();
+      if (mScore) {
+        setMotivationScore(mScore);
       }
     } catch (error) {
       console.log('Failed to load dashboard data:', error);
@@ -235,8 +243,43 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
+        {/* ─── Motivation Score Card ─── */}
+        <Animated.View entering={FadeInDown.delay(750).duration(500)}>
+          <View style={styles.motivationCard}>
+            <View style={styles.motivationHeader}>
+              <Ionicons name="heart" size={20} color={Colors.accent} />
+              <Typography variant="h3"> Motivation</Typography>
+            </View>
+            <View style={styles.motivationBody}>
+              <View style={styles.motivationScoreCircle}>
+                <Typography variant="h1" color={Colors.white}>
+                  {motivationScore?.score ?? '--'}
+                </Typography>
+              </View>
+              <View style={styles.motivationInfo}>
+                <View style={[
+                  styles.motivationLevelBadge,
+                  {
+                    backgroundColor:
+                      motivationScore?.level === 'high' ? '#2D6A4F' :
+                      motivationScore?.level === 'medium' ? Colors.accent :
+                      Colors.textMuted,
+                  },
+                ]}>
+                  <Typography variant="caption" color={Colors.white}>
+                    {motivationScore?.level?.toUpperCase() ?? 'N/A'}
+                  </Typography>
+                </View>
+                <Typography variant="bodySmall" color={Colors.textLight} style={{ marginTop: 6 }}>
+                  {motivationScore?.mascotTone?.encouragement ?? 'Start logging habits to build your score!'}
+                </Typography>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+
         {/* ─── Quick Stats Row ─── */}
-        <Animated.View entering={FadeInDown.delay(800).duration(500)}>
+        <Animated.View entering={FadeInDown.delay(900).duration(500)}>
           <View style={styles.quickStats}>
             <QuickStatCard
               icon="checkmark-circle"
@@ -378,6 +421,43 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.md,
     ...Shadows.sm,
+  },
+
+  // Motivation Card
+  motivationCard: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    ...Shadows.sm,
+  },
+  motivationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  motivationBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.lg,
+  },
+  motivationScoreCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Shadows.md,
+  },
+  motivationInfo: {
+    flex: 1,
+  },
+  motivationLevelBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 3,
   },
 
   // Quick Stats

@@ -260,6 +260,31 @@ class DatabaseService {
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(group_id, user_id, completion_date)
           )
+        `,
+        motivation_logs: `
+          CREATE TABLE IF NOT EXISTS motivation_logs (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL,
+            habit_category VARCHAR(50),
+            difficulty_rating INTEGER CHECK (difficulty_rating >= 1 AND difficulty_rating <= 5),
+            mood VARCHAR(30),
+            logged_via VARCHAR(20) DEFAULT 'chat',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+          )
+        `,
+        chat_messages: `
+          CREATE TABLE IF NOT EXISTS chat_messages (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL,
+            sender VARCHAR(10) NOT NULL CHECK (sender IN ('user', 'mascot')),
+            message TEXT NOT NULL,
+            habit_category VARCHAR(50),
+            difficulty_rating INTEGER,
+            mood VARCHAR(30),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+          )
         `
       };
     } else {
@@ -380,6 +405,31 @@ class DatabaseService {
             FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(group_id, user_id, completion_date)
+          )
+        `,
+        motivation_logs: `
+          CREATE TABLE IF NOT EXISTS motivation_logs (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            habit_category TEXT,
+            difficulty_rating INTEGER,
+            mood TEXT,
+            logged_via TEXT DEFAULT 'chat',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+          )
+        `,
+        chat_messages: `
+          CREATE TABLE IF NOT EXISTS chat_messages (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            sender TEXT NOT NULL,
+            message TEXT NOT NULL,
+            habit_category TEXT,
+            difficulty_rating INTEGER,
+            mood TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
           )
         `
       };
