@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView, Dimensions } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -257,10 +257,9 @@ const createStyles = (Colors: any) => StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: Spacing.md,
-    flex: 1,
   },
   chip: {
-    width: '47%',
+    width: (Dimensions.get('window').width - Spacing.lg * 2 - Spacing.md) / 2,
     backgroundColor: Colors.cardLight,
     borderRadius: Radius.lg,
     padding: Spacing.md,
