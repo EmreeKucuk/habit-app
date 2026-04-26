@@ -12,7 +12,7 @@ export const lightColors = {
   accent: '#E9C46A',
 
   // Derived / utility colors
-  cardLight: '#B7C9A0',       // Lighter variant of card
+  cardLight: '#FFFFFF',        // Surface color for cards (white in light, dark in dark mode)
   cardDark: '#8A9B72',        // Darker variant of card
   textLight: '#4A6B55',       // Softer text
   textMuted: '#7A9A7E',       // Muted/placeholder text

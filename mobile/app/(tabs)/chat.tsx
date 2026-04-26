@@ -468,7 +468,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderBottomWidth: 1,
     borderBottomColor: Colors.overlayLight,
     ...Shadows.sm,
@@ -496,7 +496,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
     borderRadius: 5,
     backgroundColor: Colors.success,
     borderWidth: 2,
-    borderColor: Colors.white,
+    borderColor: Colors.cardLight,
   },
 
   // Messages List
@@ -564,7 +564,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
     paddingRight: Spacing.md,
   },
   quickReplyChip: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -612,7 +612,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderTopWidth: 1,
     borderTopColor: Colors.overlayLight,
     gap: Spacing.sm,

@@ -713,7 +713,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
 
   // Settings Card
   settingsCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderRadius: Radius.lg,
     marginBottom: Spacing.lg,
     overflow: 'hidden',
@@ -760,7 +760,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     padding: Spacing.lg,

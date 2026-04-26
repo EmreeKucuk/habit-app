@@ -13,7 +13,8 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import Typography from '@/components/ui/Typography';
-import { Colors, FontFamily } from '@/constants/theme';
+import { FontFamily } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface CircularProgressProps {
   completed: number;
@@ -29,9 +30,12 @@ export default function CircularProgress({
   total,
   size = 160,
   strokeWidth = 14,
-  color = Colors.accent,
-  bgColor = Colors.overlayLight,
+  color,
+  bgColor,
 }: CircularProgressProps) {
+  const { Colors } = useTheme();
+  const resolvedColor = color || Colors.accent;
+  const resolvedBgColor = bgColor || Colors.overlayLight;
   const progress = useSharedValue(0);
   const percentage = total > 0 ? Math.min(completed / total, 1) : 0;
 
@@ -80,7 +84,7 @@ export default function CircularProgress({
             height: size,
             borderRadius: halfSize,
             borderWidth: strokeWidth,
-            borderColor: bgColor,
+            borderColor: resolvedBgColor,
           },
         ]}
       />
@@ -105,7 +109,7 @@ export default function CircularProgress({
               height: size,
               borderRadius: halfSize,
               borderWidth: strokeWidth,
-              borderColor: color,
+              borderColor: resolvedColor,
               left: -halfSize,
             },
             rightHalfStyle,
@@ -133,7 +137,7 @@ export default function CircularProgress({
               height: size,
               borderRadius: halfSize,
               borderWidth: strokeWidth,
-              borderColor: color,
+              borderColor: resolvedColor,
               left: 0,
             },
             leftHalfStyle,
@@ -149,6 +153,7 @@ export default function CircularProgress({
             width: innerSize,
             height: innerSize,
             borderRadius: innerSize / 2,
+            backgroundColor: Colors.cardLight,
           },
         ]}
       />
@@ -197,7 +202,6 @@ const styles = StyleSheet.create({
   },
   innerCircle: {
     position: 'absolute',
-    backgroundColor: Colors.white,
   },
   center: {
     position: 'absolute',

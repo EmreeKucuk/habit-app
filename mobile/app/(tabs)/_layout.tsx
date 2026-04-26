@@ -6,9 +6,12 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet, Platform } from 'react-native';
-import { Colors, Shadows, FontFamily } from '@/constants/theme';
+import { Shadows, FontFamily } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function TabLayout() {
+  const { Colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
@@ -35,7 +38,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={focused ? 'home' : 'home-outline'} color={color} focused={focused} />
+            <TabIcon name={focused ? 'home' : 'home-outline'} color={color} focused={focused} overlayColor={Colors.overlayLight} />
           ),
         }}
       />
@@ -44,7 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'Chat',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} color={color} focused={focused} />
+            <TabIcon name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} color={color} focused={focused} overlayColor={Colors.overlayLight} />
           ),
         }}
       />
@@ -53,7 +56,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={focused ? 'person' : 'person-outline'} color={color} focused={focused} />
+            <TabIcon name={focused ? 'person' : 'person-outline'} color={color} focused={focused} overlayColor={Colors.overlayLight} />
           ),
         }}
       />
@@ -61,9 +64,9 @@ export default function TabLayout() {
   );
 }
 
-function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) {
+function TabIcon({ name, color, focused, overlayColor }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean; overlayColor: string }) {
   return (
-    <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
+    <View style={[styles.iconContainer, focused && { backgroundColor: overlayColor }]}>
       <Ionicons name={name} size={22} color={color} />
     </View>
   );
@@ -76,8 +79,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  iconContainerActive: {
-    backgroundColor: Colors.overlayLight,
   },
 });

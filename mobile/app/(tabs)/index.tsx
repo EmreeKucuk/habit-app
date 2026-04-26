@@ -384,7 +384,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
 
   // Overview Card
   overviewCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderRadius: Radius.xl,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
@@ -440,7 +440,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
     paddingVertical: Spacing.xs,
   },
   heatmapCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     ...Shadows.sm,
@@ -448,7 +448,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
 
   // Motivation Card
   motivationCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
@@ -490,7 +490,7 @@ const createStyles = (Colors: any) => StyleSheet.create({
   },
   quickStatCard: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     alignItems: 'center',

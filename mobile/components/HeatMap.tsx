@@ -7,7 +7,8 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import Typography from '@/components/ui/Typography';
-import { Colors, Spacing, FontFamily } from '@/constants/theme';
+import { Spacing, FontFamily } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface HeatMapProps {
   /** Map of date string (YYYY-MM-DD) → completion count */
@@ -51,6 +52,7 @@ function formatDate(date: Date): string {
 }
 
 export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
+  const { Colors } = useTheme();
   const { grid, monthMarkers, computedMax } = useMemo(() => {
     const today = new Date();
     const totalDays = weeks * 7;
@@ -174,7 +176,7 @@ export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
                         borderWidth: day.isFuture ? 1 : 0,
                         borderColor: day.isFuture ? Colors.overlayLight : 'transparent',
                       },
-                      day.isToday && styles.cellToday,
+                      day.isToday && { borderWidth: 2, borderColor: Colors.accent },
                     ]}
                   />
                 ))}
@@ -250,7 +252,7 @@ const styles = StyleSheet.create({
   },
   cellToday: {
     borderWidth: 2,
-    borderColor: Colors.accent,
+    borderColor: '#E9C46A',
   },
   legend: {
     flexDirection: 'row',

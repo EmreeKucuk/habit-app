@@ -19,7 +19,8 @@ import Mascot from '@/components/Mascot';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { Colors, Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
+import { Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface Category {
   id: string;
@@ -38,6 +39,9 @@ const CATEGORIES: Category[] = [
 ];
 
 export default function CategoriesScreen() {
+  const { Colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
+
   const [selected, setSelected] = useState<string[]>([]);
 
   const contentOpacity = useSharedValue(0);
@@ -106,6 +110,8 @@ export default function CategoriesScreen() {
                 isSelected={selected.includes(cat.id)}
                 onPress={() => toggleCategory(cat.id)}
                 index={index}
+                Colors={Colors}
+                styles={styles}
               />
             ))}
           </Animated.View>
@@ -144,11 +150,15 @@ function CategoryChip({
   isSelected,
   onPress,
   index,
+  Colors,
+  styles,
 }: {
   category: Category;
   isSelected: boolean;
   onPress: () => void;
   index: number;
+  Colors: any;
+  styles: any;
 }) {
   const scale = useSharedValue(0);
 
@@ -199,7 +209,7 @@ function CategoryChip({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any) => StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -213,6 +223,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: Spacing.lg,
+    flexGrow: 1,
   },
   topSection: {
     alignItems: 'center',
@@ -246,10 +257,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     gap: Spacing.md,
+    flex: 1,
   },
   chip: {
     width: '47%',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.cardLight,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     alignItems: 'center',
