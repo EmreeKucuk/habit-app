@@ -28,16 +28,13 @@ import Animated, {
   withSpring,
   FadeInDown,
 } from 'react-native-reanimated';
-import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
+import * as Crypto from 'expo-crypto';
 import Typography from '@/components/ui/Typography';
 import { Colors, Spacing, Radius, Shadows, FontFamily, FontSize } from '@/constants/theme';
-import { API_ENDPOINTS } from '@/constants/api';
+import { API_ENDPOINTS, API_BASE_URL } from '@/constants/api';
 import api, { saveAuthTokens } from '@/services/api';
-
-// Required for expo-auth-session to work on web
-WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -47,23 +44,53 @@ export default function LoginScreen() {
   const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
   const passwordRef = useRef<TextInput>(null);
 
-  // Google Auth setup
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    // You MUST replace these with your real Google Cloud Console OAuth Client IDs
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      handleGoogleResponse(response.authentication?.accessToken);
-    }
-  }, [response]);
-
-  const handleGoogleResponse = async (accessToken: string | undefined) => {
-    if (!accessToken) return;
+  const handleGoogleLogin = async () => {
     setIsSocialLoading('Google');
+    try {
+      const clientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+      if (!clientId) {
+        Alert.alert('Configuration Required', 'Google Sign-In requires a Google Cloud OAuth Client ID. Please set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID in your .env file.');
+        setIsSocialLoading(null);
+        return;
+      }
+
+      // Build Google OAuth URL
+      const redirectUri = `${API_BASE_URL}/api/auth/google-callback`;
+      const state = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        Date.now().toString()
+      );
+      const authUrl =
+        `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${encodeURIComponent(clientId)}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_type=token` +
+        `&scope=${encodeURIComponent('openid profile email')}` +
+        `&state=${state}`;
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+
+      if (result.type === 'success' && result.url) {
+        // Extract access_token from the redirect URL fragment
+        const fragment = result.url.split('#')[1];
+        if (fragment) {
+          const params = new URLSearchParams(fragment);
+          const accessToken = params.get('access_token');
+          if (accessToken) {
+            await handleGoogleResponse(accessToken);
+            return;
+          }
+        }
+        Alert.alert('Error', 'Could not get access token from Google.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Could not start Google sign-in.');
+    } finally {
+      setIsSocialLoading(null);
+    }
+  };
+
+  const handleGoogleResponse = async (accessToken: string) => {
     try {
       // Fetch user info from Google using the access token
       const userInfoRes = await fetch('https://www.googleapis.com/userinfo/v2/me', {
@@ -94,16 +121,6 @@ export default function LoginScreen() {
       }
     } catch (err) {
       Alert.alert('Error', 'Google sign-in failed. Please try again.');
-    } finally {
-      setIsSocialLoading(null);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      await promptAsync();
-    } catch (err) {
-      Alert.alert('Error', 'Could not start Google sign-in.');
     }
   };
 
@@ -276,7 +293,7 @@ export default function LoginScreen() {
               <Pressable
                 style={[styles.socialButton, isSocialLoading === 'Google' && { opacity: 0.7 }]}
                 onPress={handleGoogleLogin}
-                disabled={!!isSocialLoading || !request}
+                disabled={!!isSocialLoading}
               >
                 {isSocialLoading === 'Google' ? (
                   <ActivityIndicator size="small" color="#4285F4" />

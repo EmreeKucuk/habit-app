@@ -560,6 +560,25 @@ router.post('/refresh', [
   }
 });
 
+// Google OAuth callback — serves a minimal page that the mobile WebBrowser intercepts
+router.get('/google-callback', (req, res) => {
+  // The access_token is in the URL fragment (#access_token=...) which
+  // doesn't reach the server. This page simply redirects back so that
+  // expo-web-browser's openAuthSessionAsync can capture the full URL.
+  res.send(`
+    <html>
+    <head><title>Redirecting...</title></head>
+    <body>
+      <p>Signing you in...</p>
+      <script>
+        // The token is in the hash fragment — just let the page load
+        // so the browser redirect is captured by the app
+      </script>
+    </body>
+    </html>
+  `);
+});
+
 // Google OAuth — accept an ID token from the mobile app
 router.post('/google-auth', async (req, res) => {
   try {
