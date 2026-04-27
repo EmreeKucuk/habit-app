@@ -40,6 +40,9 @@ import {
   createUserMessage,
   getLastDetectedCategory,
   processHabitLoggingAsync,
+  startHabitCreationFlow,
+  isHabitCreationComplete,
+  consumeNewHabitData,
 } from '@/services/chatBot';
 import {
   fetchMotivationScore,
@@ -71,11 +74,16 @@ export default function ChatScreen() {
     const score = await fetchMotivationScore();
     setMotivationScore(score);
 
-    // Fetch user habits for quick replies
+    // Fetch user habits for quick replies — only show pending (not completed today)
     try {
       const habitsRes = await api.get<{ habits: any[] }>(API_ENDPOINTS.habits);
       if (habitsRes.data?.habits) {
-        setUserHabits(habitsRes.data.habits);
+        const today = new Date().toISOString().split('T')[0];
+        const pendingHabits = habitsRes.data.habits.filter((h: any) => {
+          const completed = h.completedDates || [];
+          return !completed.includes(today);
+        });
+        setUserHabits(pendingHabits);
       }
     } catch (e) {
       console.log('Failed to fetch habits for quick replies', e);
@@ -154,13 +162,50 @@ export default function ChatScreen() {
 
     // Variable delay based on response length for natural feel
     const delay = 800 + Math.random() * 700;
-    setTimeout(() => {
+    setTimeout(async () => {
       const botResponses = generateBotResponse(text);
 
       // Check if a habit was detected and log it to the backend asynchronously
       const detectedHabit = botResponses.find((r) => r.habitDetected)?.habitDetected;
       if (detectedHabit) {
-        processHabitLoggingAsync(detectedHabit);
+        processHabitLoggingAsync(detectedHabit).then(() => {
+          // Remove the completed habit from quick replies
+          setUserHabits((prev) =>
+            prev.filter((h) => h.category !== detectedHabit),
+          );
+        });
+      }
+
+      // Check if habit creation just completed
+      if (isHabitCreationComplete()) {
+        const habitData = consumeNewHabitData();
+        if (habitData) {
+          try {
+            const createRes = await api.post<{ habit: any }>(API_ENDPOINTS.habits, {
+              name: habitData.name,
+              category: habitData.category,
+              frequency: habitData.frequency,
+            });
+            if (createRes.data?.habit) {
+              // Add the new habit to quick replies
+              setUserHabits((prev) => [...prev, createRes.data!.habit]);
+            }
+          } catch (err) {
+            console.log('Failed to create habit:', err);
+          }
+
+          // Add a confirmation message
+          const successMsg: ChatMessage = {
+            id: `mascot-${Date.now()}-success`,
+            text: `Done! \"${habitData.name}\" has been added to your habits! \u2705 You can see it in the quick replies below.`,
+            sender: 'mascot',
+            timestamp: new Date(),
+          };
+          setTimeout(() => {
+            setMessages((prev) => [...prev, successMsg]);
+            scrollToBottom();
+          }, 800);
+        }
       }
 
       // Add responses one by one with small delays
@@ -216,6 +261,19 @@ export default function ChatScreen() {
         }, index * 600);
       });
     }, delay);
+  };
+
+  const handleAddNewHabit = () => {
+    // Start the creation flow
+    const flowMsgs = startHabitCreationFlow();
+
+    // Show typing, then deliver messages
+    setIsTyping(true);
+    setTimeout(() => {
+      setMessages((prev) => [...prev, ...flowMsgs]);
+      setIsTyping(false);
+      scrollToBottom();
+    }, 600);
   };
 
   const renderMessage = ({ item, index }: { item: ChatMessage; index: number }) => {
@@ -328,8 +386,8 @@ export default function ChatScreen() {
           }
         />
 
-        {/* Habit Quick Replies (Dynamic) */}
-        {userHabits.length > 0 && !isTyping && (
+        {/* Habit Quick Replies (Dynamic — only pending habits) */}
+        {!isTyping && (
           <View style={styles.dynamicQuickRepliesContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dynamicQuickRepliesScroll}>
               {userHabits.map((habit) => (
@@ -339,6 +397,8 @@ export default function ChatScreen() {
                   onPress={() => {
                     const text = `I completed my ${habit.name} habit today!`;
                     handleQuickReply(text);
+                    // Optimistically remove from the list
+                    setUserHabits((prev) => prev.filter((h) => h.id !== habit.id));
                   }}
                 >
                   <Typography variant="bodySmall" color={Colors.white}>
@@ -346,6 +406,15 @@ export default function ChatScreen() {
                   </Typography>
                 </Pressable>
               ))}
+              {/* Permanent "Add New Habit" chip */}
+              <Pressable
+                style={[styles.dynamicQuickReplyChip, styles.addHabitChip]}
+                onPress={handleAddNewHabit}
+              >
+                <Typography variant="bodySmall" color={Colors.text}>
+                  ➕ Add New Habit
+                </Typography>
+              </Pressable>
             </ScrollView>
           </View>
         )}
@@ -631,6 +700,12 @@ const createStyles = (Colors: any) => StyleSheet.create({
     paddingVertical: 8,
     borderRadius: Radius.full,
     ...Shadows.sm,
+  },
+  addHabitChip: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: Colors.textMuted,
+    borderStyle: 'dashed' as any,
   },
   inputContainer: {
     flex: 1,

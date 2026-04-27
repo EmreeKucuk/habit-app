@@ -195,9 +195,24 @@ const GREETING_MESSAGES: ChatMessage[] = [
 
 // ─── Chat Bot Engine ─────────────────────────────────────────────
 
-let conversationState: 'idle' | 'follow_up' | 'difficulty_rating' = 'idle';
+let conversationState: 'idle' | 'follow_up' | 'difficulty_rating' | 'creating_habit_name' | 'creating_habit_category' | 'creating_habit_frequency' = 'idle';
 let lastDetectedCategory: string | null = null;
 let followUpIndex = 0;
+
+// In-progress habit creation data
+let newHabitData: { name?: string; category?: string; frequency?: string } = {};
+
+const HABIT_CATEGORIES = [
+  { id: 'health', label: '💚 Health', icon: '💚' },
+  { id: 'sport', label: '🏃 Sport', icon: '🏃' },
+  { id: 'mindfulness', label: '🧘 Mindfulness', icon: '🧘' },
+  { id: 'learning', label: '📚 Learning', icon: '📚' },
+  { id: 'productivity', label: '⚡ Productivity', icon: '⚡' },
+  { id: 'social', label: '🤝 Social', icon: '🤝' },
+  { id: 'other', label: '🌱 Other', icon: '🌱' },
+];
+
+const HABIT_FREQUENCIES = ['Daily', 'Weekly', 'Monthly'];
 
 export function getGreetingMessages(): ChatMessage[] {
   conversationState = 'idle';
@@ -216,6 +231,52 @@ export function getLastDetectedCategory(): string | null {
 export function generateBotResponse(userMessage: string): ChatMessage[] {
   const text = userMessage.toLowerCase().trim();
   const responses: ChatMessage[] = [];
+
+  // ── Habit Creation Flow ──
+  if (conversationState === 'creating_habit_name') {
+    newHabitData.name = userMessage.trim(); // keep original casing
+    responses.push(
+      createMascotMessage(
+        `"${newHabitData.name}" — love it! 🌟 Now, which category does it belong to?`,
+        HABIT_CATEGORIES.map((c) => c.label),
+      ),
+    );
+    conversationState = 'creating_habit_category';
+    return responses;
+  }
+
+  if (conversationState === 'creating_habit_category') {
+    // Match the user input to a category
+    const matchedCategory = HABIT_CATEGORIES.find(
+      (c) => text.includes(c.id) || text.includes(c.label.toLowerCase()),
+    );
+    newHabitData.category = matchedCategory?.id || 'other';
+    const catLabel = matchedCategory?.label || '🌱 Other';
+    responses.push(
+      createMascotMessage(
+        `Got it — ${catLabel}! How often do you want to do this?`,
+        HABIT_FREQUENCIES,
+      ),
+    );
+    conversationState = 'creating_habit_frequency';
+    return responses;
+  }
+
+  if (conversationState === 'creating_habit_frequency') {
+    // Match frequency
+    if (text.includes('daily')) newHabitData.frequency = 'daily';
+    else if (text.includes('weekly')) newHabitData.frequency = 'weekly';
+    else if (text.includes('monthly')) newHabitData.frequency = 'monthly';
+    else newHabitData.frequency = 'daily';
+
+    responses.push(
+      createMascotMessage(
+        `Perfect! Here's what I've got:\n\n📝 **${newHabitData.name}**\n📂 ${newHabitData.category}\n🔄 ${newHabitData.frequency}\n\nCreating it now... ✨`,
+      ),
+    );
+    conversationState = 'idle';
+    return responses;
+  }
 
   // Check if user is answering a difficulty rating
   if (conversationState === 'difficulty_rating') {
@@ -337,6 +398,45 @@ export function createUserMessage(text: string): ChatMessage {
     sender: 'user',
     timestamp: new Date(),
   };
+}
+
+/**
+ * Start the habit creation conversation flow.
+ * Returns the initial Sprout message asking for a habit name.
+ */
+export function startHabitCreationFlow(): ChatMessage[] {
+  newHabitData = {};
+  conversationState = 'creating_habit_name';
+  return [
+    createMascotMessage(
+      "Awesome, let's create a new habit! 🌱\n\nWhat would you like to call it?",
+    ),
+  ];
+}
+
+/**
+ * Returns true if the bot is in the middle of creating a habit
+ * and the final step just completed (frequency was set).
+ */
+export function isHabitCreationComplete(): boolean {
+  return (
+    conversationState === 'idle' &&
+    !!newHabitData.name &&
+    !!newHabitData.category &&
+    !!newHabitData.frequency
+  );
+}
+
+/**
+ * Get the pending new habit data and clear it.
+ */
+export function consumeNewHabitData(): { name: string; category: string; frequency: string } | null {
+  if (newHabitData.name && newHabitData.category && newHabitData.frequency) {
+    const data = { name: newHabitData.name, category: newHabitData.category, frequency: newHabitData.frequency };
+    newHabitData = {};
+    return data;
+  }
+  return null;
 }
 
 import api from '@/services/api';
