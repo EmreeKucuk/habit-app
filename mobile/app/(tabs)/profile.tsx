@@ -32,6 +32,10 @@ import { Spacing, Radius, Shadows, FontFamily, FontSize } from '@/constants/them
 import { useTheme, ThemePreference } from '@/context/ThemeContext';
 import { API_ENDPOINTS } from '@/constants/api';
 import api, { clearAuthTokens } from '@/services/api';
+import { Switch } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import { scheduleMotivationReminder } from '@/services/notifications';
+import { fetchMotivationScore } from '@/services/motivation';
 
 interface UserProfile {
   id: string;
@@ -55,6 +59,15 @@ export default function ProfileScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [themeModalVisible, setThemeModalVisible] = useState(false);
+  const [notifModalVisible, setNotifModalVisible] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  // Load notification preference
+  useEffect(() => {
+    AsyncStorage.getItem('@habitflow_notif_enabled').then((val) => {
+      if (val !== null) setNotificationsEnabled(val === 'true');
+    });
+  }, []);
 
   // Entrance animations
   const avatarScale = useSharedValue(0);
@@ -238,8 +251,8 @@ export default function ProfileScreen() {
             <SettingsRow
               icon="notifications-outline"
               label="Notifications"
-              value="Coming soon"
-              disabled
+              value={notificationsEnabled ? 'On' : 'Off'}
+              onPress={() => setNotifModalVisible(true)}
               Colors={Colors}
             />
             <SettingsRow
@@ -308,6 +321,25 @@ export default function ProfileScreen() {
         Colors={Colors}
         styles={styles}
       />
+
+      {/* ─── Notification Settings Modal ─── */}
+      <NotificationSettingsModal
+        visible={notifModalVisible}
+        enabled={notificationsEnabled}
+        onClose={() => setNotifModalVisible(false)}
+        onToggle={async (enabled) => {
+          setNotificationsEnabled(enabled);
+          await AsyncStorage.setItem('@habitflow_notif_enabled', String(enabled));
+          if (enabled) {
+            const score = await fetchMotivationScore();
+            await scheduleMotivationReminder(score);
+          } else {
+            await Notifications.cancelAllScheduledNotificationsAsync();
+          }
+        }}
+        Colors={Colors}
+        styles={styles}
+      />
     </SafeAreaView>
   );
 }
@@ -366,6 +398,64 @@ function ThemeSelectionModal({
                 )}
               </Pressable>
             ))}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Notification Settings Modal ─────────────────────────────────
+
+function NotificationSettingsModal({
+  visible,
+  enabled,
+  onClose,
+  onToggle,
+  Colors,
+  styles,
+}: {
+  visible: boolean;
+  enabled: boolean;
+  onClose: () => void;
+  onToggle: (enabled: boolean) => void;
+  Colors: any;
+  styles: any;
+}) {
+  return (
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Typography variant="h3" color={Colors.text}>Notifications</Typography>
+            <Pressable onPress={onClose}>
+              <Ionicons name="close" size={24} color={Colors.text} />
+            </Pressable>
+          </View>
+
+          <View style={styles.modalInputGroup}>
+            <View style={[styles.settingsRow, { borderBottomWidth: 0 }]}>
+              <View style={styles.settingsRowLeft}>
+                <Ionicons name="notifications-outline" size={20} color={Colors.text} />
+                <Typography variant="body" color={Colors.text}>Daily Reminders</Typography>
+              </View>
+              <Switch
+                value={enabled}
+                onValueChange={onToggle}
+                trackColor={{ false: Colors.overlayLight, true: Colors.accent }}
+                thumbColor={Colors.white}
+              />
+            </View>
+
+            <Typography
+              variant="caption"
+              color={Colors.textMuted}
+              style={{ paddingHorizontal: Spacing.md, paddingBottom: Spacing.md }}
+            >
+              {enabled
+                ? "🌱 Sprout will send you a daily reminder to log your habits. The message adapts to your motivation level!"
+                : "Reminders are off. You won't receive any notifications from Sprout."}
+            </Typography>
           </View>
         </View>
       </View>
