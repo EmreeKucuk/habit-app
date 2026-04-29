@@ -68,10 +68,10 @@ router.get('/', authenticateToken, async (req, res) => {
         
         // If it's a Date object (which it appears to be from PostgreSQL)
         if (dateString instanceof Date) {
-          // Convert to local date string (YYYY-MM-DD)
-          const year = dateString.getFullYear();
-          const month = String(dateString.getMonth() + 1).padStart(2, '0');
-          const day = String(dateString.getDate()).padStart(2, '0');
+          // Convert to UTC date string (YYYY-MM-DD) to prevent timezone shift
+          const year = dateString.getUTCFullYear();
+          const month = String(dateString.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(dateString.getUTCDate()).padStart(2, '0');
           return `${year}-${month}-${day}`;
         }
         

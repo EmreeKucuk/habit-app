@@ -318,14 +318,14 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
       'SELECT COUNT(*) as count FROM habits WHERE user_id = ?',
       [userId]
     );
-    const totalHabits = totalHabitsResult.count;
+    const totalHabits = parseInt(totalHabitsResult.count || 0);
     
     // Get total completions
     const totalCompletionsResult = await db.get(
       'SELECT COUNT(*) as count FROM habit_completions WHERE user_id = ?',
       [userId]
     );
-    const totalCompletions = totalCompletionsResult.count;
+    const totalCompletions = parseInt(totalCompletionsResult.count || 0);
     
     // Get completions for today
     const today = new Date().toISOString().split('T')[0];
@@ -333,7 +333,7 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
       'SELECT COUNT(*) as count FROM habit_completions WHERE user_id = ? AND date = ?',
       [userId, today]
     );
-    const completedToday = completedTodayResult.count;
+    const completedToday = parseInt(completedTodayResult.count || 0);
     
     // Get current streaks for all habits
     const habits = await db.all(
@@ -356,11 +356,22 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
       let tempStreak = 0;
       
       if (completions.length > 0) {
+        // Normalize dates to YYYY-MM-DD string to avoid timezone issues
+        const normalizedCompletions = completions.map(c => {
+          let d = c.date;
+          if (d instanceof Date) {
+            d = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+          } else if (typeof d === 'string' && d.includes('T')) {
+            d = d.split('T')[0];
+          }
+          return { date: d };
+        });
+
         const today = new Date().toISOString().split('T')[0];
         let currentDate = new Date(today);
         
         // Check current streak (allow today to not yet be completed)
-        for (const completion of completions) {
+        for (const completion of normalizedCompletions) {
           const completionDate = completion.date;
           const expectedDate = currentDate.toISOString().split('T')[0];
           
@@ -385,9 +396,9 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
         
         // Calculate longest streak
         tempStreak = 1;
-        for (let i = 1; i < completions.length; i++) {
-          const current = new Date(completions[i-1].date);
-          const next = new Date(completions[i].date);
+        for (let i = 1; i < normalizedCompletions.length; i++) {
+          const current = new Date(normalizedCompletions[i-1].date);
+          const next = new Date(normalizedCompletions[i].date);
           const diffDays = (current - next) / (1000 * 60 * 60 * 24);
           
           if (diffDays === 1) {
@@ -430,7 +441,7 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     });
     
     const successRate = expectedCompletions > 0 
-      ? Math.min(100, Math.round((last30Completions.count / expectedCompletions) * 100)) 
+      ? Math.min(100, Math.round((parseInt(last30Completions.count || 0) / expectedCompletions) * 100)) 
       : 0;
     
     // Calculate weekly average (last 7 days)
@@ -442,7 +453,7 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
       'SELECT COUNT(*) as count FROM habit_completions WHERE user_id = ? AND date >= ?',
       [userId, weekAgoString]
     );
-    const weeklyAverage = weeklyCompletionsResult.count / 7;
+    const weeklyAverage = parseInt(weeklyCompletionsResult.count || 0) / 7;
     
     // Get category breakdown
     const categoryBreakdownResult = await db.all(
