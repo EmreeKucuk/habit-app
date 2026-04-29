@@ -1,6 +1,7 @@
 const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
 const { getDatabase } = require('../database');
+const { calculateStreak } = require('../utils/streakCalculator');
 const router = express.Router();
 
 // Discover users endpoint - MUST come before /:id route
@@ -337,7 +338,7 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     
     // Get current streaks for all habits
     const habits = await db.all(
-      'SELECT id FROM habits WHERE user_id = ?',
+      'SELECT id, frequency, frequency_count FROM habits WHERE user_id = ?',
       [userId]
     );
     
@@ -353,62 +354,22 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
       
       let habitCurrentStreak = 0;
       let habitLongestStreak = 0;
-      let tempStreak = 0;
       
       if (completions.length > 0) {
         // Normalize dates to YYYY-MM-DD string to avoid timezone issues
-        const normalizedCompletions = completions.map(c => {
+        const completedDates = completions.map(c => {
           let d = c.date;
           if (d instanceof Date) {
             d = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
           } else if (typeof d === 'string' && d.includes('T')) {
             d = d.split('T')[0];
           }
-          return { date: d };
+          return d;
         });
 
-        const today = new Date().toISOString().split('T')[0];
-        let currentDate = new Date(today);
-        
-        // Check current streak (allow today to not yet be completed)
-        for (const completion of normalizedCompletions) {
-          const completionDate = completion.date;
-          const expectedDate = currentDate.toISOString().split('T')[0];
-          
-          if (completionDate === expectedDate) {
-            habitCurrentStreak++;
-            currentDate.setDate(currentDate.getDate() - 1);
-          } else if (habitCurrentStreak === 0) {
-            // Today not yet completed — check if streak starts from yesterday
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            if (completionDate === yesterday.toISOString().split('T')[0]) {
-              habitCurrentStreak++;
-              currentDate = new Date(yesterday);
-              currentDate.setDate(currentDate.getDate() - 1);
-            } else {
-              break;
-            }
-          } else {
-            break;
-          }
-        }
-        
-        // Calculate longest streak
-        tempStreak = 1;
-        for (let i = 1; i < normalizedCompletions.length; i++) {
-          const current = new Date(normalizedCompletions[i-1].date);
-          const next = new Date(normalizedCompletions[i].date);
-          const diffDays = (current - next) / (1000 * 60 * 60 * 24);
-          
-          if (diffDays === 1) {
-            tempStreak++;
-          } else {
-            habitLongestStreak = Math.max(habitLongestStreak, tempStreak);
-            tempStreak = 1;
-          }
-        }
-        habitLongestStreak = Math.max(habitLongestStreak, tempStreak);
+        const streaks = calculateStreak(completedDates, habit.frequency, habit.frequency_count);
+        habitCurrentStreak = streaks.currentStreak;
+        habitLongestStreak = streaks.longestStreak;
       }
       
       currentStreak = Math.max(currentStreak, habitCurrentStreak);
@@ -428,7 +389,7 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     // Count how many habit-days were possible in the last 30 days
     // (each habit counts for each day since it was created, up to 30 days)
     const habitsWithDates = await db.all(
-      'SELECT created_at FROM habits WHERE user_id = ?',
+      'SELECT created_at, frequency, frequency_count FROM habits WHERE user_id = ?',
       [userId]
     );
     
@@ -437,7 +398,16 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
       const created = new Date(h.created_at);
       const start = created > thirtyDaysAgo ? created : thirtyDaysAgo;
       const daysActive = Math.max(1, Math.ceil((new Date() - start) / (1000 * 60 * 60 * 24)));
-      expectedCompletions += daysActive;
+      
+      const freqCount = h.frequency_count || 1;
+      if (h.frequency === 'interval') {
+        expectedCompletions += Math.ceil(daysActive / freqCount);
+      } else if (h.frequency === 'flexible_weekly') {
+        expectedCompletions += Math.ceil((daysActive / 7) * freqCount);
+      } else {
+        // daily
+        expectedCompletions += daysActive;
+      }
     });
     
     const successRate = expectedCompletions > 0 

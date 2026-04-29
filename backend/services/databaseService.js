@@ -40,6 +40,14 @@ class DatabaseService {
       this.db = new sqlite3.Database(dbPath);
       console.log('Using SQLite database');
     }
+    
+    // Automatically add frequency_count to existing tables if missing
+    this.run('ALTER TABLE habits ADD COLUMN frequency_count INTEGER DEFAULT 1').catch(err => {
+      // Ignore error if column already exists
+      if (err.message && !err.message.includes('duplicate column') && !err.message.includes('already exists')) {
+        // Do nothing, just catch
+      }
+    });
   }
 
   async query(sql, params = []) {
@@ -177,6 +185,7 @@ class DatabaseService {
             name VARCHAR(255) NOT NULL,
             category VARCHAR(50) NOT NULL,
             frequency VARCHAR(20) NOT NULL,
+            frequency_count INTEGER DEFAULT 1,
             notes TEXT,
             target INTEGER DEFAULT 1,
             unit VARCHAR(20),
@@ -323,6 +332,7 @@ class DatabaseService {
             name TEXT NOT NULL,
             category TEXT NOT NULL,
             frequency TEXT NOT NULL,
+            frequency_count INTEGER DEFAULT 1,
             notes TEXT,
             target INTEGER DEFAULT 1,
             unit TEXT,

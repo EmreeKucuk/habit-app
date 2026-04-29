@@ -3,6 +3,7 @@ const { authenticateToken } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 const { getDatabase } = require('../database');
+const { calculateStreak } = require('../utils/streakCalculator');
 
 const router = express.Router();
 
@@ -55,7 +56,8 @@ router.get('/', authenticateToken, async (req, res) => {
 
       console.log(`🔍 Raw completions for habit ${habit.id}:`, completions);
 
-      const streak = calculateStreak(completions.map(row => row.date));
+      // Wait to calculate streak AFTER formatting dates
+      // const streak = calculateStreak(completions.map(row => row.date));
       
       // Get today's date for comparison
       const today = new Date().toISOString().split('T')[0];
@@ -63,8 +65,6 @@ router.get('/', authenticateToken, async (req, res) => {
       const completedDates = completions.map(row => {
         // Handle different date formats that might come from the database
         let dateString = row.date;
-        
-        console.log(`🔍 Processing date for habit ${habit.id}:`, dateString, typeof dateString);
         
         // If it's a Date object (which it appears to be from PostgreSQL)
         if (dateString instanceof Date) {
@@ -99,6 +99,8 @@ router.get('/', authenticateToken, async (req, res) => {
         }
       }).filter(date => date !== null);
       
+      const { currentStreak: streak } = calculateStreak(completedDates, habit.frequency, habit.frequency_count);
+      
       const isCompletedToday = completedDates.includes(today);
       
       console.log(`📅 Habit "${habit.name}": ${completedDates.length} completions, completed today: ${isCompletedToday}, streak: ${streak}`);
@@ -114,7 +116,8 @@ router.get('/', authenticateToken, async (req, res) => {
         updated_at: undefined,
         user_id: undefined,
         completedDates,
-        streak
+        streak,
+        frequencyCount: habit.frequency_count || 1
       };
     }));
 
@@ -131,7 +134,8 @@ router.get('/', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, [
   body('name').trim().isLength({ min: 1, max: 100 }),
   body('category').isIn(['health', 'sport', 'learning', 'productivity', 'mindfulness', 'social', 'other']),
-  body('frequency').isIn(['daily', 'weekly', 'monthly']),
+  body('frequency').isIn(['daily', 'weekly', 'monthly', 'interval', 'flexible_weekly']),
+  body('frequency_count').optional().isInt({ min: 1 }),
   body('notes').optional().isLength({ max: 500 }),
   body('target').optional().isInt({ min: 1 }),
   body('unit').optional().isLength({ max: 20 })
@@ -145,14 +149,14 @@ router.post('/', authenticateToken, [
       });
     }
 
-    const { name, category, frequency, notes, target, unit, color, icon } = req.body;
+    const { name, category, frequency, frequency_count, notes, target, unit, color, icon } = req.body;
     const habitId = uuidv4();
 
     await getDatabase().run(
       `INSERT INTO habits (
-        id, user_id, name, category, frequency, notes, target, unit, color, icon
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [habitId, req.user.id, name, category, frequency, notes || null, target || 1, unit || null, color || null, icon || null]
+        id, user_id, name, category, frequency, frequency_count, notes, target, unit, color, icon
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [habitId, req.user.id, name, category, frequency, frequency_count || 1, notes || null, target || 1, unit || null, color || null, icon || null]
     );
 
     const habit = await getDatabase().get('SELECT * FROM habits WHERE id = ?', [habitId]);
@@ -370,31 +374,6 @@ router.get('/stats', authenticateToken, async (req, res) => {
 });
 
 // Helper function to calculate streak
-function calculateStreak(completedDates) {
-  if (completedDates.length === 0) return 0;
 
-  const today = new Date().toISOString().split('T')[0];
-  const sortedDates = [...new Set(completedDates)].sort((a, b) => new Date(b) - new Date(a));
-
-  let streak = 0;
-  let checkDate = new Date(today);
-
-  // If today is not completed, start checking from yesterday
-  if (sortedDates[0] !== today) {
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
-
-  for (const dateStr of sortedDates) {
-    const expected = checkDate.toISOString().split('T')[0];
-    if (dateStr === expected) {
-      streak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else if (new Date(dateStr) < checkDate) {
-      break; // Gap found, stop counting
-    }
-  }
-
-  return streak;
-}
 
 module.exports = router;

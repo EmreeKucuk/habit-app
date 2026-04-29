@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CircularProgress from '@/components/CircularProgress';
 import HeatMap from '@/components/HeatMap';
 import Typography from '@/components/ui/Typography';
+import CreateHabitModal from '@/components/CreateHabitModal';
 import { Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { API_ENDPOINTS } from '@/constants/api';
@@ -55,6 +56,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [motivationScore, setMotivationScore] = useState<MotivationScore | null>(null);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
 
   // Entrance animations
   const headerOpacity = useSharedValue(0);
@@ -178,6 +180,15 @@ export default function HomeScreen() {
     if (hour < 12) return 'Good Morning';
     if (hour < 18) return 'Good Afternoon';
     return 'Good Evening';
+  };
+
+  const handleCreateHabit = async (habitData: { name: string; category: string; frequency: string; frequency_count: number }) => {
+    try {
+      await api.post(API_ENDPOINTS.habits, habitData);
+      loadData(); // Refresh list
+    } catch (e) {
+      console.log('Error creating habit:', e);
+    }
   };
 
   return (
@@ -346,6 +357,20 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <Pressable
+        style={styles.fab}
+        onPress={() => setIsCreateModalVisible(true)}
+      >
+        <Ionicons name="add" size={28} color={Colors.white} />
+      </Pressable>
+
+      <CreateHabitModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onSubmit={handleCreateHabit}
+      />
     </SafeAreaView>
   );
 }
@@ -520,5 +545,19 @@ const createStyles = (Colors: any) => StyleSheet.create({
     padding: Spacing.md,
     alignItems: 'center',
     ...Shadows.sm,
+  },
+
+  // FAB
+  fab: {
+    position: 'absolute',
+    bottom: Spacing.xl,
+    right: Spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Shadows.lg,
   },
 });
