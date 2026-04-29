@@ -96,6 +96,31 @@ export default function HomeScreen() {
       const name = await AsyncStorage.getItem('@habitflow_user_name');
       setUserName(name || 'there');
 
+      // Check for pending templates from onboarding
+      const pendingTemplates = await AsyncStorage.getItem('@habitflow_templates');
+      if (pendingTemplates) {
+        try {
+          const templates = JSON.parse(pendingTemplates);
+          if (Array.isArray(templates) && templates.length > 0) {
+            for (const t of templates) {
+              await api.post(API_ENDPOINTS.habits, {
+                name: t.name,
+                category: t.category,
+                icon: t.icon,
+                color: t.color,
+                frequency: t.frequency,
+                target: t.target,
+                unit: t.unit,
+              });
+            }
+          }
+        } catch (e) {
+          console.log('Error creating template habits:', e);
+        }
+        // Remove so we don't create them again
+        await AsyncStorage.removeItem('@habitflow_templates');
+      }
+
       // Fetch habits
       const habitsRes = await api.get<{ habits: HabitData[] }>(API_ENDPOINTS.habits);
       if (habitsRes.data?.habits) {

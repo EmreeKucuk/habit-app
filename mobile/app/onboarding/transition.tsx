@@ -26,14 +26,7 @@ import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import { Colors, Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
 
-const CATEGORY_LABELS: Record<string, { label: string; emoji: string }> = {
-  health: { label: 'Health', emoji: '💪' },
-  productivity: { label: 'Productivity', emoji: '⚡' },
-  mindfulness: { label: 'Mindfulness', emoji: '🧘' },
-  learning: { label: 'Learning', emoji: '📚' },
-  social: { label: 'Social', emoji: '🤝' },
-  sport: { label: 'Sport', emoji: '🏃' },
-};
+
 
 const MOTIVATION_LABELS: Record<string, { label: string; emoji: string }> = {
   high: { label: 'High', emoji: '🔥' },
@@ -43,7 +36,7 @@ const MOTIVATION_LABELS: Record<string, { label: string; emoji: string }> = {
 
 export default function TransitionScreen() {
   const [userName, setUserName] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
   const [motivation, setMotivation] = useState('');
 
   const contentOpacity = useSharedValue(0);
@@ -100,11 +93,11 @@ export default function TransitionScreen() {
   const loadOnboardingData = async () => {
     const [name, cats, motiv] = await Promise.all([
       AsyncStorage.getItem('@habitflow_user_name'),
-      AsyncStorage.getItem('@habitflow_categories'),
+      AsyncStorage.getItem('@habitflow_templates'),
       AsyncStorage.getItem('@habitflow_motivation'),
     ]);
     setUserName(name || 'Friend');
-    setCategories(cats ? JSON.parse(cats) : []);
+    setTemplates(cats ? JSON.parse(cats) : []);
     setMotivation(motiv || 'medium');
   };
 
@@ -184,20 +177,22 @@ export default function TransitionScreen() {
               <Typography variant="body" color={Colors.text}>{userName}</Typography>
             </View>
 
-            {/* Categories */}
+            {/* Templates */}
             <View style={styles.summaryRow}>
-              <Typography variant="bodySmall" color={Colors.textMuted}>Interests</Typography>
+              <Typography variant="bodySmall" color={Colors.textMuted}>Habits</Typography>
               <View style={styles.chipRow}>
-                {categories.map((catId) => {
-                  const cat = CATEGORY_LABELS[catId];
-                  return cat ? (
-                    <View key={catId} style={styles.miniChip}>
-                      <Typography variant="caption" color={Colors.text}>
-                        {cat.emoji} {cat.label}
-                      </Typography>
-                    </View>
-                  ) : null;
-                })}
+                {templates.map((t) => (
+                  <View key={t.id} style={styles.miniChip}>
+                    <Typography variant="caption" color={Colors.text}>
+                      {t.icon} {t.name}
+                    </Typography>
+                  </View>
+                ))}
+                {templates.length === 0 && (
+                  <Typography variant="caption" color={Colors.textMuted}>
+                    None selected
+                  </Typography>
+                )}
               </View>
             </View>
 

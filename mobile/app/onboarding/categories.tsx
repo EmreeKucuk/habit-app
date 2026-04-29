@@ -1,6 +1,6 @@
 /**
- * Onboarding Step 3 — Category Selection
- * Mascot suggests habit areas. User selects multiple chips.
+ * Onboarding Step 3 — Smart Templates
+ * Mascot suggests predefined habit templates. User selects multiple chips.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -22,27 +22,32 @@ import Button from '@/components/ui/Button';
 import { Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 
-interface Category {
+export interface Template {
   id: string;
-  label: string;
-  emoji: string;
+  name: string;
+  category: string;
+  icon: string;
+  color: string;
   description: string;
+  frequency: string;
+  target: number;
+  unit: string;
 }
 
-const CATEGORIES: Category[] = [
-  { id: 'health', label: 'Health', emoji: '💪', description: 'Exercise & nutrition' },
-  { id: 'productivity', label: 'Productivity', emoji: '⚡', description: 'Get things done' },
-  { id: 'mindfulness', label: 'Mindfulness', emoji: '🧘', description: 'Peace & calm' },
-  { id: 'learning', label: 'Learning', emoji: '📚', description: 'Grow your mind' },
-  { id: 'social', label: 'Social', emoji: '🤝', description: 'Connect with others' },
-  { id: 'sport', label: 'Sport', emoji: '🏃', description: 'Stay active' },
+const TEMPLATES: Template[] = [
+  { id: 'workout', name: 'Workout', category: 'sport', icon: '💪', color: '#EF4444', description: '3 times a week', frequency: 'weekly', target: 3, unit: 'times' },
+  { id: 'read', name: 'Read', category: 'learning', icon: '📚', color: '#3B82F6', description: '10 pages daily', frequency: 'daily', target: 10, unit: 'pages' },
+  { id: 'water', name: 'Drink Water', category: 'health', icon: '💧', color: '#0EA5E9', description: '2L daily', frequency: 'daily', target: 2, unit: 'L' },
+  { id: 'meditate', name: 'Meditate', category: 'mindfulness', icon: '🧘', color: '#8B5CF6', description: '10 mins daily', frequency: 'daily', target: 10, unit: 'mins' },
+  { id: 'code', name: 'Code', category: 'productivity', icon: '💻', color: '#10B981', description: '1 hour daily', frequency: 'daily', target: 1, unit: 'hour' },
+  { id: 'walk', name: 'Walk', category: 'sport', icon: '🚶', color: '#F59E0B', description: '10k steps daily', frequency: 'daily', target: 10000, unit: 'steps' },
 ];
 
 export default function CategoriesScreen() {
   const { Colors } = useTheme();
   const styles = React.useMemo(() => createStyles(Colors), [Colors]);
 
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<Template[]>([]);
 
   const contentOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(30);
@@ -63,21 +68,39 @@ export default function CategoriesScreen() {
     opacity: chipsOpacity.value,
   }));
 
-  const toggleCategory = (id: string) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    );
+  const toggleTemplate = (template: Template) => {
+    setSelected((prev) => {
+      const isSelected = prev.some((t) => t.id === template.id);
+      if (isSelected) {
+        return prev.filter((t) => t.id !== template.id);
+      } else {
+        return [...prev, template];
+      }
+    });
   };
 
   const handleNext = async () => {
     if (selected.length > 0) {
-      await AsyncStorage.setItem('@habitflow_categories', JSON.stringify(selected));
-      router.push('/onboarding/motivation');
+      await AsyncStorage.setItem('@habitflow_templates', JSON.stringify(selected));
+    } else {
+      await AsyncStorage.removeItem('@habitflow_templates');
     }
+    router.push('/onboarding/motivation');
+  };
+
+  const handleSkip = async () => {
+    await AsyncStorage.removeItem('@habitflow_templates');
+    router.push('/onboarding/motivation');
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }} />
+        <Pressable onPress={handleSkip} style={styles.skipButton}>
+          <Typography variant="button" color={Colors.textMuted}>Skip</Typography>
+        </Pressable>
+      </View>
       <View style={styles.container}>
         {/* Progress */}
         <OnboardingProgress currentStep={2} totalSteps={5} />
@@ -92,23 +115,23 @@ export default function CategoriesScreen() {
             <Mascot mood="excited" size="md" />
             <View style={styles.speechBubble}>
               <Typography variant="h3" color={Colors.white} align="center">
-                What areas interest you? 🌟
+                What habits do you want to build? 🌟
               </Typography>
               <Typography variant="bodySmall" color={Colors.white} align="center" style={{ opacity: 0.85, marginTop: 4 }}>
-                Pick as many as you like!
+                Pick as many templates as you like!
               </Typography>
               <View style={styles.speechTail} />
             </View>
           </Animated.View>
 
-          {/* Category chips */}
+          {/* Template chips */}
           <Animated.View style={[styles.chipGrid, chipsAnim]}>
-            {CATEGORIES.map((cat, index) => (
-              <CategoryChip
-                key={cat.id}
-                category={cat}
-                isSelected={selected.includes(cat.id)}
-                onPress={() => toggleCategory(cat.id)}
+            {TEMPLATES.map((template, index) => (
+              <TemplateChip
+                key={template.id}
+                template={template}
+                isSelected={selected.some((t) => t.id === template.id)}
+                onPress={() => toggleTemplate(template)}
                 index={index}
                 Colors={Colors}
                 styles={styles}
@@ -124,7 +147,7 @@ export default function CategoriesScreen() {
               align="center"
               style={styles.selectionCount}
             >
-              {selected.length} area{selected.length !== 1 ? 's' : ''} selected ✓
+              {selected.length} template{selected.length !== 1 ? 's' : ''} selected ✓
             </Typography>
           )}
         </ScrollView>
@@ -145,15 +168,15 @@ export default function CategoriesScreen() {
   );
 }
 
-function CategoryChip({
-  category,
+function TemplateChip({
+  template,
   isSelected,
   onPress,
   index,
   Colors,
   styles,
 }: {
-  category: Category;
+  template: Template;
   isSelected: boolean;
   onPress: () => void;
   index: number;
@@ -181,7 +204,7 @@ function CategoryChip({
       >
         <View style={styles.chipEmoji}>
           <Typography variant="h2" align="center">
-            {category.emoji}
+            {template.icon}
           </Typography>
         </View>
         <Typography
@@ -189,13 +212,13 @@ function CategoryChip({
           color={isSelected ? Colors.text : Colors.text}
           style={styles.chipLabel}
         >
-          {category.label}
+          {template.name}
         </Typography>
         <Typography
           variant="caption"
           color={Colors.textMuted}
         >
-          {category.description}
+          {template.description}
         </Typography>
         {isSelected && (
           <View style={styles.checkBadge}>
@@ -213,6 +236,16 @@ const createStyles = (Colors: any) => StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
+  },
+  skipButton: {
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
   },
   container: {
     flex: 1,
