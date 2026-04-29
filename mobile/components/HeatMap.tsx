@@ -45,16 +45,19 @@ function getShade(count: number, maxCount: number): string {
 }
 
 function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+  // Use UTC to match the YYYY-MM-DD strings stored by the backend
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
 
 export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
   const { Colors } = useTheme();
   const { grid, monthMarkers, computedMax } = useMemo(() => {
-    const today = new Date();
+    // Use a UTC-based "today" so date strings match what the backend stores
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const totalDays = weeks * 7;
 
     // Find start date (align to start of week — Sunday)
@@ -95,12 +98,12 @@ export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
         week.push({ date: dateStr, count, isToday, isFuture });
 
         // Track month transitions for labels
-        if (currentDate.getMonth() !== lastMonth && d === 0) {
+        if (currentDate.getUTCMonth() !== lastMonth && d === 0) {
           monthMarkers.push({
             weekIndex: w,
-            label: MONTH_LABELS[currentDate.getMonth()],
+            label: MONTH_LABELS[currentDate.getUTCMonth()],
           });
-          lastMonth = currentDate.getMonth();
+          lastMonth = currentDate.getUTCMonth();
         }
 
         currentDate.setDate(currentDate.getDate() + 1);
