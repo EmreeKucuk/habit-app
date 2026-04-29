@@ -22,6 +22,7 @@ import CircularProgress from '@/components/CircularProgress';
 import HeatMap from '@/components/HeatMap';
 import Typography from '@/components/ui/Typography';
 import CreateHabitModal from '@/components/CreateHabitModal';
+import HabitProgressCard from '@/components/HabitProgressCard';
 import { Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { API_ENDPOINTS } from '@/constants/api';
@@ -35,6 +36,10 @@ interface HabitData {
   category: string;
   completedDates: string[];
   streak: number;
+  frequency: string;
+  frequencyCount: number;
+  icon?: string;
+  color?: string;
 }
 
 interface StatsData {
@@ -192,6 +197,17 @@ export default function HomeScreen() {
     }
   };
 
+  const handleCompleteHabitToggle = async (habitId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await api.post(API_ENDPOINTS.habitComplete(habitId), { date: today });
+      // Refresh data completely to update stats, progress, and heatmaps
+      await loadData();
+    } catch (e) {
+      console.log('Error completing habit:', e);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
@@ -273,6 +289,29 @@ export default function HomeScreen() {
             </Typography>
           </View>
         </Animated.View>
+
+        {/* ─── Active Habits (Scrollable Row) ─── */}
+        {habits.length > 0 && (
+          <Animated.View style={styles.activeHabitsSection} entering={FadeInDown.delay(400).duration(500)}>
+            <View style={styles.sectionHeader}>
+              <Typography variant="h3">Active Habits</Typography>
+            </View>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.habitsScrollContent}
+            >
+              {habits.map((habit, index) => (
+                <HabitProgressCard
+                  key={habit.id}
+                  habit={habit}
+                  index={index}
+                  onComplete={handleCompleteHabitToggle}
+                />
+              ))}
+            </ScrollView>
+          </Animated.View>
+        )}
 
         {/* ─── Bottom Section: Activity Heatmap (60%) ─── */}
         <Animated.View style={[styles.heatmapSection, heatmapAnim]}>
@@ -472,6 +511,14 @@ const createStyles = (Colors: any) => StyleSheet.create({
   },
   motivationText: {
     fontFamily: FontFamily.medium,
+  },
+
+  // Active Habits
+  activeHabitsSection: {
+    marginBottom: Spacing.lg,
+  },
+  habitsScrollContent: {
+    paddingRight: Spacing.lg,
   },
 
   // Heatmap Section
