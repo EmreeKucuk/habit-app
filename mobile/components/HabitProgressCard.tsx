@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInRight, useAnimatedStyle, withTiming, useSharedValue, useEffect } from 'react-native-reanimated';
+import Animated, { FadeInRight, useAnimatedStyle, withTiming, useSharedValue } from 'react-native-reanimated';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/context/ThemeContext';
 import { Spacing, Radius, Shadows, FontFamily } from '@/constants/theme';
