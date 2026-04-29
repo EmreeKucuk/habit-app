@@ -41,6 +41,7 @@ import {
   getLastDetectedCategory,
   processHabitLoggingAsync,
   startHabitCreationFlow,
+  startHabitFollowUpFlow,
   isHabitCreationComplete,
   consumeNewHabitData,
 } from '@/services/chatBot';
@@ -396,10 +397,31 @@ export default function ChatScreen() {
                   key={habit.id}
                   style={styles.dynamicQuickReplyChip}
                   onPress={() => {
-                    const text = `I completed my ${habit.name} habit today!`;
-                    handleQuickReply(text);
-                    // Optimistically remove from the list
+                    // Add a user message confirming completion
+                    const userMsg = createUserMessage(`✅ I completed "${habit.name}"!`);
+                    setMessages((prev) => [...prev, userMsg]);
+                    scrollToBottom();
+
+                    // Log completion to backend
+                    processHabitLoggingAsync(habit.category || 'other');
+
+                    // Optimistically remove from the pending list
                     setUserHabits((prev) => prev.filter((h) => h.id !== habit.id));
+
+                    // Bot responds with a contextual follow-up question
+                    setIsTyping(true);
+                    setTimeout(() => {
+                      const followUpMsgs = startHabitFollowUpFlow(habit.name);
+                      followUpMsgs.forEach((response, index) => {
+                        setTimeout(() => {
+                          setMessages((prev) => [...prev, response]);
+                          scrollToBottom();
+                          if (index === followUpMsgs.length - 1) {
+                            setIsTyping(false);
+                          }
+                        }, index * 600);
+                      });
+                    }, 700);
                   }}
                 >
                   <Typography variant="bodySmall" color={Colors.white}>

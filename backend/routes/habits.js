@@ -210,31 +210,13 @@ router.post('/:id/complete', authenticateToken, async (req, res) => {
     console.log('🔍 Existing completion found:', existingCompletion ? 'Yes' : 'No');
 
     if (existingCompletion) {
-      // Remove completion (uncomplete)
-      await getDatabase().run(
-        'DELETE FROM habit_completions WHERE id = ?',
-        [existingCompletion.id]
-      );
-
-      // Deduct XP if this was the only completion for this habit today
-      const remainingCompletions = await getDatabase().get(`
-        SELECT COUNT(*) as count 
-        FROM habit_completions hc 
-        JOIN habits h ON hc.habit_id = h.id 
-        WHERE h.user_id = ? AND h.name = ? AND hc.date = ?
-      `, [req.user.id, habit.name, completionDate]);
-
-      if (remainingCompletions.count === 0) {
-        // Deduct XP since this was the last completion for this habit today
-        await getDatabase().run(
-          'UPDATE users SET xp = GREATEST(0, xp - ?) WHERE id = ?',
-          [10, req.user.id]
-        );
-        console.log(`💸 Deducted 10 XP for uncompleting "${habit.name}"`);
-      }
-
-      console.log('🗑️ Habit uncompleted');
-      res.json({ message: 'Habit unmarked as completed', completed: false });
+      // Habit already completed for this date — do NOT allow uncompleting
+      console.log(`⚠️ Habit "${habit.name}" already completed on ${completionDate} — ignoring duplicate request`);
+      return res.status(409).json({
+        message: 'Already completed',
+        completed: true,
+        alreadyCompleted: true,
+      });
     } else {
       // Add completion
       const completionId = uuidv4();

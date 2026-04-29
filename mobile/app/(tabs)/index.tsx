@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Pressable } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -180,6 +180,17 @@ export default function HomeScreen() {
     });
   });
 
+  // Local weekly average fallback: count completions in last 7 days from heatmap
+  const localWeeklyAverage = (() => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    let count = 0;
+    Object.entries(heatmapData).forEach(([date, num]) => {
+      if (new Date(date) >= sevenDaysAgo) count += num;
+    });
+    return count / 7;
+  })();
+
   // Get greeting based on time
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -200,11 +211,33 @@ export default function HomeScreen() {
   const handleCompleteHabitToggle = async (habitId: string) => {
     try {
       const today = new Date().toISOString().split('T')[0];
+
+      // Guard: if already completed today, warn user and do nothing
+      const habit = habits.find((h) => h.id === habitId);
+      if (habit && (habit.completedDates || []).includes(today)) {
+        Alert.alert(
+          '✅ Already Completed',
+          `You have already completed "${habit.name}" today. Great job!`,
+          [{ text: 'OK', style: 'default' }],
+        );
+        return;
+      }
+
       await api.post(API_ENDPOINTS.habitComplete(habitId), { date: today });
       // Refresh data completely to update stats, progress, and heatmaps
       await loadData();
-    } catch (e) {
-      console.log('Error completing habit:', e);
+    } catch (e: any) {
+      // Backend also returns 409 if already completed (double-safety)
+      if (e?.response?.status === 409) {
+        const habit = habits.find((h) => h.id === habitId);
+        Alert.alert(
+          '✅ Already Completed',
+          `You have already completed "${habit?.name || 'this habit'}" today!`,
+          [{ text: 'OK', style: 'default' }],
+        );
+      } else {
+        console.log('Error completing habit:', e);
+      }
     }
   };
 
@@ -267,13 +300,13 @@ export default function HomeScreen() {
               {/* Weekly Average */}
               <View style={styles.statBox}>
                 <View style={styles.statIconRow}>
-                  <Ionicons name="trending-up" size={18} color={Colors.card} />
+                  <Ionicons name="trending-up" size={18} color={Colors.accent} />
                   <Typography variant="caption" color={Colors.textMuted}>
                     WEEKLY
                   </Typography>
                 </View>
                 <Typography variant="h2" color={Colors.text}>
-                  {stats?.weeklyAverage?.toFixed(1) || '0'}
+                  {(stats?.weeklyAverage ?? localWeeklyAverage).toFixed(1)}
                 </Typography>
                 <Typography variant="caption" color={Colors.textMuted}>
                   avg/day

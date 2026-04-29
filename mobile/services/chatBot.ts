@@ -445,6 +445,31 @@ export function startHabitCreationFlow(): ChatMessage[] {
 }
 
 /**
+ * Start a follow-up flow for a habit the user just tapped from the quick menu.
+ * Sets the bot into follow_up state and immediately asks "How did it go?".
+ */
+export function startHabitFollowUpFlow(habitName: string): ChatMessage[] {
+  conversationState = 'follow_up';
+  const followUpResponses = [
+    `Great job on "${habitName}"! 🎉 How did it go?`,
+    `"${habitName}" — done! 💪 How are you feeling after that?`,
+    `Awesome, "${habitName}" is checked off! ✅ How was it?`,
+    `You completed "${habitName}"! 🌟 Tell me — how did it feel?`,
+  ];
+  const response = followUpResponses[Math.floor(Math.random() * followUpResponses.length)];
+  return [
+    createMascotMessage(response, [
+      'Amazing! 🔥',
+      'Pretty good 😊',
+      'Okay 😐',
+      'Tired 😴',
+      'Struggling 😔',
+    ]),
+  ];
+}
+
+
+/**
  * Returns true if the bot is in the middle of creating a habit
  * and the final step just completed (frequency was set).
  */
