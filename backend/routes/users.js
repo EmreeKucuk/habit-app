@@ -139,40 +139,7 @@ router.get('/discover', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user profile
-router.get('/:id', authenticateToken, async (req, res) => {
-  try {
-    const db = getDatabase();
-    const userId = req.params.id;
-    
-    // Check if user is requesting their own profile or if the profile is public
-    const user = await db.get(
-      'SELECT id, username, email, first_name, last_name, age, bio, avatar_color, avatar_icon, profile_photo, xp, level, share_progress, public_profile, privacy_level, created_at FROM users WHERE id = ?',
-      [userId]
-    );
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    // If it's not the user's own profile and not public, restrict access
-    if (user.id !== req.user.id && !user.public_profile) {
-      return res.status(403).json({ error: 'Profile is private' });
-    }
-    
-    // Remove sensitive data for non-self requests
-    if (user.id !== req.user.id) {
-      delete user.email;
-    }
-    
-    res.json(user);
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Get current user's profile
+// Get current user's profile — MUST come before /:id route
 router.get('/me/profile', authenticateToken, async (req, res) => {
   try {
     const db = getDatabase();
@@ -192,6 +159,7 @@ router.get('/me/profile', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // Update user profile
 router.put('/profile', authenticateToken, async (req, res) => {
@@ -470,6 +438,36 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user statistics:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user profile by ID — MUST be the LAST GET route (/:id catches everything)
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = getDatabase();
+    const userId = req.params.id;
+    
+    const user = await db.get(
+      'SELECT id, username, email, first_name, last_name, age, bio, avatar_color, avatar_icon, profile_photo, xp, level, share_progress, public_profile, privacy_level, created_at FROM users WHERE id = ?',
+      [userId]
+    );
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    if (user.id !== req.user.id && !user.public_profile) {
+      return res.status(403).json({ error: 'Profile is private' });
+    }
+    
+    if (user.id !== req.user.id) {
+      delete user.email;
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

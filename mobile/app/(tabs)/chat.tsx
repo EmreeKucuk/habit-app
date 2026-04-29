@@ -245,12 +245,44 @@ export default function ChatScreen() {
     // Bot responds
     setIsTyping(true);
     const delay = 600 + Math.random() * 500;
-    setTimeout(() => {
+    setTimeout(async () => {
       const botResponses = generateBotResponse(reply);
       
       const detectedHabit = botResponses.find((r) => r.habitDetected)?.habitDetected;
       if (detectedHabit) {
         processHabitLoggingAsync(detectedHabit);
+      }
+
+      // Check if habit creation just completed (e.g. user tapped a frequency quick reply)
+      if (isHabitCreationComplete()) {
+        const habitData = consumeNewHabitData();
+        if (habitData) {
+          try {
+            const createRes = await api.post<{ habit: any }>(API_ENDPOINTS.habits, {
+              name: habitData.name,
+              category: habitData.category,
+              frequency: habitData.frequency,
+              frequency_count: habitData.frequency_count,
+            });
+            if (createRes.data?.habit) {
+              setUserHabits((prev) => [...prev, createRes.data!.habit]);
+            }
+          } catch (err) {
+            console.log('Failed to create habit:', err);
+          }
+
+          // Add a confirmation message after the bot summary
+          const successMsg: ChatMessage = {
+            id: `mascot-${Date.now()}-success`,
+            text: `Done! \"${habitData.name}\" has been added to your habits! ✅ You can see it in the quick replies below.`,
+            sender: 'mascot',
+            timestamp: new Date(),
+          };
+          setTimeout(() => {
+            setMessages((prev) => [...prev, successMsg]);
+            scrollToBottom();
+          }, 800);
+        }
       }
 
       botResponses.forEach((response, index) => {

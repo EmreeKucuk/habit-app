@@ -55,7 +55,7 @@ function formatDate(date: Date): string {
 export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
   const { Colors } = useTheme();
   const { grid, monthMarkers, computedMax } = useMemo(() => {
-    // Use a UTC-based "today" so date strings match what the backend stores
+    // Use UTC throughout so date strings match the backend's YYYY-MM-DD format
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const totalDays = weeks * 7;
@@ -63,11 +63,11 @@ export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
     // Find start date (align to start of week — Sunday)
     const endDate = new Date(today);
     const startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - totalDays + 1);
+    startDate.setUTCDate(startDate.getUTCDate() - totalDays + 1);
 
-    // Align to Sunday
-    const dayOfWeek = startDate.getDay();
-    startDate.setDate(startDate.getDate() - dayOfWeek);
+    // Align to Sunday (using UTC day-of-week)
+    const dayOfWeek = startDate.getUTCDay();
+    startDate.setUTCDate(startDate.getUTCDate() - dayOfWeek);
 
     // Build grid: array of weeks, each containing 7 days
     const grid: { date: string; count: number; isToday: boolean; isFuture: boolean }[][] = [];
@@ -84,6 +84,7 @@ export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
 
     const currentDate = new Date(startDate);
     let lastMonth = -1;
+    const todayStr = formatDate(today);
 
     for (let w = 0; currentDate <= endDate || grid.length < weeks; w++) {
       const week: typeof grid[0] = [];
@@ -91,7 +92,6 @@ export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
       for (let d = 0; d < 7; d++) {
         const dateStr = formatDate(currentDate);
         const count = data[dateStr] || 0;
-        const todayStr = formatDate(today);
         const isToday = dateStr === todayStr;
         const isFuture = currentDate > today;
 
@@ -106,7 +106,7 @@ export default function HeatMap({ data, maxCount, weeks = 20 }: HeatMapProps) {
           lastMonth = currentDate.getUTCMonth();
         }
 
-        currentDate.setDate(currentDate.getDate() + 1);
+        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
       }
 
       grid.push(week);
