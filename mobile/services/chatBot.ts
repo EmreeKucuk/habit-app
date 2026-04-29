@@ -189,9 +189,28 @@ const GREETING_MESSAGES: ChatMessage[] = [
     text: "Tell me about your habits today — or just tap one of your quick replies below! 📝",
     sender: 'mascot',
     timestamp: new Date(),
-    quickReplies: ['I exercised today 💪', 'I read a book 📚', 'I drank water 💧', 'I meditated 🧘'],
   },
 ];
+
+export function getDynamicQuickReplies(pendingHabits: any[] = []): string[] {
+  if (pendingHabits.length > 0) {
+    const replies = [];
+    replies.push(`🎯 I completed ${pendingHabits[0].name}`);
+    if (pendingHabits.length > 1) {
+      replies.push(`🎯 I completed ${pendingHabits[1].name}`);
+    }
+    replies.push('➕ Add a new habit');
+    replies.push('📊 How is my progress today?');
+    return replies;
+  } else {
+    return [
+      '💡 Suggest a new habit for me',
+      '➕ I want to create a custom habit',
+      '🌱 How do I use Sprout?',
+      '🔥 Show my current streaks & stats'
+    ];
+  }
+}
 
 // ─── Chat Bot Engine ─────────────────────────────────────────────
 
@@ -214,23 +233,71 @@ const HABIT_CATEGORIES = [
 
 const HABIT_FREQUENCIES = ['Daily', 'Every 3 days', '3 times a week'];
 
-export function getGreetingMessages(): ChatMessage[] {
+export function getGreetingMessages(pendingHabits: any[] = []): ChatMessage[] {
   conversationState = 'idle';
   lastDetectedCategory = null;
   followUpIndex = 0;
-  return GREETING_MESSAGES.map((msg, i) => ({
-    ...msg,
-    timestamp: new Date(Date.now() + i * 500),
-  }));
+  const quickReplies = getDynamicQuickReplies(pendingHabits);
+  
+  return GREETING_MESSAGES.map((msg, i) => {
+    if (i === 1) {
+      return { ...msg, timestamp: new Date(Date.now() + i * 500), quickReplies };
+    }
+    return { ...msg, timestamp: new Date(Date.now() + i * 500) };
+  });
 }
 
 export function getLastDetectedCategory(): string | null {
   return lastDetectedCategory;
 }
 
-export function generateBotResponse(userMessage: string): ChatMessage[] {
+export function generateBotResponse(userMessage: string, pendingHabits: any[] = []): ChatMessage[] {
   const text = userMessage.toLowerCase().trim();
   const responses: ChatMessage[] = [];
+
+  // ── Dynamic Quick Reply Handling ──
+  if (text.startsWith('🎯 i completed')) {
+    const habitNameMatch = userMessage.match(/🎯 I completed (.+)/i);
+    const habitName = habitNameMatch ? habitNameMatch[1].trim() : '';
+    const habit = pendingHabits.find(h => h.name.toLowerCase() === habitName.toLowerCase());
+
+    if (habit) {
+      newHabitData.name = habit.id; // Store ID for completion
+      conversationState = 'checking_in_rating';
+      responses.push(
+        createMascotMessage(`Great! How hard was it to do? (1-5)`, [
+          'Amazing! (1) 🔥',
+          'Pretty good (2) 😊',
+          'Okay (3) 😐',
+          'Tired (4) 😴',
+          'Struggling (5) 😔',
+        ])
+      );
+      return responses;
+    }
+  }
+
+  if (text.includes('add a new habit') || text.includes('create a custom habit')) {
+    return startHabitCreationFlow();
+  }
+
+  if (text.includes('suggest a new habit')) {
+    responses.push(createMascotMessage("How about starting your day with 10 minutes of meditation, or drinking a glass of water right when you wake up? 💧🧘", getDynamicQuickReplies(pendingHabits)));
+    conversationState = 'idle';
+    return responses;
+  }
+
+  if (text.includes('progress today') || text.includes('streaks & stats')) {
+    responses.push(createMascotMessage("Head over to the Home tab to see your full progress dashboard! 📊 Your heatmap and streak are waiting there 🔥", getDynamicQuickReplies(pendingHabits)));
+    conversationState = 'idle';
+    return responses;
+  }
+
+  if (text.includes('how do i use sprout')) {
+    responses.push(createMascotMessage("I'm Sprout, your AI habit buddy! 🌱 You can tell me what you did today, and I'll log it for you. You can also tap the quick replies to quickly check-in or manage your habits!", getDynamicQuickReplies(pendingHabits)));
+    conversationState = 'idle';
+    return responses;
+  }
 
   // ── Deletion Confirmation Flow ──
   if (conversationState === 'confirming_deletion') {
@@ -290,11 +357,14 @@ export function generateBotResponse(userMessage: string): ChatMessage[] {
     // Add the intent so chat.tsx can trigger the completion API
     completeMsg.habitDetected = `CHECKIN_COMPLETE:${newHabitData.name}`; // we'll store habitId in newHabitData.name for this flow
     
+    // Filter out the habit being completed right now so it doesn't show in quick replies
+    const updatedPendingHabits = pendingHabits.filter(h => h.id !== newHabitData.name);
+
     responses.push(completeMsg);
     responses.push(
       createMascotMessage(
         "What else have you been up to today? 🌿",
-        ['I did another habit', 'That was it for today', 'Show my progress'],
+        getDynamicQuickReplies(updatedPendingHabits)
       ),
     );
     conversationState = 'idle';
@@ -395,7 +465,7 @@ export function generateBotResponse(userMessage: string): ChatMessage[] {
       responses.push(
         createMascotMessage(
           "What else have you been up to today? 🌿",
-          ['I did another habit', 'That was it for today', 'Show my progress'],
+          getDynamicQuickReplies(pendingHabits)
         ),
       );
       conversationState = 'idle';
@@ -470,11 +540,7 @@ export function generateBotResponse(userMessage: string): ChatMessage[] {
   // General / unrecognized response
   const generalResponse = GENERAL_RESPONSES[Math.floor(Math.random() * GENERAL_RESPONSES.length)];
   responses.push(
-    createMascotMessage(generalResponse, [
-      'I exercised today 💪',
-      'I read a book 📚',
-      'I meditated 🧘',
-    ]),
+    createMascotMessage(generalResponse, getDynamicQuickReplies(pendingHabits)),
   );
   conversationState = 'idle';
   return responses;

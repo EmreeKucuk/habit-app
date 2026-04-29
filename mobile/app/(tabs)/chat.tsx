@@ -78,12 +78,13 @@ export default function ChatScreen() {
     const score = await fetchMotivationScore();
     setMotivationScore(score);
 
+    let pendingHabits: any[] = [];
     // Fetch user habits for quick replies — only show pending (not completed today)
     try {
       const habitsRes = await api.get<{ habits: any[] }>(API_ENDPOINTS.habits);
       if (habitsRes.data?.habits) {
         const today = new Date().toISOString().split('T')[0];
-        const pendingHabits = habitsRes.data.habits.filter((h: any) => {
+        pendingHabits = habitsRes.data.habits.filter((h: any) => {
           const completed = h.completedDates || [];
           return !completed.includes(today);
         });
@@ -94,7 +95,7 @@ export default function ChatScreen() {
     }
 
     // Build greeting based on score
-    const greetings = getGreetingMessages();
+    const greetings = getGreetingMessages(pendingHabits);
 
     // Override first greeting with motivation-aware message
     if (score) {
@@ -178,7 +179,7 @@ export default function ChatScreen() {
     // Variable delay based on response length for natural feel
     const delay = 800 + Math.random() * 700;
     setTimeout(async () => {
-      const botResponses = generateBotResponse(text);
+      const botResponses = generateBotResponse(text, userHabits);
 
       // Check if a habit was detected and log it to the backend asynchronously
       const detectedHabit = botResponses.find((r) => r.habitDetected)?.habitDetected;
@@ -279,7 +280,7 @@ export default function ChatScreen() {
     setIsTyping(true);
     const delay = 600 + Math.random() * 500;
     setTimeout(async () => {
-      const botResponses = generateBotResponse(reply);
+      const botResponses = generateBotResponse(reply, userHabits);
       
       const detectedHabit = botResponses.find((r) => r.habitDetected)?.habitDetected;
       if (detectedHabit) {
