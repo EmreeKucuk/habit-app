@@ -200,7 +200,7 @@ let lastDetectedCategory: string | null = null;
 let followUpIndex = 0;
 
 // In-progress habit creation data
-let newHabitData: { name?: string; category?: string; frequency?: string } = {};
+let newHabitData: { name?: string; category?: string; frequency?: string; frequency_count?: number } = {};
 
 const HABIT_CATEGORIES = [
   { id: 'health', label: '💚 Health', icon: '💚' },
@@ -212,7 +212,7 @@ const HABIT_CATEGORIES = [
   { id: 'other', label: '🌱 Other', icon: '🌱' },
 ];
 
-const HABIT_FREQUENCIES = ['Daily', 'Weekly', 'Monthly'];
+const HABIT_FREQUENCIES = ['Daily', 'Every 3 days', '3 times a week'];
 
 export function getGreetingMessages(): ChatMessage[] {
   conversationState = 'idle';
@@ -263,15 +263,45 @@ export function generateBotResponse(userMessage: string): ChatMessage[] {
   }
 
   if (conversationState === 'creating_habit_frequency') {
-    // Match frequency
-    if (text.includes('daily')) newHabitData.frequency = 'daily';
-    else if (text.includes('weekly')) newHabitData.frequency = 'weekly';
-    else if (text.includes('monthly')) newHabitData.frequency = 'monthly';
-    else newHabitData.frequency = 'daily';
+    // Advanced NLP parsing for complex frequencies
+    let matchedFreq = 'daily';
+    let matchedCount = 1;
+    let label = 'Daily';
+
+    // Check for interval: "every X days"
+    const intervalMatch = text.match(/every\s+(\d+)\s+days?/i);
+    // Check for flexible weekly: "X times a week", "X days a week", "Xx a week"
+    const weeklyMatch = text.match(/(\d+)\s*(times?|days?|x)\s*(a|per)\s*week/i);
+
+    if (intervalMatch) {
+      matchedFreq = 'interval';
+      matchedCount = parseInt(intervalMatch[1], 10);
+      label = `Every ${matchedCount} days`;
+    } else if (weeklyMatch) {
+      matchedFreq = 'flexible_weekly';
+      matchedCount = parseInt(weeklyMatch[1], 10);
+      label = `${matchedCount} times a week`;
+    } else if (text.includes('weekly')) {
+      matchedFreq = 'flexible_weekly';
+      matchedCount = 1;
+      label = 'Once a week';
+    } else if (text.includes('monthly')) {
+      matchedFreq = 'monthly';
+      matchedCount = 1;
+      label = 'Monthly';
+    } else {
+      // Default to daily if "daily" or no clear match
+      matchedFreq = 'daily';
+      matchedCount = 1;
+      label = 'Daily';
+    }
+
+    newHabitData.frequency = matchedFreq;
+    newHabitData.frequency_count = matchedCount;
 
     responses.push(
       createMascotMessage(
-        `Perfect! Here's what I've got:\n\n📝 **${newHabitData.name}**\n📂 ${newHabitData.category}\n🔄 ${newHabitData.frequency}\n\nCreating it now... ✨`,
+        `Perfect! Here's what I've got:\n\n📝 **${newHabitData.name}**\n📂 ${newHabitData.category}\n🔄 ${label}\n\nCreating it now... ✨`,
       ),
     );
     conversationState = 'idle';
@@ -430,9 +460,14 @@ export function isHabitCreationComplete(): boolean {
 /**
  * Get the pending new habit data and clear it.
  */
-export function consumeNewHabitData(): { name: string; category: string; frequency: string } | null {
+export function consumeNewHabitData(): { name: string; category: string; frequency: string; frequency_count: number } | null {
   if (newHabitData.name && newHabitData.category && newHabitData.frequency) {
-    const data = { name: newHabitData.name, category: newHabitData.category, frequency: newHabitData.frequency };
+    const data = { 
+      name: newHabitData.name, 
+      category: newHabitData.category, 
+      frequency: newHabitData.frequency,
+      frequency_count: newHabitData.frequency_count || 1
+    };
     newHabitData = {};
     return data;
   }

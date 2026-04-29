@@ -111,6 +111,7 @@ export default function HomeScreen() {
                 icon: t.icon,
                 color: t.color,
                 frequency: t.frequency,
+                frequency_count: t.frequency_count,
                 target: t.target,
                 unit: t.unit,
               });

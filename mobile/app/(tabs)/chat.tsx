@@ -185,6 +185,7 @@ export default function ChatScreen() {
               name: habitData.name,
               category: habitData.category,
               frequency: habitData.frequency,
+              frequency_count: habitData.frequency_count,
             });
             if (createRes.data?.habit) {
               // Add the new habit to quick replies

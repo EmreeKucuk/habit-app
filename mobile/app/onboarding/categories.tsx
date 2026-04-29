@@ -30,17 +30,18 @@ export interface Template {
   color: string;
   description: string;
   frequency: string;
+  frequency_count?: number;
   target: number;
   unit: string;
 }
 
 const TEMPLATES: Template[] = [
-  { id: 'workout', name: 'Workout', category: 'sport', icon: '💪', color: '#EF4444', description: '3 times a week', frequency: 'weekly', target: 3, unit: 'times' },
-  { id: 'read', name: 'Read', category: 'learning', icon: '📚', color: '#3B82F6', description: '10 pages daily', frequency: 'daily', target: 10, unit: 'pages' },
-  { id: 'water', name: 'Drink Water', category: 'health', icon: '💧', color: '#0EA5E9', description: '2L daily', frequency: 'daily', target: 2, unit: 'L' },
-  { id: 'meditate', name: 'Meditate', category: 'mindfulness', icon: '🧘', color: '#8B5CF6', description: '10 mins daily', frequency: 'daily', target: 10, unit: 'mins' },
-  { id: 'code', name: 'Code', category: 'productivity', icon: '💻', color: '#10B981', description: '1 hour daily', frequency: 'daily', target: 1, unit: 'hour' },
-  { id: 'walk', name: 'Walk', category: 'sport', icon: '🚶', color: '#F59E0B', description: '10k steps daily', frequency: 'daily', target: 10000, unit: 'steps' },
+  { id: 'workout', name: 'Workout', category: 'sport', icon: '💪', color: '#EF4444', description: '3 times a week', frequency: 'flexible_weekly', frequency_count: 3, target: 1, unit: 'session' },
+  { id: 'read', name: 'Read', category: 'learning', icon: '📚', color: '#3B82F6', description: '10 pages daily', frequency: 'daily', frequency_count: 1, target: 10, unit: 'pages' },
+  { id: 'water', name: 'Drink Water', category: 'health', icon: '💧', color: '#0EA5E9', description: '2L daily', frequency: 'daily', frequency_count: 1, target: 2, unit: 'L' },
+  { id: 'meditate', name: 'Meditate', category: 'mindfulness', icon: '🧘', color: '#8B5CF6', description: '10 mins daily', frequency: 'daily', frequency_count: 1, target: 10, unit: 'mins' },
+  { id: 'code', name: 'Code', category: 'productivity', icon: '💻', color: '#10B981', description: '1 hour daily', frequency: 'daily', frequency_count: 1, target: 1, unit: 'hour' },
+  { id: 'walk', name: 'Walk', category: 'sport', icon: '🚶', color: '#F59E0B', description: '10k steps daily', frequency: 'daily', frequency_count: 1, target: 10000, unit: 'steps' },
 ];
 
 export default function CategoriesScreen() {
