@@ -284,14 +284,17 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     
     // Get total habits
     const totalHabitsResult = await db.get(
-      'SELECT COUNT(*) as count FROM habits WHERE user_id = ?',
+      'SELECT COUNT(*) as count FROM habits WHERE user_id = ? AND COALESCE(is_archived, false) = false',
       [userId]
     );
     const totalHabits = parseInt(totalHabitsResult.count || 0);
     
     // Get total completions
     const totalCompletionsResult = await db.get(
-      'SELECT COUNT(*) as count FROM habit_completions WHERE user_id = ?',
+      `SELECT COUNT(hc.id) as count 
+       FROM habit_completions hc
+       JOIN habits h ON hc.habit_id = h.id
+       WHERE hc.user_id = ? AND COALESCE(h.is_archived, false) = false`,
       [userId]
     );
     const totalCompletions = parseInt(totalCompletionsResult.count || 0);
@@ -299,14 +302,17 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     // Get completions for today
     const today = new Date().toISOString().split('T')[0];
     const completedTodayResult = await db.get(
-      'SELECT COUNT(*) as count FROM habit_completions WHERE user_id = ? AND date = ?',
+      `SELECT COUNT(hc.id) as count 
+       FROM habit_completions hc
+       JOIN habits h ON hc.habit_id = h.id
+       WHERE hc.user_id = ? AND hc.date = ? AND COALESCE(h.is_archived, false) = false`,
       [userId, today]
     );
     const completedToday = parseInt(completedTodayResult.count || 0);
     
     // Get current streaks for all habits
     const habits = await db.all(
-      'SELECT id, frequency, frequency_count FROM habits WHERE user_id = ?',
+      'SELECT id, frequency, frequency_count FROM habits WHERE user_id = ? AND COALESCE(is_archived, false) = false',
       [userId]
     );
     
@@ -350,14 +356,17 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
     
     const last30Completions = await db.get(
-      'SELECT COUNT(DISTINCT habit_id || date) as count FROM habit_completions WHERE user_id = ? AND date >= ?',
+      `SELECT COUNT(DISTINCT hc.habit_id || hc.date) as count 
+       FROM habit_completions hc
+       JOIN habits h ON hc.habit_id = h.id
+       WHERE hc.user_id = ? AND hc.date >= ? AND COALESCE(h.is_archived, false) = false`,
       [userId, thirtyDaysAgoStr]
     );
     
     // Count how many habit-days were possible in the last 30 days
     // (each habit counts for each day since it was created, up to 30 days)
     const habitsWithDates = await db.all(
-      'SELECT created_at, frequency, frequency_count FROM habits WHERE user_id = ?',
+      'SELECT created_at, frequency, frequency_count FROM habits WHERE user_id = ? AND COALESCE(is_archived, false) = false',
       [userId]
     );
     
@@ -388,7 +397,10 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     const weekAgoString = weekAgo.toISOString().split('T')[0];
     
     const weeklyCompletionsResult = await db.get(
-      'SELECT COUNT(*) as count FROM habit_completions WHERE user_id = ? AND date >= ?',
+      `SELECT COUNT(hc.id) as count 
+       FROM habit_completions hc
+       JOIN habits h ON hc.habit_id = h.id
+       WHERE hc.user_id = ? AND hc.date >= ? AND COALESCE(h.is_archived, false) = false`,
       [userId, weekAgoString]
     );
     const weeklyAverage = parseInt(weeklyCompletionsResult.count || 0) / 7;
@@ -397,8 +409,8 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     const categoryBreakdownResult = await db.all(
       `SELECT h.category, COUNT(hc.id) as completions 
        FROM habits h 
-       LEFT JOIN habit_completions hc ON h.id = hc.habit_id 
-       WHERE h.user_id = ? 
+       LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND hc.user_id = h.user_id
+       WHERE h.user_id = ? AND COALESCE(h.is_archived, false) = false
        GROUP BY h.category`,
       [userId]
     );
@@ -412,8 +424,8 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     const categoryStats = await db.all(
       `SELECT h.category, COUNT(hc.id) as completions 
        FROM habits h 
-       LEFT JOIN habit_completions hc ON h.id = hc.habit_id 
-       WHERE h.user_id = ? 
+       LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND hc.user_id = h.user_id
+       WHERE h.user_id = ? AND COALESCE(h.is_archived, false) = false
        GROUP BY h.category 
        ORDER BY completions DESC 
        LIMIT 1`,

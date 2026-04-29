@@ -191,6 +191,7 @@ class DatabaseService {
             unit VARCHAR(20),
             color VARCHAR(7),
             icon VARCHAR(50),
+            is_archived BOOLEAN DEFAULT false,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
@@ -338,6 +339,7 @@ class DatabaseService {
             unit TEXT,
             color TEXT,
             icon TEXT,
+            is_archived INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
@@ -478,6 +480,9 @@ class DatabaseService {
     // Add privacy level column
     await this.addColumnIfNotExists('users', 'privacy_level', this.dbType === 'postgresql' ? "VARCHAR(20) DEFAULT 'public'" : "TEXT DEFAULT 'public'");
     
+    // Add is_archived to habits
+    await this.addColumnIfNotExists('habits', 'is_archived', this.dbType === 'postgresql' ? 'BOOLEAN DEFAULT false' : 'INTEGER DEFAULT 0');
+
     console.log('✓ Database migrations completed');
   }
 

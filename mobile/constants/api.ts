@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   // Habits
   habits: '/api/habits',
   habitComplete: (id: string) => `/api/habits/${id}/complete`,
+  habitDelete: (id: string) => `/api/habits/${id}`,
   habitStats: '/api/habits/stats',
 
   // Users

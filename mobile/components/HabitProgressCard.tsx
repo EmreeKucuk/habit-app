@@ -21,11 +21,12 @@ interface HabitData {
 
 interface HabitProgressCardProps {
   habit: HabitData;
-  onComplete: (id: string) => void;
+  onPress: (habit: HabitData) => void;
+  onLongPress: (habit: HabitData) => void;
   index: number;
 }
 
-export default function HabitProgressCard({ habit, onComplete, index }: HabitProgressCardProps) {
+export default function HabitProgressCard({ habit, onPress, onLongPress, index }: HabitProgressCardProps) {
   const { Colors } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
 
@@ -49,7 +50,13 @@ export default function HabitProgressCard({ habit, onComplete, index }: HabitPro
       entering={FadeInRight.delay(index * 100).duration(400)}
       style={styles.card}
     >
-      <View style={styles.header}>
+      <Pressable 
+        style={styles.cardPressable}
+        onPress={() => onPress(habit)}
+        onLongPress={() => onLongPress(habit)}
+        delayLongPress={500}
+      >
+        <View style={styles.header}>
         <View style={styles.iconContainer}>
           <Ionicons name="leaf-outline" size={24} color={habitColor} />
         </View>
@@ -74,12 +81,9 @@ export default function HabitProgressCard({ habit, onComplete, index }: HabitPro
             <Ionicons name="checkmark" size={20} color={Colors.white} />
           </View>
         ) : (
-          <Pressable 
-            style={styles.completeButton}
-            onPress={() => onComplete(habit.id)}
-          >
+          <View style={styles.completeButton}>
             <Ionicons name="checkmark" size={20} color={Colors.textMuted} />
-          </Pressable>
+          </View>
         )}
       </View>
 
@@ -103,20 +107,23 @@ export default function HabitProgressCard({ habit, onComplete, index }: HabitPro
           />
         </View>
       </View>
+      </Pressable>
     </Animated.View>
   );
 }
 
 const createStyles = (Colors: any) => StyleSheet.create({
   card: {
-    backgroundColor: Colors.cardLight,
+    backgroundColor: Colors.card,
     borderRadius: Radius.lg,
-    padding: Spacing.md,
+    padding: 0,
     width: 260,
     marginRight: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
     ...Shadows.sm,
+    shadowColor: Colors.shadow,
+  },
+  cardPressable: {
+    padding: Spacing.md,
   },
   header: {
     flexDirection: 'row',

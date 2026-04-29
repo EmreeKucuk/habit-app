@@ -21,7 +21,7 @@ router.get('/', authenticateToken, async (req, res) => {
              MAX(hc.date) as last_completion
       FROM habits h
       LEFT JOIN habit_completions hc ON h.id = hc.habit_id
-      WHERE h.user_id = ?
+      WHERE h.user_id = ? AND COALESCE(h.is_archived, false) = false
     `;
     
     const params = [userId];
@@ -299,8 +299,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Habit not found' });
     }
 
-    // Delete habit (cascading deletes will handle completions and comments)
-    await getDatabase().run('DELETE FROM habits WHERE id = ?', [id]);
+    // Soft delete habit
+    await getDatabase().run('UPDATE habits SET is_archived = true WHERE id = ?', [id]);
 
     res.json({ message: 'Habit deleted successfully' });
 
@@ -323,7 +323,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
         COUNT(DISTINCT hc.id) as total_completions
       FROM habits h
       LEFT JOIN habit_completions hc ON h.id = hc.habit_id
-      WHERE h.user_id = ?
+      WHERE h.user_id = ? AND COALESCE(h.is_archived, false) = false
     `, [req.user.id]);
 
     // Get category breakdown
@@ -334,7 +334,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
         COUNT(hc.id) as completions
       FROM habits h
       LEFT JOIN habit_completions hc ON h.id = hc.habit_id
-      WHERE h.user_id = ?
+      WHERE h.user_id = ? AND COALESCE(h.is_archived, false) = false
       GROUP BY h.category
     `, [req.user.id]);
 

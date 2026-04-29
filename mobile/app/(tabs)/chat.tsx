@@ -15,9 +15,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -42,6 +42,7 @@ import {
   processHabitLoggingAsync,
   startHabitCreationFlow,
   startHabitFollowUpFlow,
+  startHabitCheckInFlow,
   isHabitCreationComplete,
   consumeNewHabitData,
 } from '@/services/chatBot';
@@ -58,6 +59,7 @@ import { API_ENDPOINTS } from '@/constants/api';
 export default function ChatScreen() {
   const { Colors } = useTheme();
   const styles = React.useMemo(() => createStyles(Colors), [Colors]);
+  const params = useLocalSearchParams<{ checkinHabit?: string; checkinHabitId?: string }>();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
@@ -104,12 +106,23 @@ export default function ChatScreen() {
 
     setIsTyping(true);
     setTimeout(() => {
-      setMessages([greetings[0]]);
-      setIsTyping(true);
-    }, 500);
-
-    setTimeout(() => {
-      setMessages(greetings);
+      if (params.checkinHabit) {
+        // Delay slightly so the UI doesn't jump immediately
+        setTimeout(() => {
+          const checkInMsgs = startHabitCheckInFlow(params.checkinHabitId as string, params.checkinHabit as string);
+          setMessages((prev) => [...prev, ...checkInMsgs]);
+          
+          // Clear param so it doesn't trigger again on subsequent renders
+          router.setParams({ checkinHabit: '', checkinHabitId: '' });
+        }, 500);
+      } else {
+        setMessages(greetings);
+        
+        // Save greeting to DB
+        if (greetings.length > 0) {
+          saveChatMessage({ sender: 'mascot', message: greetings[greetings.length - 1].text });
+        }
+      }
       setIsTyping(false);
     }, 1500);
   };
@@ -169,12 +182,31 @@ export default function ChatScreen() {
       // Check if a habit was detected and log it to the backend asynchronously
       const detectedHabit = botResponses.find((r) => r.habitDetected)?.habitDetected;
       if (detectedHabit) {
-        processHabitLoggingAsync(detectedHabit).then(() => {
-          // Remove the completed habit from quick replies
-          setUserHabits((prev) =>
-            prev.filter((h) => h.category !== detectedHabit),
-          );
-        });
+        if (detectedHabit.startsWith('CHECKIN_COMPLETE:')) {
+          const habitId = detectedHabit.split(':')[1];
+          api.post(API_ENDPOINTS.habitComplete(habitId), { date: new Date().toISOString().split('T')[0] })
+            .catch(err => console.log('Check-in error', err));
+          setUserHabits((prev) => prev.filter((h) => h.id !== habitId));
+        } else if (detectedHabit.startsWith('DELETED_HABIT_CONFIRMED:')) {
+          const habitName = detectedHabit.split(':')[1].toLowerCase();
+          // Find habit by name and delete it
+          api.get<{ habits: any[] }>(API_ENDPOINTS.habits).then((res) => {
+            const habit = res.data?.habits?.find((h: any) => h.name.toLowerCase().includes(habitName) || habitName.includes(h.name.toLowerCase()));
+            if (habit) {
+              api.delete(API_ENDPOINTS.habitDelete(habit.id))
+                .then(() => {
+                  setUserHabits((prev) => prev.filter((h) => h.id !== habit.id));
+                })
+                .catch(err => console.log('Delete habit error', err));
+            }
+          });
+        } else {
+          processHabitLoggingAsync(detectedHabit).then(() => {
+            setUserHabits((prev) =>
+              prev.filter((h) => h.category !== detectedHabit),
+            );
+          });
+        }
       }
 
       // Check if habit creation just completed
@@ -250,7 +282,31 @@ export default function ChatScreen() {
       
       const detectedHabit = botResponses.find((r) => r.habitDetected)?.habitDetected;
       if (detectedHabit) {
-        processHabitLoggingAsync(detectedHabit);
+        if (detectedHabit.startsWith('CHECKIN_COMPLETE:')) {
+          const habitId = detectedHabit.split(':')[1];
+          api.post(API_ENDPOINTS.habitComplete(habitId), { date: new Date().toISOString().split('T')[0] })
+            .catch(err => console.log('Check-in error', err));
+          setUserHabits((prev) => prev.filter((h) => h.id !== habitId));
+        } else if (detectedHabit.startsWith('DELETED_HABIT_CONFIRMED:')) {
+          const habitName = detectedHabit.split(':')[1].toLowerCase();
+          // Find habit by name and delete it
+          api.get<{ habits: any[] }>(API_ENDPOINTS.habits).then((res) => {
+            const habit = res.data?.habits?.find((h: any) => h.name.toLowerCase().includes(habitName) || habitName.includes(h.name.toLowerCase()));
+            if (habit) {
+              api.delete(API_ENDPOINTS.habitDelete(habit.id))
+                .then(() => {
+                  setUserHabits((prev) => prev.filter((h) => h.id !== habit.id));
+                })
+                .catch(err => console.log('Delete habit error', err));
+            }
+          });
+        } else {
+          processHabitLoggingAsync(detectedHabit).then(() => {
+            setUserHabits((prev) =>
+              prev.filter((h) => h.category !== detectedHabit),
+            );
+          });
+        }
       }
 
       // Check if habit creation just completed (e.g. user tapped a frequency quick reply)

@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   useSharedValue,
@@ -29,6 +29,7 @@ import { API_ENDPOINTS } from '@/constants/api';
 import api from '@/services/api';
 import { fetchMotivationScore, MotivationScore } from '@/services/motivation';
 import { requestNotificationPermissionsAsync, scheduleMotivationReminder } from '@/services/notifications';
+import { getHabitProgress } from '@/utils/progress';
 
 interface HabitData {
   id: string;
@@ -54,6 +55,7 @@ interface StatsData {
 export default function HomeScreen() {
   const { Colors } = useTheme();
   const styles = React.useMemo(() => createStyles(Colors), [Colors]);
+  const router = useRouter();
 
   const [habits, setHabits] = useState<HabitData[]>([]);
   const [stats, setStats] = useState<StatsData | null>(null);
@@ -208,37 +210,63 @@ export default function HomeScreen() {
     }
   };
 
-  const handleCompleteHabitToggle = async (habitId: string) => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-
-      // Guard: if already completed today, warn user and do nothing
-      const habit = habits.find((h) => h.id === habitId);
-      if (habit && (habit.completedDates || []).includes(today)) {
-        Alert.alert(
-          '✅ Already Completed',
-          `You have already completed "${habit.name}" today. Great job!`,
-          [{ text: 'OK', style: 'default' }],
-        );
-        return;
-      }
-
-      await api.post(API_ENDPOINTS.habitComplete(habitId), { date: today });
-      // Refresh data completely to update stats, progress, and heatmaps
-      await loadData();
-    } catch (e: any) {
-      // Backend also returns 409 if already completed (double-safety)
-      if (e?.response?.status === 409) {
-        const habit = habits.find((h) => h.id === habitId);
-        Alert.alert(
-          '✅ Already Completed',
-          `You have already completed "${habit?.name || 'this habit'}" today!`,
-          [{ text: 'OK', style: 'default' }],
-        );
-      } else {
-        console.log('Error completing habit:', e);
-      }
+  const handleHabitPress = (habit: HabitData) => {
+    // Guard: if already completed, warn user and do nothing
+    const progress = getHabitProgress(habit.frequency, habit.frequencyCount || 1, habit.completedDates);
+    if (progress.isCompleted) {
+      Alert.alert(
+        '✅ Already Completed',
+        `You have already completed "${habit.name}"! Great job!`,
+        [{ text: 'OK', style: 'default' }],
+      );
+      return;
     }
+
+    // Navigate to chat tab with the habit name and id as parameters
+    router.push(`/chat?checkinHabitId=${encodeURIComponent(habit.id)}&checkinHabit=${encodeURIComponent(habit.name)}`);
+  };
+
+  const handleHabitLongPress = (habit: HabitData) => {
+    Alert.alert(
+      'Manage Habit',
+      `What would you like to do with "${habit.name}"?`,
+      [
+        {
+          text: 'Edit',
+          onPress: () => {
+            Alert.alert('Coming Soon', 'Edit habit functionality will be added soon.');
+          },
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Delete Habit',
+              `Are you sure you want to delete "${habit.name}"? This action cannot be undone.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      // Uses the updated API endpoint (which now soft-deletes)
+                      await api.delete(API_ENDPOINTS.habitDelete(habit.id));
+                      loadData();
+                    } catch (e) {
+                      console.log('Error deleting habit:', e);
+                      Alert.alert('Error', 'Failed to delete habit.');
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
   };
 
   return (
@@ -339,7 +367,8 @@ export default function HomeScreen() {
                   key={habit.id}
                   habit={habit}
                   index={index}
-                  onComplete={handleCompleteHabitToggle}
+                  onPress={handleHabitPress}
+                  onLongPress={handleHabitLongPress}
                 />
               ))}
             </ScrollView>

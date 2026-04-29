@@ -195,7 +195,7 @@ const GREETING_MESSAGES: ChatMessage[] = [
 
 // ─── Chat Bot Engine ─────────────────────────────────────────────
 
-let conversationState: 'idle' | 'follow_up' | 'difficulty_rating' | 'creating_habit_name' | 'creating_habit_category' | 'creating_habit_frequency' = 'idle';
+let conversationState: 'idle' | 'follow_up' | 'difficulty_rating' | 'creating_habit_name' | 'creating_habit_category' | 'creating_habit_frequency' | 'confirming_deletion' | 'checking_in_rating' = 'idle';
 let lastDetectedCategory: string | null = null;
 let followUpIndex = 0;
 
@@ -231,6 +231,75 @@ export function getLastDetectedCategory(): string | null {
 export function generateBotResponse(userMessage: string): ChatMessage[] {
   const text = userMessage.toLowerCase().trim();
   const responses: ChatMessage[] = [];
+
+  // ── Deletion Confirmation Flow ──
+  if (conversationState === 'confirming_deletion') {
+    if (text === 'yes' || text === 'y' || text === 'sure' || text === 'delete') {
+      // In a real implementation, we would dispatch an API call here.
+      // Since chatBot.ts runs client side, we signal the UI to perform the deletion
+      // by setting a specific message format or via a callback. For now, we return a success message
+      // and the UI (chat.tsx) will intercept this if needed. We'll store intent in the message.
+      const confirmMsg = createMascotMessage(`Deleted "${newHabitData.name}". Let's focus on your other habits! 🌱`);
+      confirmMsg.habitDetected = 'DELETED_HABIT_CONFIRMED';
+      responses.push(confirmMsg);
+      conversationState = 'idle';
+      return responses;
+    } else {
+      responses.push(createMascotMessage(`Okay, "${newHabitData.name}" is safe! 🛡️ What else is on your mind?`));
+      conversationState = 'idle';
+      return responses;
+    }
+  }
+
+  // ── Deletion Intent Detection ──
+  if (text.startsWith('delete my ') && text.includes(' habit')) {
+    const habitMatch = text.match(/delete my (.*?) habit/);
+    if (habitMatch && habitMatch[1]) {
+      const targetHabit = habitMatch[1].trim();
+      newHabitData.name = targetHabit; // Store it temporarily
+      conversationState = 'confirming_deletion';
+      responses.push(
+        createMascotMessage(`You are about to delete your "${targetHabit}" habit and its streak. Are you sure?`, ['Yes', 'No'])
+      );
+      return responses;
+    }
+  }
+
+  // ── Habit Check-in Rating Flow ──
+  if (conversationState === 'checking_in_rating') {
+    const difficultyMatch = text.match(/[1-5]/);
+    let rating = 3;
+    if (difficultyMatch) {
+      rating = parseInt(difficultyMatch[0]);
+    } else {
+      // rough heuristic if they typed text
+      if (text.includes('amazing') || text.includes('great')) rating = 1;
+      else if (text.includes('tired') || text.includes('struggling')) rating = 5;
+    }
+    
+    let reaction = '';
+    if (rating <= 2) {
+      reaction = "That's great — keep the momentum going! 🚀";
+    } else if (rating <= 3) {
+      reaction = "Nice work pushing through! You're building resilience 💪";
+    } else {
+      reaction = "I'm proud of you for doing it even when it's hard! That's real strength 🌟";
+    }
+
+    const completeMsg = createMascotMessage(reaction);
+    // Add the intent so chat.tsx can trigger the completion API
+    completeMsg.habitDetected = `CHECKIN_COMPLETE:${newHabitData.name}`; // we'll store habitId in newHabitData.name for this flow
+    
+    responses.push(completeMsg);
+    responses.push(
+      createMascotMessage(
+        "What else have you been up to today? 🌿",
+        ['I did another habit', 'That was it for today', 'Show my progress'],
+      ),
+    );
+    conversationState = 'idle';
+    return responses;
+  }
 
   // ── Habit Creation Flow ──
   if (conversationState === 'creating_habit_name') {
@@ -468,6 +537,22 @@ export function startHabitFollowUpFlow(habitName: string): ChatMessage[] {
   ];
 }
 
+/**
+ * Start a check-in flow triggered from the Home Dashboard.
+ */
+export function startHabitCheckInFlow(habitId: string, habitName: string): ChatMessage[] {
+  conversationState = 'checking_in_rating';
+  newHabitData.name = habitId; // Store habitId temporarily to pass back on completion
+  return [
+    createMascotMessage(`Are you checking in for "${habitName}"? How did it go? (1-5)`, [
+      'Amazing! (1) 🔥',
+      'Pretty good (2) 😊',
+      'Okay (3) 😐',
+      'Tired (4) 😴',
+      'Struggling (5) 😔',
+    ]),
+  ];
+}
 
 /**
  * Returns true if the bot is in the middle of creating a habit
