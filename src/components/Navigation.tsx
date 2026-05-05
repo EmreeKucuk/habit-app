@@ -22,7 +22,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
     { id: 'add-habit', label: 'Add Habit', icon: Plus, path: '/add-habit' },
     { id: 'templates', label: 'Templates', icon: FileText, path: '/templates' },
-    { id: 'groups', label: 'Groups', icon: Users, path: '/groups' },
     { id: 'friends', label: 'Friends', icon: UserPlus, path: '/friends' },
     { id: 'reports', label: 'Reports', icon: BarChart3, path: '/reports' },
     { id: 'discover', label: 'Discover', icon: Search, path: '/discover' },

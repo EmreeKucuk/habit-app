@@ -16,7 +16,6 @@ import AddHabit from './pages/AddHabit';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 import Friends from './pages/Friends';
-import Groups from './pages/Groups';
 import Discover from './pages/Discover';
 import Templates from './pages/Templates';
 
@@ -98,14 +97,6 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Friends />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/groups"
-                  element={
-                    <ProtectedRoute>
-                      <Groups />
                     </ProtectedRoute>
                   }
                 />

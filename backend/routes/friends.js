@@ -217,4 +217,35 @@ router.delete('/remove', authenticateToken, async (req, res) => {
   }
 });
 
+// Get friends activity feed
+router.get('/activity', authenticateToken, async (req, res) => {
+  try {
+    const db = getDatabase();
+    const userId = req.user.id;
+
+    // Get recent habit completions of accepted friends
+    const activity = await db.all(`
+      SELECT 
+        hc.id, hc.completed_at, hc.value, hc.notes,
+        h.name as habit_name, h.category as habit_category, h.icon as habit_icon, h.color as habit_color,
+        u.id as friend_id, u.username as friend_username, u.first_name as friend_first_name, u.last_name as friend_last_name, u.avatar_color
+      FROM habit_completions hc
+      JOIN habits h ON hc.habit_id = h.id
+      JOIN users u ON hc.user_id = u.id
+      JOIN friends f ON (
+        (f.user_id = ? AND f.friend_id = u.id) OR 
+        (f.friend_id = ? AND f.user_id = u.id)
+      )
+      WHERE f.status = 'accepted'
+      ORDER BY hc.completed_at DESC
+      LIMIT 50
+    `, [userId, userId]);
+
+    res.json(activity);
+  } catch (error) {
+    console.error('Error fetching friends activity:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

@@ -9,9 +9,7 @@ import {
   ResetPasswordRequest,
   HabitStats,
   ProfileStats,
-  ProfileUpdateRequest,
-  Group,
-  CreateGroupRequest
+  ProfileUpdateRequest
 } from '../types';
 
 const API_BASE_URL = import.meta.env.MODE === 'production' 
@@ -284,42 +282,9 @@ class ApiClient {
       const response = await this.client.delete('/friends/remove', { data });
       return response.data;
     },
-  };
 
-  // Groups endpoints
-  groups = {
-    getAll: async (filters?: { search?: string; status?: string; type?: string }): Promise<Group[]> => {
-      const response = await this.client.get('/groups', { params: filters });
-      return response.data;
-    },
-
-    getById: async (groupId: string): Promise<Group> => {
-      const response = await this.client.get(`/groups/${groupId}`);
-      return response.data;
-    },
-
-    create: async (groupData: CreateGroupRequest): Promise<{ message: string; group: Group }> => {
-      const response = await this.client.post('/groups', groupData);
-      return response.data;
-    },
-
-    join: async (groupId: string): Promise<{ message: string }> => {
-      const response = await this.client.post(`/groups/${groupId}/join`);
-      return response.data;
-    },
-
-    leave: async (groupId: string): Promise<{ message: string }> => {
-      const response = await this.client.post(`/groups/${groupId}/leave`);
-      return response.data;
-    },
-
-    markCompletion: async (groupId: string, data?: { date?: string; notes?: string }): Promise<{ message: string }> => {
-      const response = await this.client.post(`/groups/${groupId}/complete`, data);
-      return response.data;
-    },
-
-    removeCompletion: async (groupId: string, data: { date?: string }): Promise<{ message: string }> => {
-      const response = await this.client.delete(`/groups/${groupId}/complete`, { data });
+    getActivity: async (): Promise<any[]> => {
+      const response = await this.client.get('/friends/activity');
       return response.data;
     },
   };
@@ -331,6 +296,5 @@ export const authApi = apiClient.auth;
 export const habitsApi = apiClient.habits;
 export const usersApi = apiClient.users;
 export const friendsApi = apiClient.friends;
-export const groupsApi = apiClient.groups;
 
 export default apiClient;
