@@ -42,12 +42,14 @@ class DatabaseService {
     }
     
     // Automatically add frequency_count to existing tables if missing
-    this.run('ALTER TABLE habits ADD COLUMN frequency_count INTEGER DEFAULT 1').catch(err => {
-      // Ignore error if column already exists
-      if (err.message && !err.message.includes('duplicate column') && !err.message.includes('already exists')) {
-        // Do nothing, just catch
-      }
-    });
+    if (process.env.SKIP_DB_INIT !== 'true') {
+      this.run('ALTER TABLE habits ADD COLUMN frequency_count INTEGER DEFAULT 1').catch(err => {
+        // Ignore error if column already exists
+        if (err.message && !err.message.includes('duplicate column') && !err.message.includes('already exists')) {
+          // Do nothing, just catch
+        }
+      });
+    }
   }
 
   async query(sql, params = []) {
@@ -498,6 +500,12 @@ class DatabaseService {
 // Initialize database with tables
 const initDatabase = async () => {
   const dbService = new DatabaseService();
+  
+  if (process.env.SKIP_DB_INIT === 'true') {
+    console.log('Skipping database table initialization (SKIP_DB_INIT is true)');
+    return dbService;
+  }
+
   const tableSQL = dbService.getCreateTableSQL();
 
   try {
