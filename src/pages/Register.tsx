@@ -22,7 +22,11 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
 
   const handleOAuth = (provider: 'google' | 'apple') => {
-    window.location.href = `${API_BASE_URL}/auth/${provider}`;
+    if (provider === 'google') {
+      window.location.href = `${API_BASE_URL}/auth/google-signin`;
+    } else {
+      window.location.href = `${API_BASE_URL}/auth/apple-signin`;
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
