@@ -176,6 +176,8 @@ class DatabaseService {
             verification_token VARCHAR(255),
             reset_token VARCHAR(255),
             reset_token_expires TIMESTAMP,
+            motivation_score INTEGER DEFAULT 0,
+            motivation_mode VARCHAR(20) DEFAULT 'Medium',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           )
@@ -324,6 +326,8 @@ class DatabaseService {
             verification_token TEXT,
             reset_token TEXT,
             reset_token_expires DATETIME,
+            motivation_score INTEGER DEFAULT 0,
+            motivation_mode TEXT DEFAULT 'Medium',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
           )
@@ -484,6 +488,10 @@ class DatabaseService {
     
     // Add is_archived to habits
     await this.addColumnIfNotExists('habits', 'is_archived', this.dbType === 'postgresql' ? 'BOOLEAN DEFAULT false' : 'INTEGER DEFAULT 0');
+
+    // Add motivation columns to users
+    await this.addColumnIfNotExists('users', 'motivation_score', 'INTEGER DEFAULT 0');
+    await this.addColumnIfNotExists('users', 'motivation_mode', this.dbType === 'postgresql' ? "VARCHAR(20) DEFAULT 'Medium'" : "TEXT DEFAULT 'Medium'");
 
     console.log('✓ Database migrations completed');
   }
