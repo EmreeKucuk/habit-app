@@ -21,10 +21,11 @@ const Login: React.FC = () => {
   const from = location.state?.from?.pathname || '/dashboard';
 
   const handleOAuth = (provider: 'google' | 'apple') => {
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
     if (provider === 'google') {
-      window.location.href = `${API_BASE_URL}/auth/google-signin`;
+      window.location.href = `${API_BASE_URL}/auth/google-signin?redirect=${redirectUri}`;
     } else {
-      window.location.href = `${API_BASE_URL}/auth/apple-signin`;
+      alert('Apple Sign-In is only available on iOS devices or requires a different web configuration.');
     }
   };
 
