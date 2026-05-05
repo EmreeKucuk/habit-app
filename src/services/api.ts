@@ -288,6 +288,16 @@ class ApiClient {
       return response.data;
     },
   };
+
+  // Chat (Sprout LLM) endpoint
+  chat = {
+    send: async (message: string): Promise<{ reply: string; difficulty_score: number }> => {
+      const response = await this.client.post('/chat', { message }, {
+        timeout: 30000, // LLM responses may take longer than typical API calls
+      });
+      return response.data;
+    },
+  };
 }
 
 const apiClient = new ApiClient();
@@ -296,5 +306,6 @@ export const authApi = apiClient.auth;
 export const habitsApi = apiClient.habits;
 export const usersApi = apiClient.users;
 export const friendsApi = apiClient.friends;
+export const chatApi = apiClient.chat;
 
 export default apiClient;

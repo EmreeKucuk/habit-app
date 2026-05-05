@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { chatApi } from '../services/api';
 
 interface ChatMessage {
   id: string;
@@ -44,9 +45,9 @@ const SproutChatWidget: React.FC = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isTyping) return;
 
     const userMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
@@ -56,29 +57,38 @@ const SproutChatWidget: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = inputValue.trim();
     setInputValue('');
     setIsTyping(true);
 
-    // Mock backend NLP API call
-    setTimeout(() => {
-      const mockResponses = [
-        "That's great! Every little step counts. 🌱",
-        "I hear you. Sometimes it's tough, but I believe in you! 💚",
-        "Wow! Keep up that amazing momentum! 🔥",
-        "It's okay to have off days. Tomorrow is a fresh start. 🌿",
-        "Excellent work! I've logged that for you. ✅"
-      ];
-      
+    try {
+      const response = await chatApi.send(messageText);
+
+      // Log difficulty_score for future Motivation Algorithm integration
+      console.log(`[Sprout] difficulty_score: ${response.difficulty_score}`);
+
       const sproutResponse: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
-        text: mockResponses[Math.floor(Math.random() * mockResponses.length)],
+        text: response.reply,
         sender: 'sprout',
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, sproutResponse]);
+    } catch (error) {
+      console.error('[Sprout] Chat API error:', error);
+
+      const errorResponse: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        text: "I'm having a little trouble connecting right now, but I believe in you! 🌱",
+        sender: 'sprout',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const generateAvatar = (username: string, color: string) => {

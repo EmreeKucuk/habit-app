@@ -24,40 +24,50 @@ async function chatWithSprout(userMessage) {
 
   const endpoint = `${ollamaUrl}/api/generate`;
 
+  // Combine system prompt and user message into a single prompt string
+  const fullPrompt = `${SYSTEM_PROMPT}\n User Message: ${userMessage}`;
+
   const payload = {
     model: 'llama3',
-    prompt: userMessage,
-    system: SYSTEM_PROMPT,
+    prompt: fullPrompt,
     stream: false,
-    // Keep responses focused and deterministic
-    options: {
-      temperature: 0.7,
-      num_predict: 256,
-    },
+    format: 'json',
   };
 
   console.log(`[OllamaService] Sending request to ${endpoint}`);
+  console.log(`[OllamaService] Payload:`, JSON.stringify(payload, null, 2));
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`[OllamaService] Ollama API error (${response.status}):`, errorText);
-    throw new Error(`Ollama API returned status ${response.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[OllamaService] Ollama API HTTP error (${response.status}):`, errorText);
+      throw new Error(`Ollama API returned status ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.response;
+
+    console.log('[OllamaService] Raw LLM response:', rawText);
+
+    // Parse the JSON from the LLM's response
+    const parsed = parseLLMResponse(rawText);
+    return parsed;
+  } catch (error) {
+    console.error(`[OllamaService] Failed to communicate with Ollama:`);
+    console.error(`[OllamaService]   Error name: ${error.name}`);
+    console.error(`[OllamaService]   Error message: ${error.message}`);
+    console.error(`[OllamaService]   Endpoint: ${endpoint}`);
+    if (error.cause) {
+      console.error(`[OllamaService]   Cause: ${error.cause}`);
+    }
+    throw error;
   }
-
-  const data = await response.json();
-  const rawText = data.response;
-
-  console.log('[OllamaService] Raw LLM response:', rawText);
-
-  // Parse the JSON from the LLM's response
-  const parsed = parseLLMResponse(rawText);
-  return parsed;
 }
 
 /**
