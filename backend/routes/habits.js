@@ -314,6 +314,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 router.get('/stats', authenticateToken, async (req, res) => {
   try {
     const { period = 'week' } = req.query;
+    const userId = req.user.id;
     
     // Get basic stats
     const stats = await getDatabase().get(`
@@ -324,29 +325,103 @@ router.get('/stats', authenticateToken, async (req, res) => {
       FROM habits h
       LEFT JOIN habit_completions hc ON h.id = hc.habit_id
       WHERE h.user_id = ? AND COALESCE(h.is_archived, false) = false
-    `, [req.user.id]);
+    `, [userId]);
 
-    // Get category breakdown
+    // Get category breakdown for PieChart
     const categoryStats = await getDatabase().all(`
       SELECT 
         h.category,
-        COUNT(h.id) as count,
         COUNT(hc.id) as completions
       FROM habits h
       LEFT JOIN habit_completions hc ON h.id = hc.habit_id
       WHERE h.user_id = ? AND COALESCE(h.is_archived, false) = false
       GROUP BY h.category
-    `, [req.user.id]);
+    `, [userId]);
+
+    const colors = {
+      health: '#ef4444',
+      sport: '#f97316',
+      learning: '#8b5cf6',
+      productivity: '#10b981',
+      mindfulness: '#3b82f6',
+      social: '#ec4899',
+      other: '#6b7280'
+    };
+
+    const categoryData = categoryStats.map(stat => ({
+      name: stat.category.charAt(0).toUpperCase() + stat.category.slice(1),
+      value: stat.completions,
+      color: colors[stat.category] || colors.other
+    })).filter(stat => stat.value > 0);
+
+    // Get weekly data for BarChart
+    const today = new Date();
+    const weeklyData = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      
+      const dayStats = await getDatabase().get(`
+        SELECT COUNT(id) as completed
+        FROM habit_completions
+        WHERE user_id = ? AND date = ?
+      `, [userId, dateStr]);
+
+      const totalActiveHabits = await getDatabase().get(`
+        SELECT COUNT(id) as total
+        FROM habits
+        WHERE user_id = ? AND COALESCE(is_archived, false) = false AND DATE(created_at) <= ?
+      `, [userId, dateStr]);
+
+      weeklyData.push({
+        day: dayNames[d.getDay()],
+        completed: dayStats.completed || 0,
+        total: totalActiveHabits.total || 0
+      });
+    }
+
+    // Get monthly progress for LineChart
+    const monthlyProgress = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthStr = String(d.getMonth() + 1).padStart(2, '0');
+      const yearStr = d.getFullYear();
+      
+      const monthCompletions = await getDatabase().get(`
+        SELECT COUNT(id) as completed
+        FROM habit_completions
+        WHERE user_id = ? AND strftime('%Y-%m', date) = ?
+      `, [userId, `${yearStr}-${monthStr}`]);
+
+      // A rough estimate of total possible completions in that month
+      const activeHabits = await getDatabase().get(`
+        SELECT COUNT(id) as total
+        FROM habits
+        WHERE user_id = ? AND COALESCE(is_archived, false) = false
+      `, [userId]);
+
+      const daysInMonth = new Date(yearStr, d.getMonth() + 1, 0).getDate();
+      const expected = (activeHabits.total || 0) * daysInMonth;
+      const completionRate = expected > 0 ? Math.round((monthCompletions.completed / expected) * 100) : 0;
+
+      monthlyProgress.push({
+        month: monthNames[d.getMonth()],
+        completion: completionRate
+      });
+    }
 
     res.json({
-      ...stats,
-      categoryBreakdown: categoryStats.reduce((acc, stat) => {
-        acc[stat.category] = {
-          count: stat.count,
-          completions: stat.completions
-        };
-        return acc;
-      }, {})
+      totalHabits: stats.total_habits,
+      completedToday: stats.completed_today,
+      totalCompletions: stats.total_completions,
+      categoryData,
+      weeklyData,
+      monthlyProgress
     });
 
   } catch (error) {

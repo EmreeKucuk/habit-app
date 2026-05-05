@@ -1,99 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Filter, Search, TrendingUp, Calendar, Flame } from 'lucide-react';
+import { Plus, Flame, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { habitsApi } from '../services/api';
-import { Habit, HabitCategory, SortType, FilterType } from '../types';
+import { Habit } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import HabitCard from '../components/HabitCard';
 import HabitDeletionModal from '../components/HabitDeletionModal';
 import LoadingSpinner from '../components/LoadingSpinner';
-import FriendsCard from '../components/FriendsCard';
-
-// Helper function to calculate streak
-function calculateStreak(completedDates: string[]): number {
-  if (completedDates.length === 0) return 0;
-
-  const today = new Date().toISOString().split('T')[0];
-  const sortedDates = [...completedDates].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
-  let streak = 0;
-  let currentDate = new Date(today);
-
-  for (const dateStr of sortedDates) {
-    const completionDate = new Date(dateStr);
-    const dayDiff = Math.floor((currentDate.getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (dayDiff === streak) {
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else if (dayDiff === streak + 1 && streak === 0) {
-      // Today not completed but yesterday was
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-
-  return streak;
-}
+import CircularProgress from '../components/CircularProgress';
+import Heatmap from '../components/Heatmap';
 
 const Dashboard: React.FC = () => {
   const { user, updateUser } = useAuth();
   const queryClient = useQueryClient();
   
-  const [filters, setFilters] = useState<{
-    category: HabitCategory | 'all';
-    status: FilterType;
-    search: string;
-  }>({
-    category: 'all',
-    status: 'all',
-    search: '',
-  });
-  
-  const [sorting, setSorting] = useState<{
-    field: SortType;
-    order: 'asc' | 'desc';
-  }>({
-    field: 'created',
-    order: 'desc',
-  });
-
   const [loadingHabitId, setLoadingHabitId] = useState<string | null>(null);
   const [xpNotification, setXpNotification] = useState<{ xp: number; visible: boolean }>({ xp: 0, visible: false });
-  const [showFilters, setShowFilters] = useState(false);
   const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
 
   // Fetch habits
-  const { data: habitsData, isLoading, error } = useQuery({
-    queryKey: ['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order],
+  const { data: habitsData, isLoading: habitsLoading, error: habitsError } = useQuery({
+    queryKey: ['habits', 'all', 'created', 'desc'],
     queryFn: async () => {
-      console.log('🔍 Fetching habits from server...');
-      const result = await habitsApi.getAll({
-        category: filters.category !== 'all' ? filters.category : undefined,
-        sort: sorting.field === 'created' ? 'created_at' : sorting.field,
-        order: sorting.order,
-      });
-      console.log('📥 Received habits data:', result);
-      
-      if (result.habits && result.habits.length > 0) {
-        const today = new Date().toISOString().split('T')[0];
-        result.habits.forEach(habit => {
-          const isCompletedToday = habit.completedDates.includes(today);
-          console.log(`📋 Habit "${habit.name}": completed today? ${isCompletedToday}, dates:`, habit.completedDates);
-        });
-      }
+      const result = await habitsApi.getAll({});
       return result;
     },
-    staleTime: 0, // Always consider data stale (refetch on mount)
-    gcTime: 5 * 60 * 1000, // Keep data in garbage collection for 5 minutes for navigation
-    refetchOnWindowFocus: false, // Don't refetch on window focus
-    refetchOnMount: true, // Always refetch when component mounts
-    retry: 2, // Retry failed requests
+    refetchOnMount: true,
+  });
+
+  // Fetch stats (currentStreak, weeklyAverage)
+  const { data: userStats } = useQuery({
+    queryKey: ['user-stats'],
+    queryFn: () => habitsApi.client.get('/users/me/stats').then(res => res.data),
   });
 
   // Complete habit mutation
@@ -101,17 +42,12 @@ const Dashboard: React.FC = () => {
     mutationFn: ({ habitId, data }: { habitId: string; data?: any }) => 
       habitsApi.complete(habitId, data),
     onMutate: async ({ habitId }) => {
-      console.log('🔄 Starting optimistic update for habit:', habitId);
       setLoadingHabitId(habitId);
-      
-      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ['habits'] });
 
-      // Snapshot the previous value
-      const queryKey = ['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order];
+      const queryKey = ['habits', 'all', 'created', 'desc'];
       const previousHabits = queryClient.getQueryData(queryKey);
 
-      // Optimistically update the cache
       if (previousHabits) {
         const today = new Date().toISOString().split('T')[0];
         
@@ -125,15 +61,8 @@ const Dashboard: React.FC = () => {
                 const isAlreadyCompleted = habit.completedDates.includes(today);
                 
                 if (isAlreadyCompleted) {
-                  // Remove today's completion (uncomplete)
-                  const newCompletedDates = habit.completedDates.filter((date: string) => date !== today);
-                  return {
-                    ...habit,
-                    completedDates: newCompletedDates,
-                    streak: Math.max(0, habit.streak - 1)
-                  };
+                  return habit; // backend doesn't allow uncompleting here directly
                 } else {
-                  // Add today's completion
                   return {
                     ...habit,
                     completedDates: [...habit.completedDates, today],
@@ -145,18 +74,13 @@ const Dashboard: React.FC = () => {
             })
           };
         });
-        
-        console.log('✨ Optimistic update applied - UI should show change immediately');
       }
 
-      // Return a context object with the snapshotted value
       return { previousHabits, queryKey, habitId };
     },
     onSuccess: (data) => {
-      console.log('🎉 Habit completion successful:', data);
       setLoadingHabitId(null);
       
-      // Handle XP gain notification
       if (data.xpGained && data.xpGained > 0 && user) {
         const newXP = user.xp + data.xpGained;
         const newLevel = Math.floor(newXP / 100) + 1;
@@ -173,116 +97,31 @@ const Dashboard: React.FC = () => {
         }, 3000);
       }
       
-      // Immediately refetch fresh data from database to sync with reality
       queryClient.invalidateQueries({ queryKey: ['habits'] });
-      console.log('🔄 Invalidated cache, fresh data will be fetched');
+      queryClient.invalidateQueries({ queryKey: ['user-stats'] });
     },
-    onError: (error, { habitId: _habitId }, context) => {
-      console.error('❌ Habit completion failed:', error);
+    onError: (error, _vars, context) => {
       setLoadingHabitId(null);
-      
-      // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousHabits && context?.queryKey) {
-        console.log('🔙 Rolling back to previous state');
         queryClient.setQueryData(context.queryKey, context.previousHabits);
       }
     },
     onSettled: () => {
       setLoadingHabitId(null);
-      console.log('✅ Mutation settled');
     },
   });
 
   // Delete habit mutation
   const deleteHabitMutation = useMutation({
     mutationFn: (habitId: string) => habitsApi.delete(habitId),
-    onMutate: async (habitId) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['habits'] });
-
-      // Snapshot the previous value
-      const previousHabits = queryClient.getQueryData(['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order]);
-
-      // Optimistically remove the habit
-      queryClient.setQueryData(['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order], (old: any) => {
-        if (!old?.habits) return old;
-
-        const updatedHabits = old.habits.filter((habit: Habit) => habit.id !== habitId);
-        return { ...old, habits: updatedHabits };
-      });
-
-      return { previousHabits };
-    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
-    },
-    onError: (error, _variables, context) => {
-      console.error('Delete habit failed:', error);
-      
-      // Rollback on error
-      if (context?.previousHabits) {
-        queryClient.setQueryData(['habits', filters.category !== 'all' ? filters.category : undefined, sorting.field, sorting.order], context.previousHabits);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['user-stats'] });
     },
   });
 
-  // Filter and sort habits
-  const filteredHabits = React.useMemo(() => {
-    if (!habitsData?.habits) return [];
-
-    let filtered = habitsData.habits;
-
-    // Apply search filter
-    if (filters.search) {
-      filtered = filtered.filter(habit =>
-        habit.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-        habit.notes?.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    // Apply status filter
-    if (filters.status !== 'all') {
-      const today = new Date().toISOString().split('T')[0];
-      
-      if (filters.status === 'completed') {
-        filtered = filtered.filter(habit => 
-          habit.completedDates.includes(today)
-        );
-      } else if (filters.status === 'pending') {
-        filtered = filtered.filter(habit => 
-          !habit.completedDates.includes(today)
-        );
-      }
-    }
-
-    return filtered;
-  }, [habitsData?.habits, filters]);
-
   const handleCompleteHabit = (habitId: string) => {
-    console.log('🎯 Starting habit completion for:', habitId);
-    console.log('🔍 Current user:', user?.id);
-    console.log('🔍 Mutation status:', completeHabitMutation.status);
-    
-    completeHabitMutation.mutate(
-      { habitId, data: {} }, // Always provide data object
-      {
-        onError: (error: any) => {
-          console.error('❌ Completion failed:', error);
-          console.error('Error response:', error.response?.data);
-          console.error('Error status:', error.response?.status);
-        }
-      }
-    );
-  };
-
-  const handleDeleteHabit = (habitId: string) => {
-    const habit = habitsData?.habits?.find(h => h.id === habitId);
-    if (habit) {
-      setHabitToDelete(habit);
-    }
+    completeHabitMutation.mutate({ habitId, data: {} });
   };
 
   const confirmDeleteHabit = () => {
@@ -292,30 +131,43 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getTodayStats = () => {
-    if (!habitsData?.habits) return { completed: 0, total: 0, percentage: 0 };
-    
-    const today = new Date().toISOString().split('T')[0];
-    const dailyHabits = habitsData.habits.filter(h => h.frequency === 'daily');
-    const completedToday = dailyHabits.filter(h => h.completedDates.includes(today));
-    
-    console.log('📊 Calculating today stats:', {
-      today,
-      totalDailyHabits: dailyHabits.length,
-      completedToday: completedToday.length,
-      habitsData: habitsData.habits.map(h => ({ name: h.name, completed: h.completedDates.includes(today) }))
+  // Calculations
+  const habits = habitsData?.habits || [];
+  const today = new Date().toISOString().split('T')[0];
+  const totalHabits = habits.length;
+  const completedToday = habits.filter((h) => h.completedDates?.includes(today)).length;
+  
+  const bestStreak = userStats?.currentStreak || Math.max(0, ...habits.map((h) => h.streak || 0));
+
+  const heatmapData = useMemo(() => {
+    const data: Record<string, number> = {};
+    habits.forEach((habit) => {
+      (habit.completedDates || []).forEach((date) => {
+        data[date] = (data[date] || 0) + 1;
+      });
     });
-    
-    return {
-      completed: completedToday.length,
-      total: dailyHabits.length,
-      percentage: dailyHabits.length > 0 ? Math.round((completedToday.length / dailyHabits.length) * 100) : 0,
-    };
+    return data;
+  }, [habits]);
+
+  const getMotivationalMessage = (completed: number, total: number): string => {
+    if (total === 0) return '🌱 Add your first habit to get started!';
+    const ratio = completed / total;
+    if (ratio === 1) return '🎉 Perfect day! All habits completed!';
+    if (ratio >= 0.75) return '🔥 Almost there! Keep pushing!';
+    if (ratio >= 0.5) return '💪 Halfway done, you got this!';
+    if (ratio > 0) return '🌤️ Good start! Keep the momentum going!';
+    return "☀️ Fresh day ahead — let's make it count!";
   };
 
-  const todayStats = React.useMemo(() => getTodayStats(), [habitsData]);
+  // Greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
-  if (isLoading) {
+  if (habitsLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -325,11 +177,11 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (habitsError) {
     return (
       <Layout>
         <div className="text-center py-12">
-          <p className="text-red-600 dark:text-red-400">Failed to load habits. Please try again.</p>
+          <p className="text-red-600">Failed to load habits. Please try again.</p>
         </div>
       </Layout>
     );
@@ -344,222 +196,144 @@ const Dashboard: React.FC = () => {
             initial={{ opacity: 0, y: -50, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.8 }}
-            className="fixed top-4 right-4 z-50 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold"
+            className="fixed top-4 right-4 z-50 bg-[#E9C46A] text-[#344E41] px-6 py-3 rounded-lg shadow-lg font-bold"
           >
             🎉 +{xpNotification.xp} XP Gained!
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col xl:flex-row gap-6">
-        {/* Main Content */}
-        <div className="flex-1 space-y-6">
-          {/* Header with Stats */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-xl p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-2xl font-bold mb-2">Welcome back, {user?.username}!</h1>
-                <p className="text-primary-100">Here's your habit progress for today</p>
+      <div className="max-w-5xl mx-auto space-y-8 pb-12">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pt-4"
+        >
+          <h1 className="text-4xl font-black text-[#344E41] tracking-tight">{getGreeting()} 👋</h1>
+          <p className="text-lg text-[#344E41] opacity-70 mt-1 font-medium">
+            {user?.username ? `Hey ${user.username}, ` : ''}let's check your progress
+          </p>
+        </motion.div>
+
+        {/* Top Section: Daily Overview (40%) */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="bg-[#A3B18A] rounded-[24px] p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8"
+        >
+          <div className="flex-shrink-0">
+            <CircularProgress 
+              completed={completedToday} 
+              total={totalHabits} 
+              size={160} 
+              strokeWidth={16} 
+            />
+          </div>
+
+          <div className="flex-1 w-full flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Streak */}
+              <div className="bg-[#FEFAE0] rounded-2xl p-5 flex-1 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-1">
+                  <Flame className="w-5 h-5 text-[#E9C46A]" />
+                  <span className="text-xs font-bold text-[#344E41] opacity-60 tracking-wider">STREAK</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-[#344E41]">{bestStreak}</span>
+                  <span className="text-sm font-semibold text-[#344E41] opacity-60">{bestStreak === 1 ? 'day' : 'days'}</span>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold">{user?.xp} XP</div>
-                <div className="text-primary-200">Level {user?.level}</div>
+
+              {/* Weekly Average */}
+              <div className="bg-[#FEFAE0] rounded-2xl p-5 flex-1 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="w-5 h-5 text-[#E9C46A]" />
+                  <span className="text-xs font-bold text-[#344E41] opacity-60 tracking-wider">WEEKLY</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-[#344E41]">{userStats?.weeklyAverage?.toFixed(1) || '0.0'}</span>
+                  <span className="text-sm font-semibold text-[#344E41] opacity-60">avg/day</span>
+                </div>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white/10 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">{todayStats.completed}/{todayStats.total}</div>
-                    <div className="text-primary-200">Today's Progress</div>
-                  </div>
-                  <Calendar className="h-8 w-8 text-primary-200" />
-                </div>
-                <div className="mt-2 bg-white/20 rounded-full h-2">
-                  <div 
-                    className="bg-white rounded-full h-2 transition-all duration-300"
-                    style={{ width: `${todayStats.percentage}%` }}
+            {/* Motivation Bar */}
+            <div className="bg-[#FEFAE0] bg-opacity-40 rounded-xl px-5 py-3 text-center">
+              <span className="text-[#344E41] font-semibold tracking-wide text-sm">
+                {getMotivationalMessage(completedToday, totalHabits)}
+              </span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Active Habits Scrollable Row */}
+        {habits.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-2xl font-bold text-[#344E41]">Active Habits</h2>
+              <Link 
+                to="/add-habit" 
+                className="w-10 h-10 bg-[#344E41] rounded-full flex items-center justify-center text-[#FEFAE0] hover:bg-[#2a3f35] transition-colors hover:scale-105"
+              >
+                <Plus className="w-5 h-5" />
+              </Link>
+            </div>
+
+            {/* Horizontal Scroll Area */}
+            <div className="flex overflow-x-auto gap-4 pb-6 pt-2 px-2 snap-x snap-mandatory scrollbar-hide" style={{ scrollPaddingLeft: '0.5rem' }}>
+              {habits.map((habit) => (
+                <div key={habit.id} className="min-w-[300px] w-[300px] max-w-[85vw] snap-start shrink-0">
+                  <HabitCard
+                    habit={habit}
+                    onComplete={() => handleCompleteHabit(habit.id)}
+                    onDelete={() => setHabitToDelete(habit)}
+                    isLoading={loadingHabitId === habit.id}
                   />
                 </div>
-              </div>
-              
-              <div className="bg-white/10 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">{habitsData?.habits?.length || 0}</div>
-                    <div className="text-primary-200">Total Habits</div>
-                  </div>
-                  <TrendingUp className="h-8 w-8 text-primary-200" />
-                </div>
-              </div>
-              
-              <div className="bg-white/10 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">
-                      {Math.max(...(habitsData?.habits?.map(h => h.streak) || [0]))}
-                    </div>
-                    <div className="text-primary-200">Best Streak</div>
-                  </div>
-                  <Flame className="h-8 w-8 text-primary-200" />
-                </div>
-              </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {habits.length === 0 && (
+          <div className="bg-[#A3B18A] bg-opacity-30 rounded-[24px] p-12 text-center flex flex-col items-center justify-center">
+             <h3 className="text-xl font-bold text-[#344E41] mb-3">No habits active</h3>
+             <p className="text-[#344E41] opacity-70 mb-6 font-medium">Start building your healthy routine today!</p>
+             <Link to="/add-habit" className="bg-[#344E41] text-[#FEFAE0] px-6 py-3 rounded-xl font-bold hover:bg-[#2a3f35] transition-colors flex items-center gap-2 shadow-lg">
+                <Plus className="w-5 h-5" />
+                Create Habit
+             </Link>
+          </div>
+        )}
+
+        {/* Bottom Section: Activity Heatmap (60%) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-2xl font-bold text-[#344E41]">Activity</h2>
+            <div className="bg-[#A3B18A] bg-opacity-30 px-3 py-1 rounded-full text-sm font-bold text-[#344E41]">
+              {Object.values(heatmapData).reduce((a, b) => a + b, 0)} total
             </div>
           </div>
-
-          {/* Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search habits..."
-                  value={filters.search}
-                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="input-field pl-10 w-full sm:w-64"
-                />
-              </div>
-
-              {/* Filter Toggle */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="btn-secondary"
-              >
-                <Filter className="h-4 w-4" />
-                Filters
-              </button>
-
-              {/* Sort */}
-              <select
-                value={`${sorting.field}-${sorting.order}`}
-                onChange={(e) => {
-                  const [field, order] = e.target.value.split('-');
-                  setSorting({ field: field as SortType, order: order as 'asc' | 'desc' });
-                }}
-                className="input-field"
-              >
-                <option value="created-desc">Newest First</option>
-                <option value="created-asc">Oldest First</option>
-                <option value="name-asc">Name A-Z</option>
-                <option value="name-desc">Name Z-A</option>
-                <option value="streak-desc">Highest Streak</option>
-                <option value="streak-asc">Lowest Streak</option>
-              </select>
-            </div>
-
-            <Link to="/add-habit" className="btn-primary">
-              <Plus className="h-4 w-4" />
-              Add Habit
-            </Link>
+          
+          <div className="bg-[#A3B18A] bg-opacity-20 rounded-[24px] p-6 pt-8 overflow-hidden">
+            <Heatmap data={heatmapData} weeks={16} />
           </div>
+        </motion.div>
 
-          {/* Filters Panel */}
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="card"
-              >
-                <h3 className="text-lg font-semibold mb-4">Filters</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Category
-                    </label>
-                    <select
-                      value={filters.category}
-                      onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value as HabitCategory | 'all' }))}
-                      className="input-field"
-                    >
-                      <option value="all">All Categories</option>
-                      <option value="health">Health</option>
-                      <option value="sport">Sport</option>
-                      <option value="learning">Learning</option>
-                      <option value="productivity">Productivity</option>
-                      <option value="mindfulness">Mindfulness</option>
-                      <option value="social">Social</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Status
-                    </label>
-                    <select
-                      value={filters.status}
-                      onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as FilterType }))}
-                      className="input-field"
-                    >
-                      <option value="all">All Habits</option>
-                      <option value="completed">Completed Today</option>
-                      <option value="pending">Pending Today</option>
-                    </select>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Habits Grid */}
-          {filteredHabits.length === 0 ? (
-            <div className="text-center py-12">
-              <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                {filters.search || filters.status !== 'all' || filters.category !== 'all' 
-                  ? 'No habits match your filters' 
-                  : 'No habits yet'
-                }
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {filters.search || filters.status !== 'all' || filters.category !== 'all'
-                  ? 'Try adjusting your filters to see more habits.'
-                  : 'Start building healthy habits today!'
-                }
-              </p>
-              {(!filters.search && filters.status === 'all' && filters.category === 'all') && (
-                <Link to="/add-habit" className="btn-primary">
-                  Create Your First Habit
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              <AnimatePresence mode="popLayout">
-                {filteredHabits.map((habit) => (
-                  <motion.div
-                    key={habit.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <HabitCard
-                      habit={habit}
-                      onComplete={() => handleCompleteHabit(habit.id)}
-                      onDelete={() => handleDeleteHabit(habit.id)}
-                      isLoading={loadingHabitId === habit.id}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="w-full xl:w-80 space-y-6">
-          <FriendsCard />
-        </div>
       </div>
 
-      {/* Habit Deletion Modal */}
       <HabitDeletionModal
         habit={habitToDelete}
         isOpen={!!habitToDelete}

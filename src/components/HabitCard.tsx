@@ -99,12 +99,12 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
       <motion.div
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
-        className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-semibold shadow-lg ${
+        className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-sm font-bold shadow-sm ${
           habit.streak >= 7 
-            ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white animate-pulse'
+            ? 'bg-[#E9C46A] text-[#344E41]'
             : habit.streak >= 3
-            ? 'bg-gradient-to-r from-green-400 to-green-600 text-white'
-            : 'bg-gradient-to-r from-blue-400 to-blue-600 text-white'
+            ? 'bg-[#A3B18A] text-[#FEFAE0]'
+            : 'bg-[#344E41] text-[#FEFAE0] bg-opacity-10 !text-[#344E41]'
         }`}
       >
         <motion.div
@@ -120,7 +120,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
           <motion.span
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
-            className="text-xs"
+            className="text-xs ml-1"
           >
             🔥
           </motion.span>
@@ -152,20 +152,20 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
   return (
     <motion.div
       layout
-      className="card hover:shadow-lg transition-all duration-300 group"
+      className="bg-[#FEFAE0] rounded-[20px] p-6 shadow-sm border border-[#344E41] border-opacity-10 hover:shadow-md transition-all duration-300 group flex flex-col h-full"
       whileHover={{ y: -2 }}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+          <h3 className="font-bold text-xl text-[#344E41] mb-2 group-hover:text-[#A3B18A] transition-colors line-clamp-1">
             {habit.name}
           </h3>
           <div className="flex items-center space-x-2">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(habit.category)}`}>
               {habit.category}
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+            <span className="text-xs font-semibold text-[#344E41] opacity-60 capitalize tracking-wider">
               {habit.frequency}
             </span>
           </div>
@@ -173,7 +173,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
         
         <button
           onClick={onDelete}
-          className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200"
+          className="p-2 text-[#344E41] opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-all duration-200 rounded-full hover:bg-black/5"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -181,7 +181,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
 
       {/* Notes */}
       {habit.notes && (
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+        <p className="text-sm text-[#344E41] opacity-70 mb-4 line-clamp-2">
           {habit.notes}
         </p>
       )}
@@ -189,14 +189,14 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
       {/* Progress */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Progress</span>
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <span className="text-xs font-bold tracking-wider text-[#344E41] opacity-60 uppercase">Progress</span>
+          <span className="text-sm font-bold text-[#344E41]">
             {Math.round(progress)}%
           </span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div className="w-full bg-[#344E41] bg-opacity-10 rounded-full h-1.5">
           <motion.div
-            className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full"
+            className="bg-[#A3B18A] h-1.5 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
@@ -211,17 +211,14 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
 
       {/* Last completion */}
       {habit.completedDates.length > 0 && (
-        <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 mb-4">
-          <Calendar className="w-3 h-3" />
+        <div className="flex items-center space-x-1.5 text-xs font-medium text-[#344E41] opacity-60 mb-4">
+          <Calendar className="w-3.5 h-3.5" />
           <span>
             Last completed: {(() => {
               const lastDate = habit.completedDates[habit.completedDates.length - 1];
               try {
-                // Handle both ISO string and date string formats
                 const date = new Date(lastDate);
-                if (isNaN(date.getTime())) {
-                  return 'Recently';
-                }
+                if (isNaN(date.getTime())) return 'Recently';
                 return date.toLocaleDateString();
               } catch (error) {
                 return 'Recently';
@@ -231,21 +228,24 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
         </div>
       )}
 
+      {/* Spacer to push button to bottom */}
+      <div className="flex-grow" />
+
       {/* Recent comments */}
       {habit.comments && habit.comments.length > 0 && (
-        <div className="mb-4">
-          <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 mb-1">
+        <div className="mb-4 bg-[#344E41] bg-opacity-5 rounded-lg p-3">
+          <div className="flex items-center space-x-1 text-xs font-bold text-[#344E41] opacity-60 mb-1 tracking-wider uppercase">
             <MessageCircle className="w-3 h-3" />
             <span>Latest note</span>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 italic line-clamp-1">
+          <p className="text-sm text-[#344E41] italic line-clamp-2">
             "{habit.comments[habit.comments.length - 1].text}"
           </p>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mt-auto">
         <motion.button
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
@@ -253,17 +253,17 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           disabled={isLoading}
-          whileTap={{ scale: 0.95 }}
-          className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 overflow-hidden ${
+          whileTap={{ scale: 0.98 }}
+          className={`relative flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden ${
             isCompletedToday
-              ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg cursor-default'
-              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg cursor-pointer select-none'
+              ? 'bg-[#A3B18A] text-[#FEFAE0] shadow-md cursor-default'
+              : 'bg-[#344E41] hover:bg-[#2a3f35] text-[#FEFAE0] shadow-md hover:shadow-lg cursor-pointer select-none'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {/* Progress bar background */}
           {isHolding && !isCompletedToday && (
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-green-400 to-green-600 opacity-30"
+              className="absolute inset-0 bg-[#E9C46A] opacity-20"
               initial={{ width: 0 }}
               animate={{ width: `${holdProgress}%` }}
               transition={{ duration: 0.1, ease: "linear" }}
@@ -283,9 +283,9 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
           
           {/* Progress indicator */}
           {isHolding && !isCompletedToday && (
-            <div className="absolute top-1 right-1 w-2 h-2 bg-white rounded-full opacity-75 z-10">
+            <div className="absolute top-1/2 -translate-y-1/2 right-4 w-2 h-2 bg-white/30 rounded-full z-10">
               <motion.div
-                className="w-full h-full bg-green-400 rounded-full"
+                className="w-full h-full bg-[#E9C46A] rounded-full"
                 initial={{ scale: 0 }}
                 animate={{ scale: holdProgress / 100 }}
                 transition={{ duration: 0.1, ease: "linear" }}
@@ -299,9 +299,9 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="text-green-500 bg-green-100 dark:bg-green-900 rounded-full p-2"
+            className="text-[#344E41] bg-[#A3B18A] bg-opacity-20 rounded-full p-2 ml-3"
           >
-            <Check className="w-5 h-5" />
+            <Check className="w-6 h-6" />
           </motion.div>
         )}
       </div>

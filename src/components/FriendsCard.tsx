@@ -64,25 +64,25 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
   const loading = friendsLoading || discoverLoading;
 
   const renderFriendItem = (friend: Friend, showAddButton = false) => (
-    <div key={friend.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+    <div key={friend.id} className="flex items-center space-x-4 p-3 rounded-2xl hover:bg-[#A3B18A]/10 transition-colors">
       <div className="relative">
         <img
           src={generateAvatar(friend.username, friend.avatarColor)}
           alt={friend.username}
-          className="w-10 h-10 rounded-full"
+          className="w-12 h-12 rounded-full shadow-sm"
         />
       </div>
       
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+          <p className="text-sm font-black text-[#344E41] truncate">
             {friend.firstName && friend.lastName 
               ? `${friend.firstName} ${friend.lastName}` 
               : friend.username}
           </p>
           <div className="flex items-center space-x-1">
-            <Star className="w-3 h-3 text-yellow-500" />
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            <Star className="w-3.5 h-3.5 text-[#E9C46A]" />
+            <span className="text-xs font-black text-[#344E41] opacity-80">
               {friend.level}
             </span>
           </div>
@@ -90,8 +90,8 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
         
         <div className="flex items-center space-x-3 mt-1">
           <div className="flex items-center space-x-1">
-            <Trophy className="w-3 h-3 text-primary-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <Trophy className="w-3.5 h-3.5 text-[#A3B18A]" />
+            <span className="text-xs font-bold text-[#344E41] opacity-60">
               {friend.xp} XP
             </span>
           </div>
@@ -102,7 +102,7 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
         <button
           onClick={() => handleAddFriend(friend.id)}
           disabled={sendRequestMutation.isPending}
-          className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors disabled:opacity-50"
+          className="p-2.5 bg-[#E9C46A] text-[#344E41] hover:bg-[#d4b05a] rounded-xl transition-colors disabled:opacity-50 shadow-sm"
         >
           <UserPlus className="w-4 h-4" />
         </button>
@@ -112,16 +112,16 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
 
   if (loading) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
-          <div className="space-y-3">
+      <div className={`bg-[#A3B18A]/5 rounded-3xl p-8 border border-[#344E41]/5 ${className}`}>
+        <div className="animate-pulse space-y-5">
+          <div className="h-6 bg-[#344E41]/10 rounded-lg w-3/4 mb-2"></div>
+          <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
+              <div key={i} className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-[#344E41]/10 rounded-full"></div>
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 bg-[#344E41]/10 rounded w-3/4"></div>
+                  <div className="h-3 bg-[#344E41]/10 rounded w-1/2"></div>
                 </div>
               </div>
             ))}
@@ -132,40 +132,40 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`bg-[#FEFAE0] rounded-3xl shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41]/5 flex flex-col h-full hover:shadow-[0_8px_30px_rgb(52,78,65,0.08)] transition-all ${className}`}>
       {/* Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-8 pb-6 border-b border-[#344E41]/10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Users className="w-5 h-5 text-primary-600" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <div className="flex items-center space-x-3">
+            <Users className="w-6 h-6 text-[#E9C46A]" />
+            <h3 className="text-xl font-black text-[#344E41] tracking-tight">
               Social
             </h3>
           </div>
           
-          <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-            <Search className="w-4 h-4" />
+          <button className="p-2 hover:bg-[#344E41]/10 rounded-xl transition-colors">
+            <Search className="w-5 h-5 text-[#344E41] opacity-50" />
           </button>
         </div>
         
         {/* Tabs */}
-        <div className="flex space-x-1 mt-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+        <div className="flex space-x-1 mt-6 bg-[#A3B18A]/10 rounded-xl p-1.5">
           <button
             onClick={() => setActiveTab('friends')}
-            className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
+            className={`flex-1 py-2.5 px-3 text-sm font-bold rounded-lg transition-all ${
               activeTab === 'friends'
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                ? 'bg-[#FEFAE0] text-[#344E41] shadow-sm'
+                : 'text-[#344E41] opacity-60 hover:opacity-100 hover:bg-[#344E41]/5'
             }`}
           >
             Friends ({friends.length})
           </button>
           <button
             onClick={() => setActiveTab('suggestions')}
-            className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
+            className={`flex-1 py-2.5 px-3 text-sm font-bold rounded-lg transition-all ${
               activeTab === 'suggestions'
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                ? 'bg-[#FEFAE0] text-[#344E41] shadow-sm'
+                : 'text-[#344E41] opacity-60 hover:opacity-100 hover:bg-[#344E41]/5'
             }`}
           >
             Discover ({suggestions.length})
@@ -174,28 +174,28 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
       </div>
       
       {/* Content */}
-      <div className="p-6">
+      <div className="p-6 flex-1 overflow-y-auto min-h-[200px]">
         {activeTab === 'friends' ? (
-          <div className="space-y-1">
+          <div className="space-y-2">
             {friends.length > 0 ? (
               friends.map(friend => renderFriendItem(friend))
             ) : (
-              <div className="text-center py-8">
-                <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
+              <div className="text-center py-12 flex flex-col justify-center">
+                <Users className="w-14 h-14 text-[#344E41] opacity-20 mx-auto mb-4" />
+                <p className="text-[#344E41] font-bold opacity-60 text-sm">
                   No friends yet. Start by discovering new people!
                 </p>
               </div>
             )}
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-2">
             {suggestions.length > 0 ? (
               suggestions.map(friend => renderFriendItem(friend, true))
             ) : (
-              <div className="text-center py-8">
-                <UserPlus className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
+              <div className="text-center py-12 flex flex-col justify-center">
+                <UserPlus className="w-14 h-14 text-[#344E41] opacity-20 mx-auto mb-4" />
+                <p className="text-[#344E41] font-bold opacity-60 text-sm">
                   No suggestions available right now.
                 </p>
               </div>
@@ -205,10 +205,10 @@ const FriendsCard: React.FC<FriendsCardProps> = ({ className = '' }) => {
       </div>
       
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-6 border-t border-[#344E41]/10 mt-auto">
         <Link 
           to="/friends"
-          className="w-full py-2 px-4 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors text-sm font-medium flex items-center justify-center"
+          className="w-full py-3.5 px-4 bg-[#A3B18A]/20 text-[#344E41] rounded-xl hover:bg-[#A3B18A]/40 transition-colors text-sm font-black flex items-center justify-center uppercase tracking-wider"
         >
           View All Friends
         </Link>

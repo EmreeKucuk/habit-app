@@ -12,33 +12,14 @@ const Reports: React.FC = () => {
     queryFn: () => habitsApi.getStats(),
   });
 
-  // Mock data for charts
-  const weeklyData = [
-    { day: 'Mon', completed: 8, total: 10 },
-    { day: 'Tue', completed: 9, total: 10 },
-    { day: 'Wed', completed: 7, total: 10 },
-    { day: 'Thu', completed: 10, total: 10 },
-    { day: 'Fri', completed: 6, total: 10 },
-    { day: 'Sat', completed: 8, total: 10 },
-    { day: 'Sun', completed: 9, total: 10 },
-  ];
+  const weeklyData = stats?.weeklyData || [];
+  const categoryData = stats?.categoryData || [];
+  const monthlyProgress = stats?.monthlyProgress || [];
 
-  const categoryData = [
-    { name: 'Health', value: 35, color: '#ef4444' },
-    { name: 'Sport', value: 25, color: '#f97316' },
-    { name: 'Learning', value: 20, color: '#8b5cf6' },
-    { name: 'Productivity', value: 15, color: '#10b981' },
-    { name: 'Other', value: 5, color: '#6b7280' },
-  ];
-
-  const monthlyProgress = [
-    { month: 'Jan', completion: 78 },
-    { month: 'Feb', completion: 82 },
-    { month: 'Mar', completion: 85 },
-    { month: 'Apr', completion: 88 },
-    { month: 'May', completion: 92 },
-    { month: 'Jun', completion: 89 },
-  ];
+  const { data: userStats } = useQuery({
+    queryKey: ['user-stats'],
+    queryFn: () => habitsApi.client.get('/users/me/stats').then(res => res.data),
+  });
 
   if (isLoading) {
     return (
@@ -52,206 +33,143 @@ const Reports: React.FC = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Progress Reports</h1>
-          <p className="text-gray-600 dark:text-gray-400">Detailed insights into your habit-building journey</p>
-        </div>
+      <div className="min-h-full rounded-2xl p-6" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold tracking-tight text-[#344E41]">Summary</h1>
+            <p className="text-[#344E41] opacity-80 mt-1 text-lg">Detailed insights into your habit-building journey</p>
+          </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Habits</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats?.totalHabits || 0}</p>
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <Target className="h-8 w-8 text-[#E9C46A]" />
+                <p className="text-3xl font-bold text-[#344E41]">{stats?.totalHabits || 0}</p>
               </div>
-              <Target className="h-8 w-8 text-primary-600" />
+              <p className="text-[#344E41] font-medium opacity-90">Total Habits</p>
             </div>
-            <div className="mt-2 text-sm text-green-600">
-              <span>+2 from last month</span>
+
+            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <Calendar className="h-8 w-8 text-[#344E41]" />
+                <p className="text-3xl font-bold text-[#344E41]">{stats?.completedToday || 0}</p>
+              </div>
+              <p className="text-[#344E41] font-medium opacity-90">Completed Today</p>
+            </div>
+
+            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <TrendingUp className="h-8 w-8 text-[#E9C46A]" />
+                <p className="text-3xl font-bold text-[#344E41]">{userStats?.currentStreak || 0}</p>
+              </div>
+              <p className="text-[#344E41] font-medium opacity-90">Current Streak</p>
+            </div>
+
+            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <Award className="h-8 w-8 text-[#E9C46A]" />
+                <p className="text-3xl font-bold text-[#344E41]">{userStats?.longestStreak || 0}</p>
+              </div>
+              <p className="text-[#344E41] font-medium opacity-90">Best Streak</p>
             </div>
           </div>
 
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Completed Today</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats?.completedToday || 0}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-green-600" />
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Weekly Progress */}
+            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 border border-transparent">
+              <h3 className="text-xl font-bold text-[#344E41] mb-6">Weekly Progress</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={weeklyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#344E41" opacity={0.1} vertical={false} />
+                  <XAxis dataKey="day" stroke="#344E41" axisLine={false} tickLine={false} />
+                  <YAxis stroke="#344E41" axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#FEFAE0',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#344E41',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                    itemStyle={{ color: '#344E41', fontWeight: 'bold' }}
+                  />
+                  <Bar dataKey="completed" fill="#344E41" radius={[4, 4, 0, 0]} barSize={30} />
+                  <Bar dataKey="total" fill="#E9C46A" radius={[4, 4, 0, 0]} barSize={30} opacity={0.6} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div className="mt-2 text-sm text-green-600">
-              <span>85% completion rate</span>
+
+            {/* Category Breakdown */}
+            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 border border-transparent">
+              <h3 className="text-xl font-bold text-[#344E41] mb-6">Habits by Category</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    dataKey="value"
+                    stroke="#A3B18A"
+                    strokeWidth={4}
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#FEFAE0',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#344E41'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap justify-center gap-4 mt-2">
+                {categoryData.map((cat, idx) => (
+                  <div key={idx} className="flex items-center text-sm font-medium text-[#344E41]">
+                    <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
+                    {cat.name}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Current Streak</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">12</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-            </div>
-            <div className="mt-2 text-sm text-orange-600">
-              <span>Best this month</span>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Achievements</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">8</p>
-              </div>
-              <Award className="h-8 w-8 text-yellow-600" />
-            </div>
-            <div className="mt-2 text-sm text-yellow-600">
-              <span>2 new badges</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Weekly Progress */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Weekly Progress</h3>
+          {/* Monthly Trend */}
+          <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 border border-transparent">
+            <h3 className="text-xl font-bold text-[#344E41] mb-6">6-Month Completion Trend</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="day" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
+              <LineChart data={monthlyProgress}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#344E41" opacity={0.1} vertical={false} />
+                <XAxis dataKey="month" stroke="#344E41" axisLine={false} tickLine={false} />
+                <YAxis stroke="#344E41" axisLine={false} tickLine={false} domain={[0, 100]} />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#fff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px'
+                    backgroundColor: '#FEFAE0',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#344E41',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                   }}
+                  formatter={(value) => [`${value}%`, 'Completion Rate']}
                 />
-                <Bar dataKey="completed" fill="#3b82f6" radius={4} />
-                <Bar dataKey="total" fill="#e5e7eb" radius={4} />
-              </BarChart>
+                <Line 
+                  type="monotone" 
+                  dataKey="completion" 
+                  stroke="#344E41" 
+                  strokeWidth={4}
+                  dot={{ fill: '#FEFAE0', stroke: '#344E41', strokeWidth: 3, r: 6 }}
+                  activeDot={{ r: 8, fill: '#E9C46A', stroke: '#344E41' }}
+                />
+              </LineChart>
             </ResponsiveContainer>
-          </div>
-
-          {/* Category Breakdown */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Habits by Category</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  dataKey="value"
-                  label={({ value }: any) => `${(value * 100).toFixed(0)}%`}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Monthly Trend */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">6-Month Completion Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyProgress}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" domain={[0, 100]} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px'
-                }}
-                formatter={(value) => [`${value}%`, 'Completion Rate']}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="completion" 
-                stroke="#10b981" 
-                strokeWidth={3}
-                dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }}
-                activeDot={{ r: 8 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-          <div className="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-            <span>Showing completion percentage over the last 6 months</span>
-            <span className="text-green-600 font-medium">↗ +14% improvement</span>
-          </div>
-        </div>
-
-        {/* Insights */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Key Insights</h3>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Best performing day</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Thursdays with 95% completion rate</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Most challenging</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Weekend habits need attention</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Streak potential</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">You're 3 days away from a new record!</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Achievements</h3>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
-                  <Award className="w-4 h-4 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Week Warrior</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Completed habits for 7 days straight</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Rising Star</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Earned 100 XP points</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                  <Target className="w-4 h-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Habit Master</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Created 10 habits</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
