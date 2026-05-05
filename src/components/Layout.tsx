@@ -18,6 +18,7 @@ import {
   Flame,
   Target
 } from 'lucide-react';
+import SproutChatWidget from './SproutChatWidget';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -194,6 +195,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </main>
       </div>
+      <SproutChatWidget />
     </div>
   );
 };
