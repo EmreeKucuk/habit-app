@@ -327,7 +327,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           
-          <div className="bg-[#A3B18A] bg-opacity-20 rounded-[24px] p-6 pt-8 overflow-hidden">
+          <div className="bg-[#FFFFFF] rounded-[24px] p-6 pt-8 overflow-hidden shadow-[0_4px_6px_rgba(0,0,0,0.05)] border border-[#344E41] border-opacity-5">
             <Heatmap data={heatmapData} weeks={16} />
           </div>
         </motion.div>

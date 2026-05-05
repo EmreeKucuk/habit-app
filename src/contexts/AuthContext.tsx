@@ -10,6 +10,7 @@ interface AuthContextType {
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   updateUser: (user: User) => void;
+  setAuthData: (token: string, refreshToken: string, user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -123,6 +124,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
+  const setAuthData = (newToken: string, newRefreshToken: string, newUser: User) => {
+    setUser(newUser);
+    setToken(newToken);
+    const now = Date.now();
+    setLastVerified(now);
+    
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
+    localStorage.setItem('refreshToken', newRefreshToken);
+    localStorage.setItem('lastVerified', now.toString());
+  };
+
   const value: AuthContextType = {
     user,
     token,
@@ -131,6 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     updateUser,
+    setAuthData,
   };
 
   return (

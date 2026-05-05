@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, TrendingUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LoginRequest } from '../types';
+import { API_BASE_URL } from '../services/api';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginRequest>({
@@ -18,6 +19,10 @@ const Login: React.FC = () => {
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/dashboard';
+
+  const handleOAuth = (provider: 'google' | 'apple') => {
+    window.location.href = `${API_BASE_URL}/auth/${provider}`;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -57,6 +62,7 @@ const Login: React.FC = () => {
         <div className="space-y-3 mb-8">
           <button
             type="button"
+            onClick={() => handleOAuth('google')}
             className="w-full flex items-center justify-center gap-3 bg-white text-[#344E41] border border-gray-200 px-4 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -70,6 +76,7 @@ const Login: React.FC = () => {
           
           <button
             type="button"
+            onClick={() => handleOAuth('apple')}
             className="w-full flex items-center justify-center gap-3 bg-black text-white px-4 py-3.5 rounded-xl font-bold hover:bg-gray-900 transition-colors shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

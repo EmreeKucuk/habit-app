@@ -12,7 +12,7 @@ import {
   ProfileUpdateRequest
 } from '../types';
 
-const API_BASE_URL = import.meta.env.MODE === 'production' 
+export const API_BASE_URL = import.meta.env.MODE === 'production' 
   ? import.meta.env.VITE_API_URL || '/api'
   : 'http://localhost:5000/api';
 

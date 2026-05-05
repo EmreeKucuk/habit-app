@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { RegisterRequest } from '../types';
+import { API_BASE_URL } from '../services/api';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
@@ -19,6 +20,10 @@ const Register: React.FC = () => {
 
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  const handleOAuth = (provider: 'google' | 'apple') => {
+    window.location.href = `${API_BASE_URL}/auth/${provider}`;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -114,6 +119,7 @@ const Register: React.FC = () => {
         <div className="space-y-3 mb-8">
           <button
             type="button"
+            onClick={() => handleOAuth('google')}
             className="w-full flex items-center justify-center gap-3 bg-white text-[#344E41] border border-gray-200 px-4 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -127,6 +133,7 @@ const Register: React.FC = () => {
           
           <button
             type="button"
+            onClick={() => handleOAuth('apple')}
             className="w-full flex items-center justify-center gap-3 bg-black text-white px-4 py-3.5 rounded-xl font-bold hover:bg-gray-900 transition-colors shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
