@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, User } from 'lucide-react';
+import { MessageCircle, X, Send, User, CheckCircle2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { chatApi } from '../services/api';
 
@@ -9,10 +10,12 @@ interface ChatMessage {
   text: string;
   sender: 'user' | 'sprout';
   timestamp: Date;
+  habitCompleted?: string | null; // Name of the auto-completed habit
 }
 
 const SproutChatWidget: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -64,17 +67,35 @@ const SproutChatWidget: React.FC = () => {
     try {
       const response = await chatApi.send(messageText);
 
-      // Log difficulty_score for future Motivation Algorithm integration
+      // Log difficulty_score for debugging
       console.log(`[Sprout] difficulty_score: ${response.difficulty_score}`);
+      console.log(`[Sprout] completed_habit_id: ${response.completed_habit_id}`);
 
       const sproutResponse: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         text: response.reply,
         sender: 'sprout',
-        timestamp: new Date()
+        timestamp: new Date(),
+        habitCompleted: response.habit_completion?.habitName || null,
       };
 
       setMessages(prev => [...prev, sproutResponse]);
+
+      // If a habit was auto-completed, refresh dashboard data
+      if (response.completed_habit_id && response.habit_completion?.success) {
+        console.log(`[Sprout] ✅ Auto-completed habit: "${response.habit_completion.habitName}"`);
+
+        // Invalidate React Query caches so Dashboard, Heatmap, etc. re-render
+        queryClient.invalidateQueries({ queryKey: ['habits'] });
+        queryClient.invalidateQueries({ queryKey: ['user-stats'] });
+
+        // Update XP in auth context if XP was gained
+        if (response.habit_completion.xpGained && response.habit_completion.xpGained > 0 && user) {
+          const newXP = (user.xp || 0) + response.habit_completion.xpGained;
+          const newLevel = Math.floor(newXP / 100) + 1;
+          updateUser({ ...user, xp: newXP, level: newLevel });
+        }
+      }
     } catch (error) {
       console.error('[Sprout] Chat API error:', error);
 
@@ -190,6 +211,15 @@ const SproutChatWidget: React.FC = () => {
                           >
                             <p className="text-[15px] leading-relaxed">{msg.text}</p>
                           </div>
+                          {/* Auto-completion badge */}
+                          {msg.habitCompleted && (
+                            <div className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1 bg-[#344E41]/10 rounded-full w-fit">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#344E41]" />
+                              <span className="text-[11px] font-semibold text-[#344E41]">
+                                ✅ Marked "{msg.habitCompleted}" as done
+                              </span>
+                            </div>
+                          )}
                           <p className={`text-[10px] mt-1 text-[#344E41] opacity-50 ${isSprout ? 'text-left' : 'text-right'}`}>
                             {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>

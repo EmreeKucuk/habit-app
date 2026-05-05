@@ -291,7 +291,19 @@ class ApiClient {
 
   // Chat (Sprout LLM) endpoint
   chat = {
-    send: async (message: string): Promise<{ reply: string; difficulty_score: number }> => {
+    send: async (message: string): Promise<{
+      reply: string;
+      difficulty_score: number;
+      completed_habit_id: string | null;
+      habit_completion: {
+        success: boolean;
+        completed: boolean;
+        alreadyCompleted?: boolean;
+        xpGained: number;
+        duplicatesSynced: number;
+        habitName: string | null;
+      } | null;
+    }> => {
       const response = await this.client.post('/chat', { message }, {
         timeout: 30000, // LLM responses may take longer than typical API calls
       });
