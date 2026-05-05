@@ -14,6 +14,7 @@ const habitRoutes = require('./routes/habits');
 const userRoutes = require('./routes/users');
 const friendRoutes = require('./routes/friends');
 const motivationRoutes = require('./routes/motivation');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 
@@ -61,6 +62,7 @@ app.use('/api/habits', habitRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/motivation', motivationRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
