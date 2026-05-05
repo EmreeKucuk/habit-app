@@ -130,25 +130,69 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
     );
   };
 
-  const getProgress = () => {
-    if (habit.frequency === 'daily') {
-      return isCompletedToday ? 100 : 0;
-    }
-    
-    // For weekly habits, calculate based on this week's completions
+  // Helper: get completions for the current period
+  const getCompletionsThisWeek = () => {
     const weekStart = new Date();
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
     weekStart.setHours(0, 0, 0, 0);
-    
-    const thisWeekCompletions = habit.completedDates.filter(date => {
-      const completionDate = new Date(date);
-      return completionDate >= weekStart;
+    return habit.completedDates.filter(date => {
+      const d = new Date(date);
+      return d >= weekStart;
     }).length;
-    
-    return Math.min((thisWeekCompletions / 7) * 100, 100);
   };
 
-  const progress = getProgress();
+  const getCompletionsThisMonth = () => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    monthStart.setHours(0, 0, 0, 0);
+    return habit.completedDates.filter(date => {
+      const d = new Date(date);
+      return d >= monthStart;
+    }).length;
+  };
+
+  const getProgressInfo = (): { progress: number; current: number; target: number; label: string } => {
+    if (habit.frequency === 'daily') {
+      const current = isCompletedToday ? 1 : 0;
+      return { progress: current * 100, current, target: 1, label: 'today' };
+    }
+
+    if (habit.frequency === 'flexible_weekly') {
+      const target = habit.frequencyCount || 1;
+      const current = getCompletionsThisWeek();
+      const progress = Math.min((current / target) * 100, 100);
+      return { progress, current, target, label: 'this week' };
+    }
+
+    if (habit.frequency === 'weekly') {
+      const target = 7;
+      const current = getCompletionsThisWeek();
+      const progress = Math.min((current / target) * 100, 100);
+      return { progress, current, target, label: 'this week' };
+    }
+
+    if (habit.frequency === 'monthly') {
+      const target = 30;
+      const current = getCompletionsThisMonth();
+      const progress = Math.min((current / target) * 100, 100);
+      return { progress, current, target, label: 'this month' };
+    }
+
+    // Fallback (interval or other)
+    const current = isCompletedToday ? 1 : 0;
+    return { progress: current * 100, current, target: 1, label: '' };
+  };
+
+  const progressInfo = getProgressInfo();
+  const progress = progressInfo.progress;
+
+  // Format the frequency label for display
+  const getFrequencyLabel = () => {
+    if (habit.frequency === 'flexible_weekly') {
+      return `${habit.frequencyCount || 1}×/week`;
+    }
+    return habit.frequency;
+  };
 
   return (
     <motion.div
@@ -167,7 +211,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
               {habit.category}
             </span>
             <span className="text-xs font-semibold text-[#344E41] opacity-60 capitalize tracking-wider">
-              {habit.frequency}
+              {getFrequencyLabel()}
             </span>
           </div>
         </div>
@@ -191,18 +235,36 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold tracking-wider text-[#344E41] opacity-60 uppercase">Progress</span>
-          <span className="text-sm font-bold text-[#344E41]">
-            {Math.round(progress)}%
-          </span>
+          <div className="flex items-center gap-2">
+            {/* Show fraction for non-daily habits */}
+            {habit.frequency !== 'daily' && (
+              <span className="text-xs font-semibold text-[#344E41] opacity-50">
+                {progressInfo.current}/{progressInfo.target}
+              </span>
+            )}
+            <span className={`text-sm font-bold ${
+              progress >= 100 ? 'text-[#A3B18A]' : 'text-[#344E41]'
+            }`}>
+              {Math.round(progress)}%
+            </span>
+          </div>
         </div>
-        <div className="w-full bg-[#344E41] bg-opacity-10 rounded-full h-1.5">
+        <div className="w-full bg-[#344E41] bg-opacity-10 rounded-full h-2">
           <motion.div
-            className="bg-[#A3B18A] h-1.5 rounded-full"
+            className={`h-2 rounded-full transition-colors ${
+              progress >= 100 ? 'bg-[#E9C46A]' : 'bg-[#A3B18A]'
+            }`}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
           />
         </div>
+        {/* Period label for flexible/weekly/monthly */}
+        {habit.frequency !== 'daily' && progressInfo.label && (
+          <p className="text-[10px] font-medium text-[#344E41] opacity-40 mt-1 text-right">
+            {progressInfo.label}
+          </p>
+        )}
       </div>
 
       {/* Streak Display */}

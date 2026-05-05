@@ -30,6 +30,7 @@ export interface Habit {
   name: string;
   category: HabitCategory;
   frequency: HabitFrequency;
+  frequencyCount?: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -125,7 +126,9 @@ export type HabitCategory =
 export type HabitFrequency = 
   | 'daily'
   | 'weekly'
-  | 'monthly';
+  | 'monthly'
+  | 'interval'
+  | 'flexible_weekly';
 
 export type Mood = 
   | 'excellent'

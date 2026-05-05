@@ -9,6 +9,7 @@ interface HabitFormData {
   notes?: string;
   category: HabitCategory;
   frequency: HabitFrequency;
+  frequency_count?: number;
   target?: number;
   unit?: string;
   color?: string;
@@ -44,6 +45,7 @@ const AddHabit: React.FC = () => {
     notes: '',
     category: 'health',
     frequency: 'daily',
+    frequency_count: 1,
     target: 1,
     unit: 'times',
     color: HABIT_COLORS[0],
@@ -191,45 +193,102 @@ const AddHabit: React.FC = () => {
               </select>
             </div>
 
-            {/* Frequency and Target */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="frequency" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
-                  Frequency
-                </label>
-                <select
-                  id="frequency"
-                  value={formData.frequency}
-                  onChange={(e) => handleInputChange('frequency', e.target.value)}
-                  className="w-full px-4 py-3.5 border-none bg-[#A3B18A]/10 text-[#344E41] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold appearance-none"
-                >
-                  <option value="daily" className="bg-[#FEFAE0]">Daily</option>
-                  <option value="weekly" className="bg-[#FEFAE0]">Weekly</option>
-                  <option value="monthly" className="bg-[#FEFAE0]">Monthly</option>
-                </select>
-              </div>
+            {/* Frequency Type */}
+            <div>
+              <label htmlFor="frequency" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
+                Frequency Type
+              </label>
+              <select
+                id="frequency"
+                value={formData.frequency}
+                onChange={(e) => {
+                  const newFreq = e.target.value as HabitFrequency;
+                  setFormData(prev => ({
+                    ...prev,
+                    frequency: newFreq,
+                    // Reset frequency_count when switching away from flexible_weekly
+                    frequency_count: newFreq === 'flexible_weekly' ? (prev.frequency_count && prev.frequency_count > 1 ? prev.frequency_count : 3) : 1,
+                  }));
+                }}
+                className="w-full px-4 py-3.5 border-none bg-[#A3B18A]/10 text-[#344E41] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold appearance-none"
+              >
+                <option value="daily" className="bg-[#FEFAE0]">📅 Daily</option>
+                <option value="weekly" className="bg-[#FEFAE0]">📆 Weekly</option>
+                <option value="monthly" className="bg-[#FEFAE0]">🗓️ Monthly</option>
+                <option value="flexible_weekly" className="bg-[#FEFAE0]">🔄 Flexible Weekly</option>
+              </select>
+              {formData.frequency === 'flexible_weekly' && (
+                <p className="mt-1.5 ml-1 text-xs font-medium text-[#344E41]/60">
+                  Set how many times per week you want to complete this habit.
+                </p>
+              )}
+            </div>
 
-              <div>
-                <label htmlFor="target" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
-                  Target
+            {/* Flexible Frequency Count — only visible for flexible_weekly */}
+            {formData.frequency === 'flexible_weekly' && (
+              <div className="bg-[#A3B18A]/10 p-5 rounded-2xl border border-[#A3B18A]/20">
+                <label htmlFor="frequency_count" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-3 ml-1">
+                  Times Per Week
                 </label>
-                <input
-                  type="number"
-                  id="target"
-                  value={formData.target || 1}
-                  onChange={(e) => handleInputChange('target', parseInt(e.target.value) || 1)}
-                  min="1"
-                  max="365"
-                  className={`w-full px-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold ${
-                    errors.target 
-                      ? 'border-2 border-red-400 bg-red-50 text-red-900' 
-                      : 'border-none bg-[#A3B18A]/10 text-[#344E41]'
-                  }`}
-                />
-                {errors.target && (
-                  <p className="mt-1.5 ml-1 text-xs font-semibold text-red-500">{errors.target}</p>
-                )}
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, frequency_count: Math.max(1, (prev.frequency_count || 1) - 1) }))}
+                    className="w-12 h-12 rounded-xl bg-[#344E41] text-[#FEFAE0] font-bold text-xl flex items-center justify-center hover:bg-[#2a3f35] transition-colors shadow-sm disabled:opacity-30"
+                    disabled={(formData.frequency_count || 1) <= 1}
+                  >
+                    −
+                  </button>
+                  <div className="flex-1 text-center">
+                    <span className="text-4xl font-black text-[#344E41]">{formData.frequency_count || 1}</span>
+                    <p className="text-xs font-semibold text-[#344E41]/50 mt-1">times / week</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, frequency_count: Math.min(7, (prev.frequency_count || 1) + 1) }))}
+                    className="w-12 h-12 rounded-xl bg-[#344E41] text-[#FEFAE0] font-bold text-xl flex items-center justify-center hover:bg-[#2a3f35] transition-colors shadow-sm disabled:opacity-30"
+                    disabled={(formData.frequency_count || 1) >= 7}
+                  >
+                    +
+                  </button>
+                </div>
+                {/* Visual dots showing target days */}
+                <div className="flex justify-center gap-2 mt-4">
+                  {[1, 2, 3, 4, 5, 6, 7].map(day => (
+                    <div
+                      key={day}
+                      className={`w-6 h-6 rounded-full transition-all duration-200 ${
+                        day <= (formData.frequency_count || 1)
+                          ? 'bg-[#344E41] scale-100'
+                          : 'bg-[#A3B18A]/30 scale-90'
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Target */}
+            <div>
+              <label htmlFor="target" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
+                Target
+              </label>
+              <input
+                type="number"
+                id="target"
+                value={formData.target || 1}
+                onChange={(e) => handleInputChange('target', parseInt(e.target.value) || 1)}
+                min="1"
+                max="365"
+                className={`w-full px-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold ${
+                  errors.target 
+                    ? 'border-2 border-red-400 bg-red-50 text-red-900' 
+                    : 'border-none bg-[#A3B18A]/10 text-[#344E41]'
+                }`}
+              />
+              {errors.target && (
+                <p className="mt-1.5 ml-1 text-xs font-semibold text-red-500">{errors.target}</p>
+              )}
             </div>
 
             {/* Unit */}
@@ -308,8 +367,10 @@ const AddHabit: React.FC = () => {
                     {formData.name || 'Your habit name'}
                   </h4>
                   <p className="text-sm font-semibold text-[#344E41] opacity-60 mt-1">
-                    {formData.frequency.charAt(0).toUpperCase() + formData.frequency.slice(1)} • 
-                    Target: {formData.target || 1} {formData.unit || 'time'}{(formData.target || 1) !== 1 ? 's' : ''}
+                    {formData.frequency === 'flexible_weekly'
+                      ? `Flexible Weekly • ${formData.frequency_count || 1}× per week`
+                      : `${formData.frequency.charAt(0).toUpperCase() + formData.frequency.slice(1)} • Target: ${formData.target || 1} ${formData.unit || 'time'}${(formData.target || 1) !== 1 ? 's' : ''}`
+                    }
                   </p>
                 </div>
               </div>
