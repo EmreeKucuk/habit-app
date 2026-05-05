@@ -42,12 +42,13 @@ const WEIGHT_REACTION_TIME = 0.20;
 async function calculateSuccessRate(userId) {
   const db = getDatabase();
 
-  // Get the date 7 days ago in YYYY-MM-DD format
+  // Get the date 7 days ago in YYYY-MM-DD format (local time)
   const today = new Date();
   const sevenDaysAgo = new Date(today);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
-  const todayStr = today.toISOString().split('T')[0];
+  const formatLocal = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const sevenDaysAgoStr = formatLocal(sevenDaysAgo);
+  const todayStr = formatLocal(today);
 
   // Count total active (non-archived) habits for this user
   const habitsResult = await db.get(

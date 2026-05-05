@@ -24,7 +24,8 @@ const { completeHabit } = require('../services/habitCompletionService');
  */
 async function getActiveHabitsForToday(userId) {
   const db = getDatabase();
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const habits = await db.all(
     `SELECT h.id, h.name, h.category

@@ -59,8 +59,9 @@ router.get('/', authenticateToken, async (req, res) => {
       // Wait to calculate streak AFTER formatting dates
       // const streak = calculateStreak(completions.map(row => row.date));
       
-      // Get today's date for comparison
-      const today = new Date().toISOString().split('T')[0];
+      // Get today's date for comparison (use LOCAL date, not UTC)
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       
       const completedDates = completions.map(row => {
         // Handle different date formats that might come from the database
@@ -68,10 +69,11 @@ router.get('/', authenticateToken, async (req, res) => {
         
         // If it's a Date object (which it appears to be from PostgreSQL)
         if (dateString instanceof Date) {
-          // Convert to UTC date string (YYYY-MM-DD) to prevent timezone shift
-          const year = dateString.getUTCFullYear();
-          const month = String(dateString.getUTCMonth() + 1).padStart(2, '0');
-          const day = String(dateString.getUTCDate()).padStart(2, '0');
+          // Use LOCAL date methods (not UTC) because pg parses DATE as local midnight.
+          // Using getUTCDate() would shift the day backwards in UTC+ timezones.
+          const year = dateString.getFullYear();
+          const month = String(dateString.getMonth() + 1).padStart(2, '0');
+          const day = String(dateString.getDate()).padStart(2, '0');
           return `${year}-${month}-${day}`;
         }
         
@@ -88,10 +90,10 @@ router.get('/', authenticateToken, async (req, res) => {
         // If it's a Date object or timestamp, convert carefully
         try {
           const date = new Date(dateString);
-          // Use UTC to avoid timezone issues
-          const year = date.getUTCFullYear();
-          const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-          const day = String(date.getUTCDate()).padStart(2, '0');
+          // Use LOCAL date methods to avoid timezone shift
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
           return `${year}-${month}-${day}`;
         } catch (error) {
           console.error('Error converting date:', dateString, error);
@@ -184,8 +186,9 @@ router.post('/:id/complete', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { date, notes, mood, value } = req.body || {};
     
-    // Always use today's date as YYYY-MM-DD
-    const today = new Date().toISOString().split('T')[0];
+    // Always use today's LOCAL date as YYYY-MM-DD
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const completionDate = date || today;
     
     console.log(`📅 Completion date: ${completionDate}`);

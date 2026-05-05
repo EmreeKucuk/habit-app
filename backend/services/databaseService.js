@@ -7,8 +7,14 @@ if (process.env.DATABASE_TYPE !== 'postgresql') {
   }
 }
 const { Pool } = require('pg');
+const types = require('pg').types;
 const path = require('path');
 require('dotenv').config();
+
+// Fix: Override pg's DATE type parser (OID 1082) to return raw YYYY-MM-DD strings.
+// By default, pg parses DATE columns as JavaScript Date objects at LOCAL midnight,
+// which causes day-shift bugs when extracted with getUTCDate() in UTC+ timezones.
+types.setTypeParser(1082, (val) => val);
 
 class DatabaseService {
   constructor() {

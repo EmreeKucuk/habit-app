@@ -49,7 +49,8 @@ const Dashboard: React.FC = () => {
       const previousHabits = queryClient.getQueryData(queryKey);
 
       if (previousHabits) {
-        const today = new Date().toISOString().split('T')[0];
+        const dn = new Date();
+        const today = `${dn.getFullYear()}-${String(dn.getMonth() + 1).padStart(2, '0')}-${String(dn.getDate()).padStart(2, '0')}`;
         
         queryClient.setQueryData(queryKey, (old: any) => {
           if (!old?.habits) return old;
@@ -133,7 +134,8 @@ const Dashboard: React.FC = () => {
 
   // Calculations
   const habits = habitsData?.habits || [];
-  const today = new Date().toISOString().split('T')[0];
+  const tn = new Date();
+  const today = `${tn.getFullYear()}-${String(tn.getMonth() + 1).padStart(2, '0')}-${String(tn.getDate()).padStart(2, '0')}`;
   const totalHabits = habits.length;
   const completedToday = habits.filter((h) => h.completedDates?.includes(today)).length;
   
