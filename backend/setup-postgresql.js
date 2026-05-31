@@ -133,38 +133,6 @@ async function setupPostgreSQL() {
     `);
     console.log('✅ Friends table created');
 
-    // Groups table
-    console.log('Creating groups table...');
-    await dbClient.query(`
-      CREATE TABLE IF NOT EXISTS groups (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        name VARCHAR(255) NOT NULL,
-        description TEXT,
-        creator_id UUID NOT NULL,
-        privacy VARCHAR(20) DEFAULT 'public',
-        habit_id UUID,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (creator_id) REFERENCES users (id) ON DELETE CASCADE,
-        FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE SET NULL
-      )
-    `);
-    console.log('✅ Groups table created');
-
-    // Group members table
-    console.log('Creating group_members table...');
-    await dbClient.query(`
-      CREATE TABLE IF NOT EXISTS group_members (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        group_id UUID NOT NULL,
-        user_id UUID NOT NULL,
-        role VARCHAR(20) DEFAULT 'member',
-        joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-        UNIQUE(group_id, user_id)
-      )
-    `);
-    console.log('✅ Group members table created');
 
     // User badges table
     console.log('Creating user_badges table...');
@@ -208,8 +176,7 @@ async function setupPostgreSQL() {
       'CREATE INDEX IF NOT EXISTS idx_completions_user_date ON habit_completions(user_id, date)',
       'CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends(user_id)',
       'CREATE INDEX IF NOT EXISTS idx_friends_status ON friends(status)',
-      'CREATE INDEX IF NOT EXISTS idx_group_members_group_id ON group_members(group_id)',
-      'CREATE INDEX IF NOT EXISTS idx_group_members_user_id ON group_members(user_id)',
+
       'CREATE INDEX IF NOT EXISTS idx_badges_user_id ON user_badges(user_id)',
       'CREATE INDEX IF NOT EXISTS idx_comments_habit_id ON habit_comments(habit_id)',
       'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)',
