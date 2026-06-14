@@ -83,7 +83,8 @@ export default function ChatScreen() {
     try {
       const habitsRes = await api.get<{ habits: any[] }>(API_ENDPOINTS.habits);
       if (habitsRes.data?.habits) {
-        const today = new Date().toISOString().split('T')[0];
+        const d = new Date();
+        const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         pendingHabits = habitsRes.data.habits.filter((h: any) => {
           const completed = h.completedDates || [];
           return !completed.includes(today);
@@ -186,7 +187,8 @@ export default function ChatScreen() {
       if (detectedHabit) {
         if (detectedHabit.startsWith('CHECKIN_COMPLETE:')) {
           const habitId = detectedHabit.split(':')[1];
-          api.post(API_ENDPOINTS.habitComplete(habitId), { date: new Date().toISOString().split('T')[0] })
+          const d1 = new Date();
+          api.post(API_ENDPOINTS.habitComplete(habitId), { date: `${d1.getFullYear()}-${String(d1.getMonth() + 1).padStart(2, '0')}-${String(d1.getDate()).padStart(2, '0')}` })
             .catch(err => console.log('Check-in error', err));
           setUserHabits((prev) => prev.filter((h) => h.id !== habitId));
         } else if (detectedHabit.startsWith('DELETED_HABIT_CONFIRMED:')) {
@@ -286,7 +288,8 @@ export default function ChatScreen() {
       if (detectedHabit) {
         if (detectedHabit.startsWith('CHECKIN_COMPLETE:')) {
           const habitId = detectedHabit.split(':')[1];
-          api.post(API_ENDPOINTS.habitComplete(habitId), { date: new Date().toISOString().split('T')[0] })
+          const d2 = new Date();
+          api.post(API_ENDPOINTS.habitComplete(habitId), { date: `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, '0')}-${String(d2.getDate()).padStart(2, '0')}` })
             .catch(err => console.log('Check-in error', err));
           setUserHabits((prev) => prev.filter((h) => h.id !== habitId));
         } else if (detectedHabit.startsWith('DELETED_HABIT_CONFIRMED:')) {

@@ -662,7 +662,8 @@ export async function processHabitLoggingAsync(category: string): Promise<void> 
     // Find the first habit that matches the category
     const matchingHabit = habits.find((h: any) => h.category === category);
 
-    const today = new Date().toISOString().split('T')[0];
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     if (matchingHabit) {
       // Complete the habit for today
