@@ -356,7 +356,7 @@ router.get('/me/stats', authenticateToken, async (req, res) => {
     const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
     
     const last30Completions = await db.get(
-      `SELECT COUNT(DISTINCT hc.habit_id || hc.date) as count 
+      `SELECT COUNT(DISTINCT CAST(hc.habit_id AS TEXT) || CAST(hc.date AS TEXT)) as count 
        FROM habit_completions hc
        JOIN habits h ON hc.habit_id = h.id
        WHERE hc.user_id = ? AND hc.date >= ? AND COALESCE(h.is_archived, false) = false`,
