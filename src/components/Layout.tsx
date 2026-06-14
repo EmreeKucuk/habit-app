@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useQuery } from '@tanstack/react-query';
+import { usersApi, motivationApi } from '../services/api';
 import {
   Home,
   Plus,
@@ -28,6 +30,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+
+  const { data: userStats } = useQuery({
+    queryKey: ['user-stats', 'profile'],
+    queryFn: () => usersApi.getStats(),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: motivationScore } = useQuery({
+    queryKey: ['motivation-score'],
+    queryFn: () => motivationApi.getScore(),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
@@ -154,13 +170,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                 <div className="flex items-center space-x-2 bg-[#E9C46A] bg-opacity-40 text-[#344E41] px-4 py-2 rounded-xl">
                   <Flame className="w-4 h-4" />
-                  <span className="font-bold">{user?.highestStreak || 0} Streak</span>
+                  <span className="font-bold">{userStats?.currentStreak || user?.highestStreak || 0} Streak</span>
                 </div>
 
-                <div className="flex items-center space-x-2 bg-[#A3B18A] bg-opacity-40 text-[#344E41] px-4 py-2 rounded-xl">
-                  <BarChart3 className="w-4 h-4" />
-                  <span className="font-bold">{user?.successPercentage || 0}%</span>
-                </div>
+                {motivationScore && (
+                  <div className="flex items-center space-x-2 bg-[#A3B18A] bg-opacity-40 text-[#344E41] px-4 py-2 rounded-xl">
+                    <BarChart3 className="w-4 h-4" />
+                    <span className="font-bold">
+                      {Math.round(motivationScore.score)}/100 {motivationScore.level.charAt(0).toUpperCase() + motivationScore.level.slice(1)}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Mobile menu and user info */}
