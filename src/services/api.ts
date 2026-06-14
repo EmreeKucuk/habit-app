@@ -302,6 +302,14 @@ class ApiClient {
     },
   };
 
+  // Motivation endpoints
+  motivation = {
+    getScore: async (): Promise<{ score: number; level: string; trend: string; lastCalculated: string }> => {
+      const response = await this.client.get('/motivation/score');
+      return response.data;
+    },
+  };
+
   // Chat (Sprout LLM) endpoint
   chat = {
     send: async (message: string): Promise<{
@@ -332,5 +340,6 @@ export const habitsApi = apiClient.habits;
 export const usersApi = apiClient.users;
 export const friendsApi = apiClient.friends;
 export const chatApi = apiClient.chat;
+export const motivationApi = apiClient.motivation;
 
 export default apiClient;

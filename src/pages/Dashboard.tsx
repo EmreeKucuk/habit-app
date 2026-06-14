@@ -170,6 +170,18 @@ const Dashboard: React.FC = () => {
     return data;
   }, [habits]);
 
+  const localWeeklyAverage = useMemo(() => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    
+    let count = 0;
+    Object.entries(heatmapData).forEach(([date, num]) => {
+      if (new Date(date) >= sevenDaysAgo) count += num;
+    });
+    return count / 7;
+  }, [heatmapData]);
+
   const getMotivationalMessage = (completed: number, total: number): string => {
     if (total === 0) return '🌱 Add your first habit to get started!';
     const ratio = completed / total;
@@ -274,7 +286,7 @@ const Dashboard: React.FC = () => {
                   <span className="text-xs font-bold text-[#344E41] opacity-60 tracking-wider">WEEKLY</span>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-[#344E41]">{userStats?.weeklyAverage?.toFixed(1) || '0.0'}</span>
+                  <span className="text-4xl font-black text-[#344E41]">{(userStats?.weeklyAverage ?? localWeeklyAverage).toFixed(1)}</span>
                   <span className="text-sm font-semibold text-[#344E41] opacity-60">avg/day</span>
                 </div>
               </div>

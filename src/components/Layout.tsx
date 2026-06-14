@@ -74,8 +74,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   key={item.id}
                   to={item.path}
                   className={`flex items-center space-x-3 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-200 ${isActive
-                      ? 'bg-[#A3B18A] text-[#FEFAE0] shadow-sm'
-                      : 'text-[#344E41] opacity-70 hover:opacity-100 hover:bg-[#344E41]/5'
+                    ? 'bg-[#A3B18A] text-[#FEFAE0] shadow-sm'
+                    : 'text-[#344E41] opacity-70 hover:opacity-100 hover:bg-[#344E41]/5'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -136,7 +136,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <div className="w-8 h-8 bg-[#A3B18A] rounded-lg flex items-center justify-center">
                     <span className="text-[#FEFAE0] font-bold text-sm">H</span>
                   </div>
-                  <span className="font-bold text-[#344E41]">HabitForge</span>
+                  <span className="font-bold text-[#344E41]">Sprout</span>
                 </Link>
               </div>
 
