@@ -147,8 +147,16 @@ class ApiClient {
     },
 
     complete: async (habitId: string, data?: { date?: string; notes?: string; mood?: string; value?: number }): Promise<{ message: string; completed: boolean; xpGained?: number; duplicatesSynced?: number }> => {
-      const response = await this.client.post(`/habits/${habitId}/complete`, data);
-      return response.data;
+      try {
+        const response = await this.client.post(`/habits/${habitId}/complete`, data);
+        return response.data;
+      } catch (error: any) {
+        if (error.response?.status === 409) {
+          console.log(`Habit ${habitId} already completed. Treating as success.`);
+          return error.response.data;
+        }
+        throw error;
+      }
     },
 
     delete: async (habitId: string): Promise<{ message: string }> => {
