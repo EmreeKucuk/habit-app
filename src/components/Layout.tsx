@@ -2,14 +2,14 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { 
-  Home, 
-  Plus, 
-  FileText, 
-  Users, 
-  UserPlus, 
-  BarChart3, 
-  Search, 
+import {
+  Home,
+  Plus,
+  FileText,
+  Users,
+  UserPlus,
+  BarChart3,
+  Search,
   User,
   LogOut,
   Sun,
@@ -55,7 +55,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-[#344E41]">
-                HabitForge
+                Sprout
               </h1>
               <p className="text-xs font-semibold text-[#344E41] opacity-60">Build Better Habits</p>
             </div>
@@ -68,16 +68,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               const Icon = item.icon;
-              
+
               return (
                 <Link
                   key={item.id}
                   to={item.path}
-                  className={`flex items-center space-x-3 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-200 ${
-                    isActive
+                  className={`flex items-center space-x-3 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-200 ${isActive
                       ? 'bg-[#A3B18A] text-[#FEFAE0] shadow-sm'
                       : 'text-[#344E41] opacity-70 hover:opacity-100 hover:bg-[#344E41]/5'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
@@ -102,7 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <p className="text-xs font-semibold text-[#344E41] opacity-70">Level {user?.level}</p>
             </div>
           </div>
-          
+
           <div className="mt-3 flex space-x-2">
             <button
               onClick={toggleTheme}
@@ -140,24 +139,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <span className="font-bold text-[#344E41]">HabitForge</span>
                 </Link>
               </div>
-              
+
               {/* User Stats - Desktop */}
               <div className="hidden lg:flex items-center space-x-4 ml-auto">
                 <div className="flex items-center space-x-2 bg-[#E9C46A] bg-opacity-20 text-[#344E41] px-4 py-2 rounded-xl">
                   <Star className="w-4 h-4" />
                   <span className="font-bold">{user?.xp || 0} XP</span>
                 </div>
-                
+
                 <div className="flex items-center space-x-2 bg-[#A3B18A] bg-opacity-20 text-[#344E41] px-4 py-2 rounded-xl">
                   <Target className="w-4 h-4" />
                   <span className="font-bold">Level {user?.level || 1}</span>
                 </div>
-                
+
                 <div className="flex items-center space-x-2 bg-[#E9C46A] bg-opacity-40 text-[#344E41] px-4 py-2 rounded-xl">
                   <Flame className="w-4 h-4" />
                   <span className="font-bold">{user?.highestStreak || 0} Streak</span>
                 </div>
-                
+
                 <div className="flex items-center space-x-2 bg-[#A3B18A] bg-opacity-40 text-[#344E41] px-4 py-2 rounded-xl">
                   <BarChart3 className="w-4 h-4" />
                   <span className="font-bold">{user?.successPercentage || 0}%</span>

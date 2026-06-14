@@ -53,13 +53,13 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] p-4 font-sans">
       <div className="w-full max-w-md bg-[#FEFAE0] p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41]/5">
-        
+
         {/* Brand Header */}
         <div className="flex flex-col items-center mb-10">
           <div className="w-14 h-14 bg-[#A3B18A] rounded-2xl flex items-center justify-center mb-4 shadow-sm">
             <span className="text-[#FEFAE0] font-black text-3xl">H</span>
           </div>
-          <h1 className="text-3xl font-black text-[#344E41] tracking-tight">HabitForge</h1>
+          <h1 className="text-3xl font-black text-[#344E41] tracking-tight">Sprout</h1>
           <p className="text-[#344E41] opacity-60 font-medium mt-1">Welcome back, let's get tracking.</p>
         </div>
 
@@ -78,7 +78,7 @@ const Login: React.FC = () => {
             </svg>
             Continue with Google
           </button>
-          
+
           <button
             type="button"
             onClick={() => handleOAuth('apple')}
