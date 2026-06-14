@@ -79,8 +79,27 @@ const Dashboard: React.FC = () => {
 
       return { previousHabits, queryKey, habitId };
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables, context) => {
       setLoadingHabitId(null);
+      
+      // If the backend threw a 409, explicitly force the query cache to recognize the completion for today
+      // so the UI visually updates, overriding any stale data the backend might return on next fetch.
+      if (data._is409 && context?.queryKey) {
+        const tn = new Date();
+        const todayStr = `${tn.getFullYear()}-${String(tn.getMonth() + 1).padStart(2, '0')}-${String(tn.getDate()).padStart(2, '0')}`;
+        queryClient.setQueryData(context.queryKey, (old: any) => {
+          if (!old?.habits) return old;
+          return {
+            ...old,
+            habits: old.habits.map((h: any) => {
+              if (h.id === variables.habitId && !h.completedDates.includes(todayStr)) {
+                return { ...h, completedDates: [...h.completedDates, todayStr] };
+              }
+              return h;
+            })
+          };
+        });
+      }
       
       if (data.xpGained && data.xpGained > 0 && user) {
         const newXP = user.xp + data.xpGained;
@@ -122,7 +141,7 @@ const Dashboard: React.FC = () => {
   });
 
   const handleCompleteHabit = (habitId: string) => {
-    completeHabitMutation.mutate({ habitId, data: {} });
+    completeHabitMutation.mutate({ habitId, data: { date: today } });
   };
 
   const confirmDeleteHabit = () => {

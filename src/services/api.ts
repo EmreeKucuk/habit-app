@@ -153,7 +153,12 @@ class ApiClient {
       } catch (error: any) {
         if (error.response?.status === 409) {
           console.log(`Habit ${habitId} already completed. Treating as success.`);
-          return error.response.data;
+          return { 
+            message: 'Already completed', 
+            completed: true, 
+            _is409: true,
+            ...error.response.data 
+          };
         }
         throw error;
       }
