@@ -87,18 +87,18 @@ const Register: React.FC = () => {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] p-4 font-sans">
-        <div className="w-full max-w-md bg-[#FEFAE0] p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41]/5 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] dark:bg-gray-900 p-4 font-sans">
+        <div className="w-full max-w-md bg-[#FEFAE0] dark:bg-gray-900 p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5 text-center">
           <CheckCircle className="h-16 w-16 text-[#A3B18A] mx-auto mb-6" />
-          <h2 className="text-2xl font-black text-[#344E41] mb-2 tracking-tight">
+          <h2 className="text-2xl font-black text-[#344E41] dark:text-gray-100 mb-2 tracking-tight">
             Check your email
           </h2>
-          <p className="text-[#344E41] opacity-70 font-medium mb-8">
+          <p className="text-[#344E41] dark:text-gray-100 opacity-70 font-medium mb-8">
             We've sent a verification link to your email address. Please click the link to verify your account.
           </p>
           <Link
             to="/login"
-            className="w-full bg-[#344E41] hover:bg-[#2a3f35] text-[#FEFAE0] font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-center items-center inline-flex"
+            className="w-full bg-[#344E41] dark:bg-gray-700 hover:bg-[#2a3f35] text-[#FEFAE0] dark:text-gray-300 font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-center items-center inline-flex"
           >
             Go to Login
           </Link>
@@ -108,16 +108,16 @@ const Register: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] p-4 font-sans">
-      <div className="w-full max-w-md bg-[#FEFAE0] p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41]/5">
+    <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] dark:bg-gray-900 p-4 font-sans">
+      <div className="w-full max-w-md bg-[#FEFAE0] dark:bg-gray-900 p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5">
 
         {/* Brand Header */}
         <div className="flex flex-col items-center mb-10">
-          <div className="w-14 h-14 bg-[#A3B18A] rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-            <span className="text-[#FEFAE0] font-black text-3xl">H</span>
+          <div className="w-14 h-14 bg-[#A3B18A] dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+            <span className="text-[#FEFAE0] dark:text-gray-300 font-black text-3xl">H</span>
           </div>
-          <h1 className="text-3xl font-black text-[#344E41] tracking-tight">Create Account</h1>
-          <p className="text-[#344E41] opacity-60 font-medium mt-1">Join the Sprout community.</p>
+          <h1 className="text-3xl font-black text-[#344E41] dark:text-gray-100 tracking-tight">Create Account</h1>
+          <p className="text-[#344E41] dark:text-gray-100 opacity-60 font-medium mt-1">Join the Sprout community.</p>
         </div>
 
         {/* OAuth Buttons */}
@@ -125,7 +125,7 @@ const Register: React.FC = () => {
           <button
             type="button"
             onClick={() => handleOAuth('google')}
-            className="w-full flex items-center justify-center gap-3 bg-white text-[#344E41] border border-gray-200 px-4 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm"
+            className="w-full flex items-center justify-center gap-3 bg-white text-[#344E41] dark:text-gray-100 border border-gray-200 px-4 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -150,9 +150,9 @@ const Register: React.FC = () => {
 
         {/* Divider */}
         <div className="flex items-center mb-8">
-          <div className="flex-1 h-px bg-[#344E41] opacity-10"></div>
-          <span className="px-4 text-xs font-bold text-[#344E41] opacity-40 uppercase tracking-widest">Or</span>
-          <div className="flex-1 h-px bg-[#344E41] opacity-10"></div>
+          <div className="flex-1 h-px bg-[#344E41] dark:bg-gray-700 opacity-10"></div>
+          <span className="px-4 text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-40 uppercase tracking-widest">Or</span>
+          <div className="flex-1 h-px bg-[#344E41] dark:bg-gray-700 opacity-10"></div>
         </div>
 
         {/* Form */}
@@ -164,11 +164,11 @@ const Register: React.FC = () => {
           )}
 
           <div className="space-y-1.5">
-            <label htmlFor="username" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider ml-1">
+            <label htmlFor="username" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider ml-1">
               Username
             </label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] opacity-40" />
+              <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] dark:text-gray-100 opacity-40" />
               <input
                 id="username"
                 name="username"
@@ -176,18 +176,18 @@ const Register: React.FC = () => {
                 value={formData.username}
                 onChange={handleChange}
                 required
-                className="w-full bg-[#A3B18A]/10 text-[#344E41] px-4 py-3.5 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
+                className="w-full bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100 px-4 py-3.5 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
                 placeholder="Choose a username"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider ml-1">
+            <label htmlFor="email" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider ml-1">
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] opacity-40" />
+              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] dark:text-gray-100 opacity-40" />
               <input
                 id="email"
                 name="email"
@@ -195,18 +195,18 @@ const Register: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full bg-[#A3B18A]/10 text-[#344E41] px-4 py-3.5 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
+                className="w-full bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100 px-4 py-3.5 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
                 placeholder="Enter your email"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="password" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider ml-1">
+            <label htmlFor="password" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider ml-1">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] opacity-40" />
+              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] dark:text-gray-100 opacity-40" />
               <input
                 id="password"
                 name="password"
@@ -214,13 +214,13 @@ const Register: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full bg-[#A3B18A]/10 text-[#344E41] px-4 py-3.5 pl-12 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
+                className="w-full bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100 px-4 py-3.5 pl-12 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
                 placeholder="Create a password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#344E41] opacity-40 hover:opacity-100 transition-opacity"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#344E41] dark:text-gray-100 opacity-40 hover:opacity-100 transition-opacity"
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -228,11 +228,11 @@ const Register: React.FC = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="confirmPassword" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider ml-1">
+            <label htmlFor="confirmPassword" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider ml-1">
               Confirm Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] opacity-40" />
+              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] dark:text-gray-100 opacity-40" />
               <input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -240,13 +240,13 @@ const Register: React.FC = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                className="w-full bg-[#A3B18A]/10 text-[#344E41] px-4 py-3.5 pl-12 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
+                className="w-full bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100 px-4 py-3.5 pl-12 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
                 placeholder="Confirm your password"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#344E41] opacity-40 hover:opacity-100 transition-opacity"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#344E41] dark:text-gray-100 opacity-40 hover:opacity-100 transition-opacity"
               >
                 {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -261,13 +261,13 @@ const Register: React.FC = () => {
               required
               className="h-4 w-4 text-[#A3B18A] focus:ring-[#E9C46A] border-gray-300 rounded"
             />
-            <label htmlFor="terms" className="ml-2 block text-sm font-semibold text-[#344E41] opacity-80">
+            <label htmlFor="terms" className="ml-2 block text-sm font-semibold text-[#344E41] dark:text-gray-100 opacity-80">
               I agree to the{' '}
-              <Link to="/terms" className="text-[#A3B18A] hover:text-[#344E41] transition-colors">
+              <Link to="/terms" className="text-[#A3B18A] hover:text-[#344E41] dark:text-gray-100 transition-colors">
                 Terms
               </Link>{' '}
               and{' '}
-              <Link to="/privacy" className="text-[#A3B18A] hover:text-[#344E41] transition-colors">
+              <Link to="/privacy" className="text-[#A3B18A] hover:text-[#344E41] dark:text-gray-100 transition-colors">
                 Privacy Policy
               </Link>
             </label>
@@ -277,7 +277,7 @@ const Register: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#344E41] hover:bg-[#2a3f35] text-[#FEFAE0] font-bold py-4 rounded-xl transition-colors shadow-lg disabled:opacity-50 flex justify-center items-center"
+              className="w-full bg-[#344E41] dark:bg-gray-700 hover:bg-[#2a3f35] text-[#FEFAE0] dark:text-gray-300 font-bold py-4 rounded-xl transition-colors shadow-lg disabled:opacity-50 flex justify-center items-center"
             >
               {isLoading ? (
                 <div className="w-6 h-6 border-2 border-[#FEFAE0]/30 border-t-[#FEFAE0] rounded-full animate-spin"></div>
@@ -289,11 +289,11 @@ const Register: React.FC = () => {
         </form>
 
         <div className="mt-8 text-center">
-          <p className="text-[#344E41] font-medium">
+          <p className="text-[#344E41] dark:text-gray-100 font-medium">
             Already have an account?{' '}
             <Link
               to="/login"
-              className="text-[#A3B18A] hover:text-[#344E41] font-bold transition-colors ml-1"
+              className="text-[#A3B18A] hover:text-[#344E41] dark:text-gray-100 font-bold transition-colors ml-1"
             >
               Sign in
             </Link>

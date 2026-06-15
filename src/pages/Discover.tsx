@@ -61,9 +61,9 @@ const Discover: React.FC = () => {
       case 'friends':
         return <Users className="w-5 h-5 text-[#E9C46A]" />;
       case 'private':
-        return <Lock className="w-5 h-5 text-[#344E41] opacity-50" />;
+        return <Lock className="w-5 h-5 text-[#344E41] dark:text-gray-100 opacity-50" />;
       default:
-        return <EyeOff className="w-5 h-5 text-[#344E41] opacity-30" />;
+        return <EyeOff className="w-5 h-5 text-[#344E41] dark:text-gray-100 opacity-30" />;
     }
   };
 
@@ -72,19 +72,19 @@ const Discover: React.FC = () => {
     switch (friendStatus) {
       case 'friends':
         return (
-          <button className="px-4 py-2 bg-[#A3B18A]/20 text-[#344E41] rounded-xl text-sm font-bold border border-[#A3B18A]/30">
+          <button className="px-4 py-2 bg-[#A3B18A] dark:bg-gray-800/20 text-[#344E41] dark:text-gray-100 rounded-xl text-sm font-bold border border-[#A3B18A]/30">
             Friends
           </button>
         );
       case 'pending':
         return (
-          <button className="px-4 py-2 bg-[#E9C46A]/20 text-[#344E41] rounded-xl text-sm font-bold border border-[#E9C46A]/30">
+          <button className="px-4 py-2 bg-[#E9C46A] dark:bg-yellow-600/20 text-[#344E41] dark:text-gray-100 rounded-xl text-sm font-bold border border-[#E9C46A]/30">
             Pending
           </button>
         );
       case 'received':
         return (
-          <button className="px-4 py-2 bg-[#344E41]/10 text-[#344E41] rounded-xl text-sm font-bold border border-[#344E41]/20">
+          <button className="px-4 py-2 bg-[#344E41] dark:bg-gray-700/10 text-[#344E41] dark:text-gray-100 rounded-xl text-sm font-bold border border-[#344E41] dark:border-gray-700/20">
             Respond
           </button>
         );
@@ -93,7 +93,7 @@ const Discover: React.FC = () => {
           <button
             onClick={() => handleAddFriend(user.id)}
             disabled={friendRequestMutation.isPending}
-            className="px-4 py-2 bg-[#344E41] text-[#FEFAE0] rounded-xl text-sm font-bold hover:bg-[#2a3f35] transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            className="px-4 py-2 bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 rounded-xl text-sm font-bold hover:bg-[#2a3f35] transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
             <UserPlus className="w-4 h-4" />
             <span>{friendRequestMutation.isPending ? 'Sending...' : 'Add Friend'}</span>
@@ -106,13 +106,13 @@ const Discover: React.FC = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-[#A3B18A]/10 border border-[#A3B18A]/20 rounded-3xl p-6 md:p-8">
+        <div className="bg-[#A3B18A] dark:bg-gray-800/10 border border-[#A3B18A]/20 rounded-3xl p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
-              <h1 className="text-3xl font-black text-[#344E41] tracking-tight mb-2">Discover People</h1>
-              <p className="text-[#344E41] opacity-70 font-medium">Connect with other habit builders</p>
+              <h1 className="text-3xl font-black text-[#344E41] dark:text-gray-100 tracking-tight mb-2">Discover People</h1>
+              <p className="text-[#344E41] dark:text-gray-100 opacity-70 font-medium">Connect with other habit builders</p>
             </div>
-            <div className="flex items-center space-x-2 text-sm font-bold text-[#344E41] opacity-70 bg-[#FEFAE0] px-4 py-2 rounded-xl border border-[#344E41]/5">
+            <div className="flex items-center space-x-2 text-sm font-bold text-[#344E41] dark:text-gray-100 opacity-70 bg-[#FEFAE0] dark:bg-gray-900 px-4 py-2 rounded-xl border border-[#344E41] dark:border-gray-700/5">
               <Users className="w-5 h-5" />
               <span>{isLoading ? 'Loading...' : `${users.length} users found`}</span>
             </div>
@@ -122,13 +122,13 @@ const Discover: React.FC = () => {
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="relative lg:flex-1 lg:max-w-md">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] opacity-40" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] dark:text-gray-100 opacity-40" />
               <input
                 type="text"
                 placeholder="Search by username or name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] text-[#344E41] font-medium focus:ring-2 focus:ring-[#E9C46A] placeholder-[#344E41]/30 transition-shadow shadow-sm"
+                className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] dark:bg-gray-900 text-[#344E41] dark:text-gray-100 font-medium focus:ring-2 focus:ring-[#E9C46A] placeholder-[#344E41]/30 transition-shadow shadow-sm"
               />
             </div>
 
@@ -136,7 +136,7 @@ const Discover: React.FC = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="px-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] text-[#344E41] font-bold focus:ring-2 focus:ring-[#E9C46A] transition-shadow shadow-sm appearance-none lg:w-48"
+              className="px-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] dark:bg-gray-900 text-[#344E41] dark:text-gray-100 font-bold focus:ring-2 focus:ring-[#E9C46A] transition-shadow shadow-sm appearance-none lg:w-48"
             >
               <option value="xp">Sort by XP</option>
               <option value="level">Sort by Level</option>
@@ -148,7 +148,7 @@ const Discover: React.FC = () => {
             <select
               value={filterBy}
               onChange={(e) => setFilterBy(e.target.value as typeof filterBy)}
-              className="px-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] text-[#344E41] font-bold focus:ring-2 focus:ring-[#E9C46A] transition-shadow shadow-sm appearance-none lg:w-48"
+              className="px-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] dark:bg-gray-900 text-[#344E41] dark:text-gray-100 font-bold focus:ring-2 focus:ring-[#E9C46A] transition-shadow shadow-sm appearance-none lg:w-48"
             >
               <option value="all">All Users</option>
               <option value="public">Public Only</option>
@@ -158,12 +158,12 @@ const Discover: React.FC = () => {
         </div>
 
         {/* Privacy Notice */}
-        <div className="bg-[#A3B18A]/5 border border-[#A3B18A]/20 rounded-2xl p-5">
+        <div className="bg-[#A3B18A] dark:bg-gray-800/5 border border-[#A3B18A]/20 rounded-2xl p-5">
           <div className="flex items-start space-x-3">
             <Eye className="w-6 h-6 text-[#A3B18A] mt-0.5" />
             <div>
-              <h3 className="text-sm font-black text-[#344E41] uppercase tracking-wider">Privacy Levels</h3>
-              <div className="mt-2 text-sm text-[#344E41] opacity-80 font-medium space-y-2">
+              <h3 className="text-sm font-black text-[#344E41] dark:text-gray-100 uppercase tracking-wider">Privacy Levels</h3>
+              <div className="mt-2 text-sm text-[#344E41] dark:text-gray-100 opacity-80 font-medium space-y-2">
                 <div className="flex items-center space-x-2">
                   <Eye className="w-4 h-4 text-[#A3B18A]" />
                   <span><strong className="font-bold">Public:</strong> Visible to everyone, can be added as friend</span>
@@ -173,7 +173,7 @@ const Discover: React.FC = () => {
                   <span><strong className="font-bold">Friends:</strong> Only visible to friends or exact username search</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Lock className="w-4 h-4 text-[#344E41] opacity-50" />
+                  <Lock className="w-4 h-4 text-[#344E41] dark:text-gray-100 opacity-50" />
                   <span><strong className="font-bold">Private:</strong> Only visible via exact username search</span>
                 </div>
               </div>
@@ -201,7 +201,7 @@ const Discover: React.FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {users.map((user) => (
-            <div key={user.id} className="bg-[#FEFAE0] rounded-3xl shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41]/5 p-6 flex flex-col h-full hover:shadow-[0_8px_30px_rgb(52,78,65,0.08)] transition-all">
+            <div key={user.id} className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5 p-6 flex flex-col h-full hover:shadow-[0_8px_30px_rgb(52,78,65,0.08)] transition-all">
               {/* User Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
@@ -211,10 +211,10 @@ const Discover: React.FC = () => {
                     className="w-14 h-14 rounded-2xl shadow-sm"
                   />
                   <div>
-                    <h3 className="font-black text-[#344E41] text-lg leading-tight">
+                    <h3 className="font-black text-[#344E41] dark:text-gray-100 text-lg leading-tight">
                       {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.username}
                     </h3>
-                    <p className="text-sm font-bold text-[#344E41] opacity-50">@{user.username}</p>
+                    <p className="text-sm font-bold text-[#344E41] dark:text-gray-100 opacity-50">@{user.username}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -225,29 +225,29 @@ const Discover: React.FC = () => {
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-3 mb-6">
-                <div className="text-center p-3 bg-[#A3B18A]/10 rounded-xl border border-[#A3B18A]/20">
-                  <div className="text-xl font-black text-[#344E41]">{user.level}</div>
-                  <div className="text-xs font-bold text-[#344E41] opacity-60 uppercase tracking-wider">Level</div>
+                <div className="text-center p-3 bg-[#A3B18A] dark:bg-gray-800/10 rounded-xl border border-[#A3B18A]/20">
+                  <div className="text-xl font-black text-[#344E41] dark:text-gray-100">{user.level}</div>
+                  <div className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-60 uppercase tracking-wider">Level</div>
                 </div>
-                <div className="text-center p-3 bg-[#E9C46A]/10 rounded-xl border border-[#E9C46A]/20">
-                  <div className="text-xl font-black text-[#344E41]">{user.xp}</div>
-                  <div className="text-xs font-bold text-[#344E41] opacity-60 uppercase tracking-wider">XP</div>
+                <div className="text-center p-3 bg-[#E9C46A] dark:bg-yellow-600/10 rounded-xl border border-[#E9C46A]/20">
+                  <div className="text-xl font-black text-[#344E41] dark:text-gray-100">{user.xp}</div>
+                  <div className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-60 uppercase tracking-wider">XP</div>
                 </div>
-                <div className="text-center p-3 bg-[#344E41]/5 rounded-xl border border-[#344E41]/10">
-                  <div className="text-xl font-black text-[#344E41]">{user.highestStreak}</div>
-                  <div className="text-xs font-bold text-[#344E41] opacity-60 uppercase tracking-wider">Streak</div>
+                <div className="text-center p-3 bg-[#344E41] dark:bg-gray-700/5 rounded-xl border border-[#344E41] dark:border-gray-700/10">
+                  <div className="text-xl font-black text-[#344E41] dark:text-gray-100">{user.highestStreak}</div>
+                  <div className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-60 uppercase tracking-wider">Streak</div>
                 </div>
               </div>
 
               {/* Additional Info */}
-              <div className="space-y-3 text-sm text-[#344E41] opacity-70 font-medium mb-4 flex-grow">
+              <div className="space-y-3 text-sm text-[#344E41] dark:text-gray-100 opacity-70 font-medium mb-4 flex-grow">
                 <div className="flex items-center justify-between">
                   <span>Success Rate:</span>
                   <span className="font-black text-[#A3B18A] text-base">{user.successPercentage}%</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Total Habits:</span>
-                  <span className="font-bold text-[#344E41]">{user.totalHabits || 0}</span>
+                  <span className="font-bold text-[#344E41] dark:text-gray-100">{user.totalHabits || 0}</span>
                 </div>
                 {(user as any).mutualFriends && (user as any).mutualFriends > 0 && (
                   <div className="flex items-center justify-between">
@@ -259,8 +259,8 @@ const Discover: React.FC = () => {
 
               {/* Recent Activity */}
               {(user as any).recentActivity && user.privacyLevel === 'public' && (
-                <div className="mt-auto pt-4 border-t border-[#344E41]/10">
-                  <p className="text-xs font-bold text-[#344E41] opacity-50">{(user as any).recentActivity}</p>
+                <div className="mt-auto pt-4 border-t border-[#344E41] dark:border-gray-700/10">
+                  <p className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-50">{(user as any).recentActivity}</p>
                 </div>
               )}
             </div>
@@ -271,12 +271,12 @@ const Discover: React.FC = () => {
 
         {/* Empty State */}
         {!isLoading && !error && users.length === 0 && (
-          <div className="text-center py-16 bg-[#A3B18A]/5 rounded-3xl border border-[#A3B18A]/20">
-            <Users className="w-16 h-16 text-[#344E41] opacity-20 mx-auto mb-4" />
-            <h3 className="text-xl font-black text-[#344E41] mb-2">
+          <div className="text-center py-16 bg-[#A3B18A] dark:bg-gray-800/5 rounded-3xl border border-[#A3B18A]/20">
+            <Users className="w-16 h-16 text-[#344E41] dark:text-gray-100 opacity-20 mx-auto mb-4" />
+            <h3 className="text-xl font-black text-[#344E41] dark:text-gray-100 mb-2">
               No users found
             </h3>
-            <p className="text-[#344E41] opacity-60 font-medium mb-6">
+            <p className="text-[#344E41] dark:text-gray-100 opacity-60 font-medium mb-6">
               {searchTerm ? 
                 `No users match "${searchTerm}". Try a different search term.` :
                 'Try adjusting your filters or search for specific users.'

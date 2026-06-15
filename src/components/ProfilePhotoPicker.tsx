@@ -88,18 +88,18 @@ const ProfilePhotoPicker: React.FC<ProfilePhotoPickerProps> = ({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-[#FEFAE0] rounded-3xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
+          className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-black text-[#344E41] tracking-tight">
+            <h2 className="text-2xl font-black text-[#344E41] dark:text-gray-100 tracking-tight">
               Choose Profile Picture
             </h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-[#344E41]/10 rounded-xl transition-colors"
+              className="p-2 hover:bg-[#344E41] dark:bg-gray-700/10 rounded-xl transition-colors"
             >
-              <X className="h-6 w-6 text-[#344E41] opacity-50" />
+              <X className="h-6 w-6 text-[#344E41] dark:text-gray-100 opacity-50" />
             </button>
           </div>
 
@@ -134,15 +134,15 @@ const ProfilePhotoPicker: React.FC<ProfilePhotoPickerProps> = ({
           </div>
 
           {/* Tabs */}
-          <div className="flex space-x-1 mb-8 bg-[#A3B18A]/10 rounded-xl p-1.5">
+          <div className="flex space-x-1 mb-8 bg-[#A3B18A] dark:bg-gray-800/10 rounded-xl p-1.5">
             {(['icon', 'color', 'upload'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all ${
                   activeTab === tab
-                    ? 'bg-[#FEFAE0] text-[#344E41] shadow-sm'
-                    : 'text-[#344E41] opacity-60 hover:opacity-100 hover:bg-[#344E41]/5'
+                    ? 'bg-[#FEFAE0] dark:bg-gray-900 text-[#344E41] dark:text-gray-100 shadow-sm'
+                    : 'text-[#344E41] dark:text-gray-100 opacity-60 hover:opacity-100 hover:bg-[#344E41] dark:bg-gray-700/5'
                 }`}
               >
                 {tab === 'icon' && 'Icons'}
@@ -162,9 +162,9 @@ const ProfilePhotoPicker: React.FC<ProfilePhotoPickerProps> = ({
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => onIconSelect(icon)}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl hover:bg-[#344E41]/5 transition-colors ${
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl hover:bg-[#344E41] dark:bg-gray-700/5 transition-colors ${
                       currentIcon === icon
-                        ? 'bg-[#E9C46A]/20 ring-2 ring-[#E9C46A] shadow-sm'
+                        ? 'bg-[#E9C46A] dark:bg-yellow-600/20 ring-2 ring-[#E9C46A] shadow-sm'
                         : ''
                     }`}
                   >
@@ -195,10 +195,10 @@ const ProfilePhotoPicker: React.FC<ProfilePhotoPickerProps> = ({
 
             {activeTab === 'upload' && (
               <div className="space-y-4">
-                <div className="border-2 border-dashed border-[#344E41]/20 bg-[#A3B18A]/5 rounded-2xl p-8 text-center transition-colors hover:bg-[#A3B18A]/10">
+                <div className="border-2 border-dashed border-[#344E41] dark:border-gray-700/20 bg-[#A3B18A] dark:bg-gray-800/5 rounded-2xl p-8 text-center transition-colors hover:bg-[#A3B18A] dark:bg-gray-800/10">
                   <div className="flex flex-col items-center space-y-3">
-                    <Upload className="h-8 w-8 text-[#344E41] opacity-40" />
-                    <div className="text-sm font-bold text-[#344E41] opacity-70">
+                    <Upload className="h-8 w-8 text-[#344E41] dark:text-gray-100 opacity-40" />
+                    <div className="text-sm font-bold text-[#344E41] dark:text-gray-100 opacity-70">
                       <label htmlFor="photo-upload" className="cursor-pointer">
                         <span className="text-[#E9C46A] hover:text-[#d4b05a] opacity-100">
                           Upload a photo
@@ -206,7 +206,7 @@ const ProfilePhotoPicker: React.FC<ProfilePhotoPickerProps> = ({
                         <span> or drag and drop</span>
                       </label>
                     </div>
-                    <p className="text-xs font-medium text-[#344E41] opacity-50">
+                    <p className="text-xs font-medium text-[#344E41] dark:text-gray-100 opacity-50">
                       PNG, JPG up to 5MB
                     </p>
                   </div>
@@ -229,16 +229,16 @@ const ProfilePhotoPicker: React.FC<ProfilePhotoPickerProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-[#344E41]/10">
+          <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-[#344E41] dark:border-gray-700/10">
             <button
               onClick={onClose}
-              className="px-6 py-3 text-sm font-bold text-[#344E41] bg-[#A3B18A]/20 hover:bg-[#A3B18A]/40 rounded-xl transition-colors"
+              className="px-6 py-3 text-sm font-bold text-[#344E41] dark:text-gray-100 bg-[#A3B18A] dark:bg-gray-800/20 hover:bg-[#A3B18A] dark:bg-gray-800/40 rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={onClose}
-              className="px-6 py-3 text-sm font-black bg-[#E9C46A] text-[#344E41] hover:bg-[#d4b05a] rounded-xl transition-colors shadow-md"
+              className="px-6 py-3 text-sm font-black bg-[#E9C46A] dark:bg-yellow-600 text-[#344E41] dark:text-gray-100 hover:bg-[#d4b05a] rounded-xl transition-colors shadow-md"
             >
               Done
             </button>

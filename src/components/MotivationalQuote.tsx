@@ -20,13 +20,8 @@ const MotivationalQuoteComponent: React.FC<MotivationalQuoteComponentProps> = ({
     
     // Add a small delay for better UX
     setTimeout(() => {
-      if (isDaily) {
-        setQuote(getRandomQuote());
-        setIsDaily(false);
-      } else {
-        setQuote(getDailyQuote());
-        setIsDaily(true);
-      }
+      setQuote(getRandomQuote());
+      setIsDaily(false);
       setIsRefreshing(false);
     }, 300);
   };
@@ -36,12 +31,12 @@ const MotivationalQuoteComponent: React.FC<MotivationalQuoteComponentProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`relative p-6 bg-gradient-to-br from-primary-500 to-primary-700 text-white h-full min-h-[200px] flex flex-col ${className}`}
+      className={`relative p-6 bg-[#344E41] dark:bg-gray-800 text-[#FEFAE0] dark:text-gray-200 h-full min-h-[200px] flex flex-col ${className}`}
     >
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center space-x-2">
-          <Quote className="h-6 w-6 text-primary-100" />
-          <h2 className="text-lg font-semibold text-white">
+          <Quote className="h-6 w-6 text-[#A3B18A]" />
+          <h2 className="text-lg font-semibold">
             {isDaily ? "Today's Motivation" : "Random Inspiration"}
           </h2>
         </div>
@@ -54,7 +49,7 @@ const MotivationalQuoteComponent: React.FC<MotivationalQuoteComponentProps> = ({
           className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
         >
           <RefreshCw 
-            className={`h-4 w-4 text-white ${isRefreshing ? 'animate-spin' : ''}`} 
+            className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} 
           />
         </motion.button>
       </div>
@@ -66,17 +61,17 @@ const MotivationalQuoteComponent: React.FC<MotivationalQuoteComponentProps> = ({
         transition={{ duration: 0.4 }}
         className="flex-1 flex flex-col justify-center"
       >
-        <blockquote className="text-lg font-medium text-white mb-6 leading-relaxed flex-1 flex items-center">
+        <blockquote className="text-lg font-medium mb-6 leading-relaxed flex-1 flex items-center">
           <span>"{quote.text}"</span>
         </blockquote>
         
         <div className="flex items-center justify-between mt-auto">
-          <cite className="text-primary-100 font-medium">
+          <cite className="text-[#A3B18A] font-bold">
             — {quote.author}
           </cite>
           
-          <div className="flex items-center space-x-2 text-sm text-primary-200">
-            <span className="px-2 py-1 bg-white/10 rounded-full">
+          <div className="flex items-center space-x-2 text-xs font-bold text-[#A3B18A]">
+            <span className="px-2 py-1 bg-white/10 rounded-xl uppercase tracking-wider">
               {isDaily ? 'Daily Quote' : 'Random Quote'}
             </span>
           </div>

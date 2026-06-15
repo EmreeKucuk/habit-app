@@ -13,13 +13,13 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-[#A3B18A]/5 rounded-3xl p-5 border border-[#344E41]/5 animate-pulse">
+          <div key={i} className="bg-[#A3B18A] dark:bg-gray-800/5 rounded-3xl p-5 border border-[#344E41] dark:border-gray-700/5 animate-pulse">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <div className="h-4 bg-[#344E41]/10 rounded w-3/4 mb-3"></div>
-                <div className="h-8 bg-[#344E41]/10 rounded w-1/2"></div>
+                <div className="h-4 bg-[#344E41] dark:bg-gray-700/10 rounded w-3/4 mb-3"></div>
+                <div className="h-8 bg-[#344E41] dark:bg-gray-700/10 rounded w-1/2"></div>
               </div>
-              <div className="flex-shrink-0 w-12 h-12 bg-[#344E41]/10 rounded-2xl ml-3"></div>
+              <div className="flex-shrink-0 w-12 h-12 bg-[#344E41] dark:bg-gray-700/10 rounded-2xl ml-3"></div>
             </div>
           </div>
         ))}
@@ -32,48 +32,48 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
       icon: Target,
       label: 'Total Habits',
       value: stats.totalHabits || 0,
-      color: 'text-[#344E41]',
-      bgColor: 'bg-[#A3B18A]/20',
+      color: 'text-[#344E41] dark:text-gray-100',
+      bgColor: 'bg-[#A3B18A] dark:bg-gray-800/20',
       suffix: ''
     },
     {
       icon: Calendar,
       label: 'Completed Today',
       value: stats.completedToday || 0,
-      color: 'text-[#344E41]',
-      bgColor: 'bg-[#E9C46A]/20',
+      color: 'text-[#344E41] dark:text-gray-100',
+      bgColor: 'bg-[#E9C46A] dark:bg-yellow-600/20',
       suffix: ''
     },
     {
       icon: Flame,
       label: 'Current Streak',
       value: stats.currentStreak || 0,
-      color: 'text-[#344E41]',
-      bgColor: 'bg-[#344E41]/10',
+      color: 'text-[#344E41] dark:text-gray-100',
+      bgColor: 'bg-[#344E41] dark:bg-gray-700/10',
       suffix: ' days'
     },
     {
       icon: Award,
       label: 'Longest Streak',
       value: stats.longestStreak || 0,
-      color: 'text-[#344E41]',
-      bgColor: 'bg-[#A3B18A]/20',
+      color: 'text-[#344E41] dark:text-gray-100',
+      bgColor: 'bg-[#A3B18A] dark:bg-gray-800/20',
       suffix: ' days'
     },
     {
       icon: TrendingUp,
       label: 'Success Rate',
       value: Math.round(stats.successPercentage || 0),
-      color: 'text-[#344E41]',
-      bgColor: 'bg-[#E9C46A]/20',
+      color: 'text-[#344E41] dark:text-gray-100',
+      bgColor: 'bg-[#E9C46A] dark:bg-yellow-600/20',
       suffix: '%'
     },
     {
       icon: BarChart3,
       label: 'Total Completions',
       value: stats.totalCompletions || 0,
-      color: 'text-[#344E41]',
-      bgColor: 'bg-[#344E41]/10',
+      color: 'text-[#344E41] dark:text-gray-100',
+      bgColor: 'bg-[#344E41] dark:bg-gray-700/10',
       suffix: ''
     }
   ];
@@ -88,16 +88,16 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="bg-[#FEFAE0] rounded-3xl shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41]/5 p-5 hover:shadow-[0_8px_30px_rgb(52,78,65,0.08)] transition-all"
+            className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5 p-5 hover:shadow-[0_8px_30px_rgb(52,78,65,0.08)] transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-[#344E41] opacity-70 uppercase tracking-wider mb-1.5 truncate">
+                <p className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-70 uppercase tracking-wider mb-1.5 truncate">
                   {item.label}
                 </p>
-                <p className="text-2xl font-black text-[#344E41]">
+                <p className="text-2xl font-black text-[#344E41] dark:text-gray-100">
                   {item.value.toLocaleString()}
-                  <span className="text-sm font-bold text-[#344E41] opacity-60 ml-1">
+                  <span className="text-sm font-bold text-[#344E41] dark:text-gray-100 opacity-60 ml-1">
                     {item.suffix}
                   </span>
                 </p>
@@ -115,18 +115,18 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.6 }}
-        className="bg-[#A3B18A]/10 rounded-3xl p-6"
+        className="bg-[#A3B18A] dark:bg-gray-800/10 rounded-3xl p-6"
       >
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-black text-[#344E41]">
+          <h3 className="text-lg font-black text-[#344E41] dark:text-gray-100">
             Weekly Performance
           </h3>
-          <div className="text-sm font-bold text-[#344E41] opacity-70">
+          <div className="text-sm font-bold text-[#344E41] dark:text-gray-100 opacity-70">
             Average: {(stats.weeklyAverage || 0).toFixed(1)} completions/day
           </div>
         </div>
         
-        <div className="w-full bg-[#344E41]/10 rounded-full h-3">
+        <div className="w-full bg-[#344E41] dark:bg-gray-700/10 rounded-full h-3">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min(((stats.weeklyAverage || 0) / 10) * 100, 100)}%` }}
@@ -135,7 +135,7 @@ const ProfileStatistics: React.FC<ProfileStatisticsProps> = ({ stats, isLoading 
           />
         </div>
         
-        <p className="text-xs font-bold text-[#344E41] opacity-60 mt-3">
+        <p className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-60 mt-3">
           {(stats.weeklyAverage || 0) >= 7 ? 'Excellent performance!' : 
            (stats.weeklyAverage || 0) >= 5 ? 'Good progress!' : 
            (stats.weeklyAverage || 0) >= 3 ? 'Keep it up!' : 

@@ -37,50 +37,50 @@ const Reports: React.FC = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-[#344E41]">Summary</h1>
-            <p className="text-[#344E41] opacity-80 mt-1 text-lg">Detailed insights into your habit-building journey</p>
+            <h1 className="text-3xl font-bold tracking-tight text-[#344E41] dark:text-gray-100">Summary</h1>
+            <p className="text-[#344E41] dark:text-gray-100 opacity-80 mt-1 text-lg">Detailed insights into your habit-building journey</p>
           </div>
 
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
+            <div className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
               <div className="flex items-center justify-between mb-4">
                 <Target className="h-8 w-8 text-[#E9C46A]" />
-                <p className="text-3xl font-bold text-[#344E41]">{stats?.totalHabits || 0}</p>
+                <p className="text-3xl font-bold text-[#344E41] dark:text-gray-100">{stats?.totalHabits || 0}</p>
               </div>
-              <p className="text-[#344E41] font-medium opacity-90">Total Habits</p>
+              <p className="text-[#344E41] dark:text-gray-100 font-medium opacity-90">Total Habits</p>
             </div>
 
-            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
+            <div className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
               <div className="flex items-center justify-between mb-4">
-                <Calendar className="h-8 w-8 text-[#344E41]" />
-                <p className="text-3xl font-bold text-[#344E41]">{stats?.completedToday || 0}</p>
+                <Calendar className="h-8 w-8 text-[#344E41] dark:text-gray-100" />
+                <p className="text-3xl font-bold text-[#344E41] dark:text-gray-100">{stats?.completedToday || 0}</p>
               </div>
-              <p className="text-[#344E41] font-medium opacity-90">Completed Today</p>
+              <p className="text-[#344E41] dark:text-gray-100 font-medium opacity-90">Completed Today</p>
             </div>
 
-            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
+            <div className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
               <div className="flex items-center justify-between mb-4">
                 <TrendingUp className="h-8 w-8 text-[#E9C46A]" />
-                <p className="text-3xl font-bold text-[#344E41]">{userStats?.currentStreak || 0}</p>
+                <p className="text-3xl font-bold text-[#344E41] dark:text-gray-100">{userStats?.currentStreak || 0}</p>
               </div>
-              <p className="text-[#344E41] font-medium opacity-90">Current Streak</p>
+              <p className="text-[#344E41] dark:text-gray-100 font-medium opacity-90">Current Streak</p>
             </div>
 
-            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
+            <div className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm p-6 flex flex-col justify-between transition-all hover:-translate-y-1">
               <div className="flex items-center justify-between mb-4">
                 <Award className="h-8 w-8 text-[#E9C46A]" />
-                <p className="text-3xl font-bold text-[#344E41]">{userStats?.longestStreak || 0}</p>
+                <p className="text-3xl font-bold text-[#344E41] dark:text-gray-100">{userStats?.longestStreak || 0}</p>
               </div>
-              <p className="text-[#344E41] font-medium opacity-90">Best Streak</p>
+              <p className="text-[#344E41] dark:text-gray-100 font-medium opacity-90">Best Streak</p>
             </div>
           </div>
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Weekly Progress */}
-            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 border border-transparent">
-              <h3 className="text-xl font-bold text-[#344E41] mb-6">Weekly Progress</h3>
+            <div className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent">
+              <h3 className="text-xl font-bold text-[#344E41] dark:text-gray-100 mb-6">Weekly Progress</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={weeklyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#344E41" opacity={0.1} vertical={false} />
@@ -103,8 +103,8 @@ const Reports: React.FC = () => {
             </div>
 
             {/* Category Breakdown */}
-            <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 border border-transparent">
-              <h3 className="text-xl font-bold text-[#344E41] mb-6">Habits by Category</h3>
+            <div className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent">
+              <h3 className="text-xl font-bold text-[#344E41] dark:text-gray-100 mb-6">Habits by Category</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -133,7 +133,7 @@ const Reports: React.FC = () => {
               </ResponsiveContainer>
               <div className="flex flex-wrap justify-center gap-4 mt-2">
                 {categoryData.map((cat, idx) => (
-                  <div key={idx} className="flex items-center text-sm font-medium text-[#344E41]">
+                  <div key={idx} className="flex items-center text-sm font-medium text-[#344E41] dark:text-gray-100">
                     <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
                     {cat.name}
                   </div>
@@ -143,8 +143,8 @@ const Reports: React.FC = () => {
           </div>
 
           {/* Monthly Trend */}
-          <div className="bg-[#A3B18A] rounded-xl shadow-sm p-6 border border-transparent">
-            <h3 className="text-xl font-bold text-[#344E41] mb-6">6-Month Completion Trend</h3>
+          <div className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent">
+            <h3 className="text-xl font-bold text-[#344E41] dark:text-gray-100 mb-6">6-Month Completion Trend</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={monthlyProgress}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#344E41" opacity={0.1} vertical={false} />

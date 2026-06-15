@@ -98,7 +98,7 @@ const Friends: React.FC = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       key={activity.id} 
-      className="bg-[#A3B18A] rounded-xl shadow-sm border border-transparent hover:border-[#E9C46A] p-6 transition-all duration-300"
+      className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm border border-transparent hover:border-[#E9C46A] p-6 transition-all duration-300"
     >
       <div className="flex items-start space-x-4">
         <img
@@ -108,21 +108,21 @@ const Friends: React.FC = () => {
         />
         <div className="flex-1">
           <div className="flex justify-between items-start">
-            <h3 className="font-semibold text-[#344E41] text-lg">
+            <h3 className="font-semibold text-[#344E41] dark:text-gray-100 text-lg">
               {activity.friend_first_name && activity.friend_last_name 
                 ? `${activity.friend_first_name} ${activity.friend_last_name}` 
                 : activity.friend_username}
             </h3>
-            <span className="flex items-center text-sm text-[#344E41] opacity-70">
+            <span className="flex items-center text-sm text-[#344E41] dark:text-gray-100 opacity-70">
               <Clock className="w-3 h-3 mr-1" />
               {formatTimeAgo(activity.completed_at)}
             </span>
           </div>
-          <div className="mt-2 text-[#344E41]">
-            completed the <span className="font-bold text-[#E9C46A] bg-[#344E41] px-2 py-0.5 rounded-md mx-1 shadow-sm">{activity.habit_name}</span> habit.
+          <div className="mt-2 text-[#344E41] dark:text-gray-100">
+            completed the <span className="font-bold text-[#E9C46A] bg-[#344E41] dark:bg-gray-700 px-2 py-0.5 rounded-md mx-1 shadow-sm">{activity.habit_name}</span> habit.
           </div>
           {activity.notes && (
-            <div className="mt-3 p-3 bg-[#FEFAE0] bg-opacity-40 rounded-lg italic text-[#344E41] border-l-4 border-[#E9C46A]">
+            <div className="mt-3 p-3 bg-[#FEFAE0] dark:bg-gray-900 bg-opacity-40 rounded-lg italic text-[#344E41] dark:text-gray-100 border-l-4 border-[#E9C46A]">
               "{activity.notes}"
             </div>
           )}
@@ -136,7 +136,7 @@ const Friends: React.FC = () => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       key={person.id} 
-      className="bg-[#A3B18A] rounded-xl shadow-sm p-6"
+      className="bg-[#A3B18A] dark:bg-gray-800 rounded-xl shadow-sm p-6"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -147,10 +147,10 @@ const Friends: React.FC = () => {
             className="w-12 h-12 rounded-full border-2 border-[#FEFAE0]"
           />
           <div>
-            <h3 className="font-semibold text-[#344E41]">
+            <h3 className="font-semibold text-[#344E41] dark:text-gray-100">
               {person.first_name && person.last_name ? `${person.first_name} ${person.last_name}` : person.username}
             </h3>
-            <p className="text-sm text-[#344E41] opacity-80">@{person.username}</p>
+            <p className="text-sm text-[#344E41] dark:text-gray-100 opacity-80">@{person.username}</p>
           </div>
         </div>
         
@@ -159,7 +159,7 @@ const Friends: React.FC = () => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => removeFriendMutation.mutate({ userId: person.friend_user_id })}
-              className="p-2 text-[#FEFAE0] hover:bg-[#344E41] bg-[#344E41]/20 rounded-lg transition-colors"
+              className="p-2 text-[#FEFAE0] dark:text-gray-300 hover:bg-[#344E41] dark:bg-gray-700 bg-[#344E41] dark:bg-gray-700/20 rounded-lg transition-colors"
             >
               <UserMinus className="w-4 h-4" />
             </button>
@@ -170,7 +170,7 @@ const Friends: React.FC = () => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => acceptFriendMutation.mutate({ userId: person.friend_user_id })}
-              className="px-3 py-1 bg-[#344E41] text-[#E9C46A] rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors flex items-center space-x-1"
+              className="px-3 py-1 bg-[#344E41] dark:bg-gray-700 text-[#E9C46A] rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors flex items-center space-x-1"
             >
               <UserCheck className="w-3 h-3" />
               <span>Accept</span>
@@ -186,7 +186,7 @@ const Friends: React.FC = () => {
         
         {activeTab === 'sent' && (
           <div className="flex items-center space-x-2">
-            <div className="px-3 py-1 bg-[#E9C46A] text-[#344E41] rounded-lg text-sm font-medium">
+            <div className="px-3 py-1 bg-[#E9C46A] dark:bg-yellow-600 text-[#344E41] dark:text-gray-100 rounded-lg text-sm font-medium">
               Pending
             </div>
             <button
@@ -202,13 +202,13 @@ const Friends: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="text-center p-2 bg-[#FEFAE0] rounded-lg">
-          <div className="text-lg font-bold text-[#344E41]">{person.level}</div>
-          <div className="text-xs text-[#344E41] opacity-70">Level</div>
+        <div className="text-center p-2 bg-[#FEFAE0] dark:bg-gray-900 rounded-lg">
+          <div className="text-lg font-bold text-[#344E41] dark:text-gray-100">{person.level}</div>
+          <div className="text-xs text-[#344E41] dark:text-gray-100 opacity-70">Level</div>
         </div>
-        <div className="text-center p-2 bg-[#FEFAE0] rounded-lg">
+        <div className="text-center p-2 bg-[#FEFAE0] dark:bg-gray-900 rounded-lg">
           <div className="text-lg font-bold text-[#E9C46A]">{person.xp}</div>
-          <div className="text-xs text-[#344E41] opacity-70">XP</div>
+          <div className="text-xs text-[#344E41] dark:text-gray-100 opacity-70">XP</div>
         </div>
       </div>
     </motion.div>
@@ -221,11 +221,11 @@ const Friends: React.FC = () => {
           {/* Header */}
           <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-[#344E41]">Activity & Connections</h1>
-              <p className="text-[#344E41] opacity-80 mt-1 text-lg">Follow your friends' journey and build your network</p>
+              <h1 className="text-3xl font-bold tracking-tight text-[#344E41] dark:text-gray-100">Activity & Connections</h1>
+              <p className="text-[#344E41] dark:text-gray-100 opacity-80 mt-1 text-lg">Follow your friends' journey and build your network</p>
             </div>
             
-            <div className="flex items-center space-x-2 text-sm font-medium bg-[#A3B18A] text-[#344E41] px-4 py-2 rounded-full shadow-sm">
+            <div className="flex items-center space-x-2 text-sm font-medium bg-[#A3B18A] dark:bg-gray-800 text-[#344E41] dark:text-gray-100 px-4 py-2 rounded-full shadow-sm">
               <Users className="w-4 h-4" />
               <span>{friends.length} Friends</span>
             </div>
@@ -244,15 +244,15 @@ const Friends: React.FC = () => {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center whitespace-nowrap px-5 py-3 rounded-xl font-medium transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'bg-[#344E41] text-[#E9C46A] shadow-md transform scale-105'
-                    : 'bg-[#A3B18A] text-[#344E41] hover:bg-opacity-80 hover:shadow-sm'
+                    ? 'bg-[#344E41] dark:bg-gray-700 text-[#E9C46A] shadow-md transform scale-105'
+                    : 'bg-[#A3B18A] dark:bg-gray-800 text-[#344E41] dark:text-gray-100 hover:bg-opacity-80 hover:shadow-sm'
                 }`}
               >
                 {tab.icon && <tab.icon className="w-4 h-4 mr-2" />}
                 {tab.label}
                 {tab.count !== undefined && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    activeTab === tab.id ? 'bg-[#E9C46A] text-[#344E41]' : 'bg-[#FEFAE0]'
+                    activeTab === tab.id ? 'bg-[#E9C46A] dark:bg-yellow-600 text-[#344E41] dark:text-gray-100' : 'bg-[#FEFAE0] dark:bg-gray-900'
                   }`}>
                     {tab.count}
                   </span>
@@ -268,13 +268,13 @@ const Friends: React.FC = () => {
               animate={{ opacity: 1, height: 'auto' }}
               className="relative"
             >
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] opacity-50" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] dark:text-gray-100 opacity-50" />
               <input
                 type="text"
                 placeholder={`Search ${activeTab}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#A3B18A] border-none text-[#344E41] placeholder-[#344E41] placeholder-opacity-50 rounded-xl focus:ring-2 focus:ring-[#344E41] outline-none transition-shadow"
+                className="w-full pl-12 pr-4 py-3 bg-[#A3B18A] dark:bg-gray-800 border-none text-[#344E41] dark:text-gray-100 placeholder-[#344E41] placeholder-opacity-50 rounded-xl focus:ring-2 focus:ring-[#344E41] outline-none transition-shadow"
               />
             </motion.div>
           )}
@@ -290,15 +290,15 @@ const Friends: React.FC = () => {
           {!isFriendsLoading && activeTab === 'activity' && (
             <div className="space-y-4 max-w-3xl mx-auto mt-8">
               {!isActivityLoading && (!activityData || activityData.length === 0) ? (
-                <div className="text-center py-16 bg-[#A3B18A] rounded-2xl shadow-sm border border-[#A3B18A]">
-                  <Activity className="w-16 h-16 text-[#344E41] opacity-50 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-[#344E41] mb-2">It's quiet here</h3>
-                  <p className="text-[#344E41] opacity-80 max-w-md mx-auto">
+                <div className="text-center py-16 bg-[#A3B18A] dark:bg-gray-800 rounded-2xl shadow-sm border border-[#A3B18A]">
+                  <Activity className="w-16 h-16 text-[#344E41] dark:text-gray-100 opacity-50 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-[#344E41] dark:text-gray-100 mb-2">It's quiet here</h3>
+                  <p className="text-[#344E41] dark:text-gray-100 opacity-80 max-w-md mx-auto">
                     When your friends complete habits, their progress will appear here. Build your network to see more activity!
                   </p>
                   <button 
                     onClick={() => setActiveTab('friends')}
-                    className="mt-6 px-6 py-2 bg-[#344E41] text-[#E9C46A] rounded-full font-medium hover:bg-opacity-90 transition-colors"
+                    className="mt-6 px-6 py-2 bg-[#344E41] dark:bg-gray-700 text-[#E9C46A] rounded-full font-medium hover:bg-opacity-90 transition-colors"
                   >
                     Find Friends
                   </button>
@@ -321,12 +321,12 @@ const Friends: React.FC = () => {
               </div>
 
               {filteredData().length === 0 && (
-                <div className="text-center py-16 bg-[#A3B18A] rounded-2xl shadow-sm border border-[#A3B18A] mt-6">
-                  <Users className="w-16 h-16 text-[#344E41] opacity-50 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-[#344E41] mb-2">
+                <div className="text-center py-16 bg-[#A3B18A] dark:bg-gray-800 rounded-2xl shadow-sm border border-[#A3B18A] mt-6">
+                  <Users className="w-16 h-16 text-[#344E41] dark:text-gray-100 opacity-50 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-[#344E41] dark:text-gray-100 mb-2">
                     {searchTerm ? 'No matches found' : `No ${activeTab} yet`}
                   </h3>
-                  <p className="text-[#344E41] opacity-80 mb-6">
+                  <p className="text-[#344E41] dark:text-gray-100 opacity-80 mb-6">
                     {searchTerm ? 
                       `No ${activeTab} match "${searchTerm}".` :
                       activeTab === 'friends' ? 

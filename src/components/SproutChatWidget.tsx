@@ -125,13 +125,13 @@ const SproutChatWidget: React.FC = () => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-[#344E41] text-[#FEFAE0] flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+        className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
         aria-label="Open Sprout Chat"
       >
         <MessageCircle className="w-8 h-8" />
         <span className="absolute -top-1 -right-1 flex h-4 w-4">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E9C46A] opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-4 w-4 bg-[#E9C46A]"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E9C46A] dark:bg-yellow-600 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-4 w-4 bg-[#E9C46A] dark:bg-yellow-600"></span>
         </span>
       </motion.button>
 
@@ -145,7 +145,7 @@ const SproutChatWidget: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-[#344E41]/20 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-[#344E41] dark:bg-gray-700/20 backdrop-blur-sm z-40"
             />
 
             {/* Drawer */}
@@ -154,22 +154,22 @@ const SproutChatWidget: React.FC = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-[#FEFAE0] shadow-2xl z-50 flex flex-col"
+              className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-[#FEFAE0] dark:bg-gray-900 shadow-2xl z-50 flex flex-col"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-5 bg-[#A3B18A] border-b border-[#344E41]/10">
+              <div className="flex items-center justify-between p-5 bg-[#A3B18A] dark:bg-gray-800 border-b border-[#344E41] dark:border-gray-700/10">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-[#FEFAE0] flex items-center justify-center shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-[#FEFAE0] dark:bg-gray-900 flex items-center justify-center shadow-sm">
                     <span className="text-xl">🌱</span>
                   </div>
                   <div>
-                    <h2 className="font-bold text-[#344E41] text-lg leading-tight">Sprout</h2>
-                    <p className="text-xs text-[#344E41] opacity-70 font-medium">Your Habit Companion</p>
+                    <h2 className="font-bold text-[#344E41] dark:text-gray-100 text-lg leading-tight">Sprout</h2>
+                    <p className="text-xs text-[#344E41] dark:text-gray-100 opacity-70 font-medium">Your Habit Companion</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 text-[#344E41] hover:bg-[#FEFAE0]/50 rounded-full transition-colors"
+                  className="p-2 text-[#344E41] dark:text-gray-100 hover:bg-[#FEFAE0] dark:bg-gray-900/50 rounded-full transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -188,14 +188,14 @@ const SproutChatWidget: React.FC = () => {
                         {/* Avatar */}
                         <div className={`flex-shrink-0 ${isSprout ? 'mr-3' : 'ml-3'}`}>
                           {isSprout ? (
-                            <div className="w-8 h-8 rounded-full bg-[#A3B18A] flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-[#A3B18A] dark:bg-gray-800 flex items-center justify-center">
                               <span className="text-sm">🌱</span>
                             </div>
                           ) : (
                             <img
                               src={generateAvatar(user?.username || 'U', user?.avatarColor || '#E9C46A')}
                               alt="You"
-                              className="w-8 h-8 rounded-full border border-[#344E41]/10"
+                              className="w-8 h-8 rounded-full border border-[#344E41] dark:border-gray-700/10"
                             />
                           )}
                         </div>
@@ -205,22 +205,22 @@ const SproutChatWidget: React.FC = () => {
                           <div
                             className={`p-3 rounded-2xl ${
                               isSprout
-                                ? 'bg-white text-[#344E41] rounded-tl-none border border-[#344E41]/5 shadow-sm'
-                                : 'bg-[#344E41] text-[#FEFAE0] rounded-tr-none shadow-md'
+                                ? 'bg-white text-[#344E41] dark:text-gray-100 rounded-tl-none border border-[#344E41] dark:border-gray-700/5 shadow-sm'
+                                : 'bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 rounded-tr-none shadow-md'
                             }`}
                           >
                             <p className="text-[15px] leading-relaxed">{msg.text}</p>
                           </div>
                           {/* Auto-completion badge */}
                           {msg.habitCompleted && (
-                            <div className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1 bg-[#344E41]/10 rounded-full w-fit">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#344E41]" />
-                              <span className="text-[11px] font-semibold text-[#344E41]">
+                            <div className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1 bg-[#344E41] dark:bg-gray-700/10 rounded-full w-fit">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#344E41] dark:text-gray-100" />
+                              <span className="text-[11px] font-semibold text-[#344E41] dark:text-gray-100">
                                 ✅ Marked "{msg.habitCompleted}" as done
                               </span>
                             </div>
                           )}
-                          <p className={`text-[10px] mt-1 text-[#344E41] opacity-50 ${isSprout ? 'text-left' : 'text-right'}`}>
+                          <p className={`text-[10px] mt-1 text-[#344E41] dark:text-gray-100 opacity-50 ${isSprout ? 'text-left' : 'text-right'}`}>
                             {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
@@ -234,25 +234,25 @@ const SproutChatWidget: React.FC = () => {
                   <div className="flex w-full justify-start">
                     <div className="flex max-w-[85%] flex-row">
                       <div className="flex-shrink-0 mr-3">
-                        <div className="w-8 h-8 rounded-full bg-[#A3B18A] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-[#A3B18A] dark:bg-gray-800 flex items-center justify-center">
                           <span className="text-sm">🌱</span>
                         </div>
                       </div>
-                      <div className="bg-white rounded-2xl rounded-tl-none border border-[#344E41]/5 shadow-sm px-4 py-3 flex items-center space-x-1">
+                      <div className="bg-white rounded-2xl rounded-tl-none border border-[#344E41] dark:border-gray-700/5 shadow-sm px-4 py-3 flex items-center space-x-1">
                         <motion.div
                           animate={{ y: [0, -5, 0] }}
                           transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
-                          className="w-2 h-2 bg-[#A3B18A] rounded-full"
+                          className="w-2 h-2 bg-[#A3B18A] dark:bg-gray-800 rounded-full"
                         />
                         <motion.div
                           animate={{ y: [0, -5, 0] }}
                           transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
-                          className="w-2 h-2 bg-[#A3B18A] rounded-full"
+                          className="w-2 h-2 bg-[#A3B18A] dark:bg-gray-800 rounded-full"
                         />
                         <motion.div
                           animate={{ y: [0, -5, 0] }}
                           transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
-                          className="w-2 h-2 bg-[#A3B18A] rounded-full"
+                          className="w-2 h-2 bg-[#A3B18A] dark:bg-gray-800 rounded-full"
                         />
                       </div>
                     </div>
@@ -262,7 +262,7 @@ const SproutChatWidget: React.FC = () => {
               </div>
 
               {/* Input Area */}
-              <div className="p-4 bg-white border-t border-[#344E41]/10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+              <div className="p-4 bg-white border-t border-[#344E41] dark:border-gray-700/10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                 <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
                   <textarea
                     value={inputValue}
@@ -274,13 +274,13 @@ const SproutChatWidget: React.FC = () => {
                       }
                     }}
                     placeholder="Tell Sprout about your habits..."
-                    className="flex-1 max-h-32 min-h-[44px] bg-[#FEFAE0]/50 border border-[#A3B18A]/50 focus:border-[#A3B18A] focus:ring-1 focus:ring-[#A3B18A] rounded-2xl px-4 py-3 text-[#344E41] placeholder-[#344E41]/40 resize-none outline-none transition-all"
+                    className="flex-1 max-h-32 min-h-[44px] bg-[#FEFAE0] dark:bg-gray-900/50 border border-[#A3B18A]/50 focus:border-[#A3B18A] focus:ring-1 focus:ring-[#A3B18A] rounded-2xl px-4 py-3 text-[#344E41] dark:text-gray-100 placeholder-[#344E41]/40 resize-none outline-none transition-all"
                     rows={1}
                   />
                   <button
                     type="submit"
                     disabled={!inputValue.trim()}
-                    className="w-11 h-11 rounded-full bg-[#E9C46A] text-[#344E41] flex items-center justify-center flex-shrink-0 hover:bg-[#e6bb53] transition-colors disabled:opacity-50 disabled:hover:bg-[#E9C46A]"
+                    className="w-11 h-11 rounded-full bg-[#E9C46A] dark:bg-yellow-600 text-[#344E41] dark:text-gray-100 flex items-center justify-center flex-shrink-0 hover:bg-[#e6bb53] transition-colors disabled:opacity-50 disabled:hover:bg-[#E9C46A] dark:bg-yellow-600"
                   >
                     <Send className="w-5 h-5 ml-1" />
                   </button>

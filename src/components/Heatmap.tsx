@@ -73,7 +73,7 @@ const Heatmap: React.FC<HeatmapProps> = ({ data, weeks = 18 }) => {
     <div className="w-full overflow-x-auto scrollbar-hide py-2">
       <div className="min-w-max inline-flex flex-col">
         {/* Month Labels */}
-        <div className="flex h-5 relative text-xs text-[#344E41] font-medium opacity-60 mb-1 pl-6">
+        <div className="flex h-5 relative text-xs text-[#344E41] dark:text-gray-100 font-medium opacity-60 mb-1 pl-6">
           {monthLabels.map((label, i) => (
             <div 
               key={`${label.month}-${i}`} 
@@ -87,7 +87,7 @@ const Heatmap: React.FC<HeatmapProps> = ({ data, weeks = 18 }) => {
 
         <div className="flex">
           {/* Day of Week Labels */}
-          <div className="flex flex-col justify-between text-[10px] text-[#344E41] font-medium opacity-60 pr-2 pb-1" style={{ height: '110px' }}>
+          <div className="flex flex-col justify-between text-[10px] text-[#344E41] dark:text-gray-100 font-medium opacity-60 pr-2 pb-1" style={{ height: '110px' }}>
             <span className="mt-1">Sun</span>
             <span>Tue</span>
             <span>Thu</span>
@@ -111,7 +111,7 @@ const Heatmap: React.FC<HeatmapProps> = ({ data, weeks = 18 }) => {
                     }}
                   >
                     {!day.isFuture && (
-                      <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-[#344E41] text-[#FEFAE0] text-xs rounded whitespace-nowrap z-10 pointer-events-none">
+                      <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 text-xs rounded whitespace-nowrap z-10 pointer-events-none">
                         {day.value} contributions on {new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                         {/* Tooltip triangle */}
                         <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-[#344E41]"></div>

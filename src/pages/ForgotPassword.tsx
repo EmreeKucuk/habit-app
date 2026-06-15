@@ -26,18 +26,18 @@ const ForgotPassword: React.FC = () => {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] p-4 font-sans">
-        <div className="w-full max-w-md bg-[#FEFAE0] p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41]/5 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] dark:bg-gray-900 p-4 font-sans">
+        <div className="w-full max-w-md bg-[#FEFAE0] dark:bg-gray-900 p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5 text-center">
           <CheckCircle className="h-16 w-16 text-[#A3B18A] mx-auto mb-6" />
-          <h2 className="text-2xl font-black text-[#344E41] mb-2 tracking-tight">
+          <h2 className="text-2xl font-black text-[#344E41] dark:text-gray-100 mb-2 tracking-tight">
             Check your email
           </h2>
-          <p className="text-[#344E41] opacity-70 font-medium mb-8">
+          <p className="text-[#344E41] dark:text-gray-100 opacity-70 font-medium mb-8">
             If an account with that email exists, we've sent a password reset link.
           </p>
           <Link
             to="/login"
-            className="w-full bg-[#344E41] hover:bg-[#2a3f35] text-[#FEFAE0] font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-center items-center inline-flex"
+            className="w-full bg-[#344E41] dark:bg-gray-700 hover:bg-[#2a3f35] text-[#FEFAE0] dark:text-gray-300 font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-center items-center inline-flex"
           >
             Back to Login
           </Link>
@@ -47,17 +47,17 @@ const ForgotPassword: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] p-4 font-sans">
-      <div className="w-full max-w-md bg-[#FEFAE0] p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41]/5">
-        <Link to="/login" className="inline-flex items-center text-[#A3B18A] hover:text-[#344E41] mb-8 font-bold transition-colors">
+    <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] dark:bg-gray-900 p-4 font-sans">
+      <div className="w-full max-w-md bg-[#FEFAE0] dark:bg-gray-900 p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5">
+        <Link to="/login" className="inline-flex items-center text-[#A3B18A] hover:text-[#344E41] dark:text-gray-100 mb-8 font-bold transition-colors">
           <ArrowLeft className="h-4 w-4 mr-1.5" />
           Back to login
         </Link>
         
-        <h2 className="text-3xl font-black text-[#344E41] mb-3 tracking-tight">
+        <h2 className="text-3xl font-black text-[#344E41] dark:text-gray-100 mb-3 tracking-tight">
           Forgot password?
         </h2>
-        <p className="text-[#344E41] opacity-60 font-medium mb-8">
+        <p className="text-[#344E41] dark:text-gray-100 opacity-60 font-medium mb-8">
           Enter your email address and we'll send you a link to reset your password.
         </p>
 
@@ -69,18 +69,18 @@ const ForgotPassword: React.FC = () => {
           )}
 
           <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider ml-1">
+            <label htmlFor="email" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider ml-1">
               Email address
             </label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] opacity-40" />
+              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#344E41] dark:text-gray-100 opacity-40" />
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-[#A3B18A]/10 text-[#344E41] px-4 py-3.5 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
+                className="w-full bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100 px-4 py-3.5 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-all font-medium placeholder-[#344E41]/30"
                 placeholder="Enter your email"
               />
             </div>
@@ -90,7 +90,7 @@ const ForgotPassword: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#344E41] hover:bg-[#2a3f35] text-[#FEFAE0] font-bold py-4 rounded-xl transition-colors shadow-lg disabled:opacity-50 flex justify-center items-center"
+              className="w-full bg-[#344E41] dark:bg-gray-700 hover:bg-[#2a3f35] text-[#FEFAE0] dark:text-gray-300 font-bold py-4 rounded-xl transition-colors shadow-lg disabled:opacity-50 flex justify-center items-center"
             >
               {isLoading ? (
                 <div className="w-6 h-6 border-2 border-[#FEFAE0]/30 border-t-[#FEFAE0] rounded-full animate-spin"></div>

@@ -265,10 +265,10 @@ const Templates: React.FC = () => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-[#A3B18A]/30 text-[#344E41] border border-[#A3B18A]/40';
-      case 'medium': return 'bg-[#E9C46A]/30 text-[#344E41] border border-[#E9C46A]/40';
-      case 'hard': return 'bg-red-400/30 text-[#344E41] border border-red-400/40';
-      default: return 'bg-gray-100 text-[#344E41]';
+      case 'easy': return 'bg-[#A3B18A] dark:bg-gray-800/30 text-[#344E41] dark:text-gray-100 border border-[#A3B18A]/40';
+      case 'medium': return 'bg-[#E9C46A] dark:bg-yellow-600/30 text-[#344E41] dark:text-gray-100 border border-[#E9C46A]/40';
+      case 'hard': return 'bg-red-400/30 text-[#344E41] dark:text-gray-100 border border-red-400/40';
+      default: return 'bg-gray-100 text-[#344E41] dark:text-gray-100';
     }
   };
 
@@ -313,16 +313,16 @@ const Templates: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-10">
           <div>
-            <h1 className="text-3xl font-black text-[#344E41] mb-2 tracking-tight">
+            <h1 className="text-3xl font-black text-[#344E41] dark:text-gray-100 mb-2 tracking-tight">
               Habit Templates
             </h1>
-            <p className="text-[#344E41] opacity-70 font-medium">
+            <p className="text-[#344E41] dark:text-gray-100 opacity-70 font-medium">
               Quick-start your habit journey with proven templates
             </p>
           </div>
           <button
             onClick={() => navigate('/add-habit')}
-            className="mt-4 sm:mt-0 inline-flex items-center justify-center px-6 py-3.5 bg-[#344E41] text-[#FEFAE0] font-bold rounded-xl hover:bg-[#2a3f35] transition-colors shadow-lg"
+            className="mt-4 sm:mt-0 inline-flex items-center justify-center px-6 py-3.5 bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 font-bold rounded-xl hover:bg-[#2a3f35] transition-colors shadow-lg"
           >
             <Plus className="w-5 h-5 mr-2" />
             Create Custom Habit
@@ -330,17 +330,17 @@ const Templates: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-[#A3B18A]/10 border border-[#A3B18A]/20 rounded-3xl p-6 mb-8">
+        <div className="bg-[#A3B18A] dark:bg-gray-800/10 border border-[#A3B18A]/20 rounded-3xl p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#344E41] opacity-40 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#344E41] dark:text-gray-100 opacity-40 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search templates..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] text-[#344E41] font-medium focus:ring-2 focus:ring-[#E9C46A] placeholder-[#344E41]/30 transition-shadow"
+                className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] dark:bg-gray-900 text-[#344E41] dark:text-gray-100 font-medium focus:ring-2 focus:ring-[#E9C46A] placeholder-[#344E41]/30 transition-shadow"
               />
             </div>
 
@@ -348,7 +348,7 @@ const Templates: React.FC = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value as HabitCategory | 'all')}
-              className="px-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] text-[#344E41] font-bold focus:ring-2 focus:ring-[#E9C46A] transition-shadow appearance-none"
+              className="px-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] dark:bg-gray-900 text-[#344E41] dark:text-gray-100 font-bold focus:ring-2 focus:ring-[#E9C46A] transition-shadow appearance-none"
             >
               <option value="all">All Categories</option>
               <option value="health">Health</option>
@@ -364,7 +364,7 @@ const Templates: React.FC = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'popularity' | 'difficulty' | 'name')}
-              className="px-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] text-[#344E41] font-bold focus:ring-2 focus:ring-[#E9C46A] transition-shadow appearance-none"
+              className="px-4 py-3.5 border-none rounded-xl bg-[#FEFAE0] dark:bg-gray-900 text-[#344E41] dark:text-gray-100 font-bold focus:ring-2 focus:ring-[#E9C46A] transition-shadow appearance-none"
             >
               <option value="popularity">Most Popular</option>
               <option value="difficulty">By Difficulty</option>
@@ -380,7 +380,7 @@ const Templates: React.FC = () => {
               key={template.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-[#FEFAE0] rounded-3xl p-6 shadow-[0_4px_20px_rgb(52,78,65,0.05)] hover:shadow-[0_8px_30px_rgb(52,78,65,0.08)] transition-all duration-300 border border-[#344E41]/5 flex flex-col h-full"
+              className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl p-6 shadow-[0_4px_20px_rgb(52,78,65,0.05)] hover:shadow-[0_8px_30px_rgb(52,78,65,0.08)] transition-all duration-300 border border-[#344E41] dark:border-gray-700/5 flex flex-col h-full"
             >
               {/* Header */}
               <div className="flex items-start space-x-4 mb-4">
@@ -392,11 +392,11 @@ const Templates: React.FC = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
-                    <h3 className="font-black text-[#344E41] text-lg leading-tight truncate mr-2">
+                    <h3 className="font-black text-[#344E41] dark:text-gray-100 text-lg leading-tight truncate mr-2">
                       {template.name}
                     </h3>
                     {checkForDuplicate(template.name) && (
-                      <div className="flex items-center flex-shrink-0 text-[#E9C46A] bg-[#E9C46A]/10 px-2 py-1 rounded-lg text-xs font-bold">
+                      <div className="flex items-center flex-shrink-0 text-[#E9C46A] bg-[#E9C46A] dark:bg-yellow-600/10 px-2 py-1 rounded-lg text-xs font-bold">
                         <AlertTriangle className="w-3 h-3 mr-1" />
                         <span>Added</span>
                       </div>
@@ -408,7 +408,7 @@ const Templates: React.FC = () => {
                     </span>
                     <div className="flex items-center text-[#E9C46A]">
                       <Star className="w-3.5 h-3.5 fill-current" />
-                      <span className="text-xs font-bold text-[#344E41] opacity-70 ml-1">
+                      <span className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-70 ml-1">
                         {template.popularity}%
                       </span>
                     </div>
@@ -417,12 +417,12 @@ const Templates: React.FC = () => {
               </div>
 
               {/* Description */}
-              <p className="text-[#344E41] opacity-70 font-medium text-sm mb-5 line-clamp-2 flex-grow">
+              <p className="text-[#344E41] dark:text-gray-100 opacity-70 font-medium text-sm mb-5 line-clamp-2 flex-grow">
                 {template.description}
               </p>
 
               {/* Details */}
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#344E41] opacity-60 mb-5">
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#344E41] dark:text-gray-100 opacity-60 mb-5">
                 <span>{template.frequency}</span>
                 <span>{template.target} {template.unit}</span>
                 <span>{template.category}</span>
@@ -433,7 +433,7 @@ const Templates: React.FC = () => {
                 {template.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
-                    className="px-2.5 py-1 bg-[#A3B18A]/20 text-[#344E41] font-bold rounded-lg text-xs"
+                    className="px-2.5 py-1 bg-[#A3B18A] dark:bg-gray-800/20 text-[#344E41] dark:text-gray-100 font-bold rounded-lg text-xs"
                   >
                     #{tag}
                   </span>
@@ -446,8 +446,8 @@ const Templates: React.FC = () => {
                 disabled={createHabitMutation.isPending}
                 className={`w-full py-3.5 px-4 rounded-xl transition-all font-bold mt-auto ${
                   checkForDuplicate(template.name)
-                    ? 'bg-[#E9C46A]/20 text-[#344E41] hover:bg-[#E9C46A]/40'
-                    : 'bg-[#344E41] hover:bg-[#2a3f35] text-[#FEFAE0] shadow-md'
+                    ? 'bg-[#E9C46A] dark:bg-yellow-600/20 text-[#344E41] dark:text-gray-100 hover:bg-[#E9C46A] dark:bg-yellow-600/40'
+                    : 'bg-[#344E41] dark:bg-gray-700 hover:bg-[#2a3f35] text-[#FEFAE0] dark:text-gray-300 shadow-md'
                 }`}
               >
                 {createHabitMutation.isPending 
@@ -463,14 +463,14 @@ const Templates: React.FC = () => {
 
         {/* Empty State */}
         {filteredTemplates.length === 0 && (
-          <div className="text-center py-16 bg-[#A3B18A]/5 rounded-3xl border border-[#A3B18A]/20">
-            <div className="text-[#344E41] opacity-20 mb-4">
+          <div className="text-center py-16 bg-[#A3B18A] dark:bg-gray-800/5 rounded-3xl border border-[#A3B18A]/20">
+            <div className="text-[#344E41] dark:text-gray-100 opacity-20 mb-4">
               <Filter className="w-16 h-16 mx-auto" />
             </div>
-            <h3 className="text-xl font-black text-[#344E41] mb-2">
+            <h3 className="text-xl font-black text-[#344E41] dark:text-gray-100 mb-2">
               No templates found
             </h3>
-            <p className="text-[#344E41] opacity-60 font-medium mb-6">
+            <p className="text-[#344E41] dark:text-gray-100 opacity-60 font-medium mb-6">
               Try adjusting your search or filters
             </p>
             <button
@@ -478,7 +478,7 @@ const Templates: React.FC = () => {
                 setSearchTerm('');
                 setSelectedCategory('all');
               }}
-              className="px-6 py-3 bg-[#A3B18A]/20 text-[#344E41] font-bold rounded-xl hover:bg-[#A3B18A]/40 transition-colors"
+              className="px-6 py-3 bg-[#A3B18A] dark:bg-gray-800/20 text-[#344E41] dark:text-gray-100 font-bold rounded-xl hover:bg-[#A3B18A] dark:bg-gray-800/40 transition-colors"
             >
               Clear filters
             </button>

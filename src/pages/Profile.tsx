@@ -212,13 +212,13 @@ const Profile: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#FEFAE0] rounded-3xl p-8 shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41]/5"
+          className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl p-8 shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5"
         >
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-black text-[#344E41] tracking-tight">My Profile</h1>
+            <h1 className="text-3xl font-black text-[#344E41] dark:text-gray-100 tracking-tight">My Profile</h1>
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#E9C46A] hover:bg-[#d4b05a] text-[#344E41] font-black rounded-xl transition-colors shadow-md"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#E9C46A] dark:bg-yellow-600 hover:bg-[#d4b05a] text-[#344E41] dark:text-gray-100 font-black rounded-xl transition-colors shadow-md"
             >
               <Settings className="w-5 h-5" />
               Settings
@@ -237,10 +237,10 @@ const Profile: React.FC = () => {
                   <Camera className="w-6 h-6 text-white" />
                 </button>
               </div>
-              <div className="mt-4 p-2 bg-[#A3B18A]/10 rounded-xl">
+              <div className="mt-4 p-2 bg-[#A3B18A] dark:bg-gray-800/10 rounded-xl">
                 <button 
                   onClick={() => setShowPhotoPicker(true)}
-                  className="text-sm text-[#344E41] hover:text-[#E9C46A] transition-colors flex items-center justify-center w-full gap-1 font-bold"
+                  className="text-sm text-[#344E41] dark:text-gray-100 hover:text-[#E9C46A] transition-colors flex items-center justify-center w-full gap-1 font-bold"
                 >
                   <Edit3 className="w-4 h-4" />
                   Change Photo
@@ -250,15 +250,15 @@ const Profile: React.FC = () => {
 
             {/* User Information */}
             <div className="flex-1">
-              <h2 className="text-3xl font-black text-[#344E41] mb-1 tracking-tight">
+              <h2 className="text-3xl font-black text-[#344E41] dark:text-gray-100 mb-1 tracking-tight">
                 {getDisplayName()}
               </h2>
-              <p className="text-[#344E41] opacity-60 font-bold text-sm mb-3">@{currentUser.username}</p>
+              <p className="text-[#344E41] dark:text-gray-100 opacity-60 font-bold text-sm mb-3">@{currentUser.username}</p>
               {currentUser.age && (
-                <p className="text-[#344E41] opacity-70 font-medium text-sm mb-2">Age: {currentUser.age}</p>
+                <p className="text-[#344E41] dark:text-gray-100 opacity-70 font-medium text-sm mb-2">Age: {currentUser.age}</p>
               )}
               {currentUser.bio && (
-                <p className="text-[#344E41] font-medium mt-4 p-5 bg-[#A3B18A]/10 rounded-2xl">
+                <p className="text-[#344E41] dark:text-gray-100 font-medium mt-4 p-5 bg-[#A3B18A] dark:bg-gray-800/10 rounded-2xl">
                   {currentUser.bio}
                 </p>
               )}
@@ -267,14 +267,14 @@ const Profile: React.FC = () => {
               <div className="mt-6 space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#344E41] opacity-70 uppercase tracking-wider">Level</span>
-                    <span className="px-3 py-1 bg-[#A3B18A]/20 text-[#344E41] rounded-xl text-sm font-black">
+                    <span className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-70 uppercase tracking-wider">Level</span>
+                    <span className="px-3 py-1 bg-[#A3B18A] dark:bg-gray-800/20 text-[#344E41] dark:text-gray-100 rounded-xl text-sm font-black">
                       {currentUser.level}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#344E41] opacity-70 uppercase tracking-wider">XP</span>
-                    <span className="px-3 py-1 bg-[#E9C46A]/20 text-[#344E41] rounded-xl text-sm font-black">
+                    <span className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-70 uppercase tracking-wider">XP</span>
+                    <span className="px-3 py-1 bg-[#E9C46A] dark:bg-yellow-600/20 text-[#344E41] dark:text-gray-100 rounded-xl text-sm font-black">
                       {currentUser.xp}
                     </span>
                   </div>
@@ -283,12 +283,12 @@ const Profile: React.FC = () => {
                 {/* XP Progress Bar */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                    <span className="text-[#344E41] opacity-60">Progress to Level {currentUser.level + 1}</span>
-                    <span className="text-[#344E41]">
+                    <span className="text-[#344E41] dark:text-gray-100 opacity-60">Progress to Level {currentUser.level + 1}</span>
+                    <span className="text-[#344E41] dark:text-gray-100">
                       {currentUser.xp % 100} / 100 XP
                     </span>
                   </div>
-                  <div className="w-full bg-[#344E41]/10 rounded-full h-3">
+                  <div className="w-full bg-[#344E41] dark:bg-gray-700/10 rounded-full h-3">
                     <motion.div
                       className="bg-gradient-to-r from-[#A3B18A] to-[#E9C46A] h-3 rounded-full flex items-center justify-end pr-1"
                       initial={{ width: 0 }}
@@ -296,21 +296,21 @@ const Profile: React.FC = () => {
                       transition={{ duration: 1, delay: 0.2 }}
                     >
                       {(currentUser.xp % 100) > 20 && (
-                        <div className="w-2 h-2 bg-[#FEFAE0] rounded-full opacity-80"></div>
+                        <div className="w-2 h-2 bg-[#FEFAE0] dark:bg-gray-900 rounded-full opacity-80"></div>
                       )}
                     </motion.div>
                   </div>
-                  <p className="text-xs font-bold text-[#344E41] opacity-50">
+                  <p className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-50">
                     {100 - (currentUser.xp % 100)} XP needed for next level
                   </p>
                 </div>
                 
                 {/* Featured Badges */}
                 {badges.length > 0 && (
-                  <div className="mt-6 pt-5 border-t border-[#344E41]/10">
+                  <div className="mt-6 pt-5 border-t border-[#344E41] dark:border-gray-700/10">
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-bold text-[#344E41] opacity-70 uppercase tracking-wider">Recent Badges</span>
-                      <span className="text-xs font-bold text-[#344E41] opacity-50">
+                      <span className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-70 uppercase tracking-wider">Recent Badges</span>
+                      <span className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-50">
                         {badges.filter(b => b.earned).length} earned
                       </span>
                     </div>
@@ -327,17 +327,17 @@ const Profile: React.FC = () => {
                             transition={{ delay: index * 0.1 }}
                             className="group relative"
                           >
-                            <div className="w-12 h-12 bg-[#E9C46A]/20 border border-[#E9C46A]/40 rounded-xl flex items-center justify-center text-xl hover:scale-110 transition-transform cursor-pointer shadow-sm">
+                            <div className="w-12 h-12 bg-[#E9C46A] dark:bg-yellow-600/20 border border-[#E9C46A]/40 rounded-xl flex items-center justify-center text-xl hover:scale-110 transition-transform cursor-pointer shadow-sm">
                               {badge.icon}
                             </div>
                             {/* Tooltip */}
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-[#344E41] text-[#FEFAE0] font-bold text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg pointer-events-none">
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 font-bold text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg pointer-events-none">
                               {badge.name}
                             </div>
                           </motion.div>
                         ))}
                       {badges.filter(b => b.earned).length === 0 && (
-                        <div className="text-xs font-medium text-[#344E41] opacity-60 italic">
+                        <div className="text-xs font-medium text-[#344E41] dark:text-gray-100 opacity-60 italic">
                           Complete habits to earn badges!
                         </div>
                       )}
@@ -356,9 +356,9 @@ const Profile: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-[#FEFAE0] rounded-3xl p-8 shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41]/5"
+            className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl p-8 shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5"
           >
-            <h3 className="text-xl font-black text-[#344E41] tracking-tight mb-6">
+            <h3 className="text-xl font-black text-[#344E41] dark:text-gray-100 tracking-tight mb-6">
               📊 Statistics
             </h3>
             <ProfileStatistics stats={stats} isLoading={statsLoading} />
@@ -371,7 +371,7 @@ const Profile: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-[#FEFAE0] rounded-3xl shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41]/5 overflow-hidden flex-1"
+              className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5 overflow-hidden flex-1"
             >
               <MotivationalQuoteComponent />
             </motion.div>
@@ -395,9 +395,9 @@ const Profile: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-[#FEFAE0] rounded-3xl p-8 shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41]/5"
+          className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl p-8 shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5"
         >
-          <h3 className="text-xl font-black text-[#344E41] tracking-tight mb-6">
+          <h3 className="text-xl font-black text-[#344E41] dark:text-gray-100 tracking-tight mb-6">
             📈 Category Activity
           </h3>
           <CategoryActivityChart 
@@ -411,9 +411,9 @@ const Profile: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-[#FEFAE0] rounded-3xl p-8 shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41]/5"
+          className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl p-8 shadow-[0_4px_20px_rgb(52,78,65,0.05)] border border-[#344E41] dark:border-gray-700/5"
         >
-          <h3 className="text-xl font-black text-[#344E41] tracking-tight mb-6">
+          <h3 className="text-xl font-black text-[#344E41] dark:text-gray-100 tracking-tight mb-6">
             🏆 Badges & Achievements
           </h3>
           <ProfileBadges badges={badges} isLoading={habitsLoading || profileLoading} />

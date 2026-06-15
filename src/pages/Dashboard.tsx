@@ -229,7 +229,7 @@ const Dashboard: React.FC = () => {
             initial={{ opacity: 0, y: -50, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.8 }}
-            className="fixed top-4 right-4 z-50 bg-[#E9C46A] text-[#344E41] px-6 py-3 rounded-lg shadow-lg font-bold"
+            className="fixed top-4 right-4 z-50 bg-[#E9C46A] dark:bg-yellow-600 text-[#344E41] dark:text-gray-100 px-6 py-3 rounded-lg shadow-lg font-bold"
           >
             🎉 +{xpNotification.xp} XP Gained!
           </motion.div>
@@ -243,8 +243,8 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="pt-4"
         >
-          <h1 className="text-4xl font-black text-[#344E41] tracking-tight">{getGreeting()} 👋</h1>
-          <p className="text-lg text-[#344E41] opacity-70 mt-1 font-medium">
+          <h1 className="text-4xl font-black text-[#344E41] dark:text-gray-100 tracking-tight">{getGreeting()} 👋</h1>
+          <p className="text-lg text-[#344E41] dark:text-gray-100 opacity-70 mt-1 font-medium">
             {user?.username ? `Hey ${user.username}, ` : ''}let's check your progress
           </p>
         </motion.div>
@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="bg-[#A3B18A] rounded-[24px] p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8"
+          className="bg-[#A3B18A] dark:bg-gray-800 rounded-[24px] p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8"
         >
           <div className="flex-shrink-0">
             <CircularProgress 
@@ -268,33 +268,33 @@ const Dashboard: React.FC = () => {
           <div className="flex-1 w-full flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Streak */}
-              <div className="bg-[#FEFAE0] rounded-2xl p-5 flex-1 flex flex-col justify-center">
+              <div className="bg-[#FEFAE0] dark:bg-gray-900 rounded-2xl p-5 flex-1 flex flex-col justify-center">
                 <div className="flex items-center gap-2 mb-1">
                   <Flame className="w-5 h-5 text-[#E9C46A]" />
-                  <span className="text-xs font-bold text-[#344E41] opacity-60 tracking-wider">STREAK</span>
+                  <span className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-60 tracking-wider">STREAK</span>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-[#344E41]">{bestStreak}</span>
-                  <span className="text-sm font-semibold text-[#344E41] opacity-60">{bestStreak === 1 ? 'day' : 'days'}</span>
+                  <span className="text-4xl font-black text-[#344E41] dark:text-gray-100">{bestStreak}</span>
+                  <span className="text-sm font-semibold text-[#344E41] dark:text-gray-100 opacity-60">{bestStreak === 1 ? 'day' : 'days'}</span>
                 </div>
               </div>
 
               {/* Weekly Average */}
-              <div className="bg-[#FEFAE0] rounded-2xl p-5 flex-1 flex flex-col justify-center">
+              <div className="bg-[#FEFAE0] dark:bg-gray-900 rounded-2xl p-5 flex-1 flex flex-col justify-center">
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingUp className="w-5 h-5 text-[#E9C46A]" />
-                  <span className="text-xs font-bold text-[#344E41] opacity-60 tracking-wider">WEEKLY</span>
+                  <span className="text-xs font-bold text-[#344E41] dark:text-gray-100 opacity-60 tracking-wider">WEEKLY</span>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-[#344E41]">{(userStats?.weeklyAverage ?? localWeeklyAverage).toFixed(1)}</span>
-                  <span className="text-sm font-semibold text-[#344E41] opacity-60">avg/day</span>
+                  <span className="text-4xl font-black text-[#344E41] dark:text-gray-100">{(userStats?.weeklyAverage ?? localWeeklyAverage).toFixed(1)}</span>
+                  <span className="text-sm font-semibold text-[#344E41] dark:text-gray-100 opacity-60">avg/day</span>
                 </div>
               </div>
             </div>
             
             {/* Motivation Bar */}
-            <div className="bg-[#FEFAE0] bg-opacity-40 rounded-xl px-5 py-3 text-center">
-              <span className="text-[#344E41] font-semibold tracking-wide text-sm">
+            <div className="bg-[#FEFAE0] dark:bg-gray-900 bg-opacity-40 rounded-xl px-5 py-3 text-center">
+              <span className="text-[#344E41] dark:text-gray-100 font-semibold tracking-wide text-sm">
                 {getMotivationalMessage(completedToday, totalHabits)}
               </span>
             </div>
@@ -310,10 +310,10 @@ const Dashboard: React.FC = () => {
             className="space-y-4"
           >
             <div className="flex items-center justify-between px-2">
-              <h2 className="text-2xl font-bold text-[#344E41]">Active Habits</h2>
+              <h2 className="text-2xl font-bold text-[#344E41] dark:text-gray-100">Active Habits</h2>
               <Link 
                 to="/add-habit" 
-                className="w-10 h-10 bg-[#344E41] rounded-full flex items-center justify-center text-[#FEFAE0] hover:bg-[#2a3f35] transition-colors hover:scale-105"
+                className="w-10 h-10 bg-[#344E41] dark:bg-gray-700 rounded-full flex items-center justify-center text-[#FEFAE0] dark:text-gray-300 hover:bg-[#2a3f35] transition-colors hover:scale-105"
               >
                 <Plus className="w-5 h-5" />
               </Link>
@@ -336,10 +336,10 @@ const Dashboard: React.FC = () => {
         )}
 
         {habits.length === 0 && (
-          <div className="bg-[#A3B18A] bg-opacity-30 rounded-[24px] p-12 text-center flex flex-col items-center justify-center">
-             <h3 className="text-xl font-bold text-[#344E41] mb-3">No habits active</h3>
-             <p className="text-[#344E41] opacity-70 mb-6 font-medium">Start building your healthy routine today!</p>
-             <Link to="/add-habit" className="bg-[#344E41] text-[#FEFAE0] px-6 py-3 rounded-xl font-bold hover:bg-[#2a3f35] transition-colors flex items-center gap-2 shadow-lg">
+          <div className="bg-[#A3B18A] dark:bg-gray-800 bg-opacity-30 rounded-[24px] p-12 text-center flex flex-col items-center justify-center">
+             <h3 className="text-xl font-bold text-[#344E41] dark:text-gray-100 mb-3">No habits active</h3>
+             <p className="text-[#344E41] dark:text-gray-100 opacity-70 mb-6 font-medium">Start building your healthy routine today!</p>
+             <Link to="/add-habit" className="bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 px-6 py-3 rounded-xl font-bold hover:bg-[#2a3f35] transition-colors flex items-center gap-2 shadow-lg">
                 <Plus className="w-5 h-5" />
                 Create Habit
              </Link>
@@ -354,13 +354,13 @@ const Dashboard: React.FC = () => {
           className="space-y-4"
         >
           <div className="flex items-center justify-between px-2">
-            <h2 className="text-2xl font-bold text-[#344E41]">Activity</h2>
-            <div className="bg-[#A3B18A] bg-opacity-30 px-3 py-1 rounded-full text-sm font-bold text-[#344E41]">
+            <h2 className="text-2xl font-bold text-[#344E41] dark:text-gray-100">Activity</h2>
+            <div className="bg-[#A3B18A] dark:bg-gray-800 bg-opacity-30 px-3 py-1 rounded-full text-sm font-bold text-[#344E41] dark:text-gray-100">
               {Object.values(heatmapData).reduce((a, b) => a + b, 0)} total
             </div>
           </div>
           
-          <div className="bg-[#FFFFFF] rounded-[24px] p-6 pt-8 overflow-hidden shadow-[0_4px_6px_rgba(0,0,0,0.05)] border border-[#344E41] border-opacity-5">
+          <div className="bg-[#FFFFFF] rounded-[24px] p-6 pt-8 overflow-hidden shadow-[0_4px_6px_rgba(0,0,0,0.05)] border border-[#344E41] dark:border-gray-700 border-opacity-5">
             <Heatmap data={heatmapData} weeks={16} />
           </div>
         </motion.div>

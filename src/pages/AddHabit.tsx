@@ -109,14 +109,14 @@ const AddHabit: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
-        <div className="bg-[#FEFAE0] rounded-3xl p-8 md:p-10 border border-[#344E41]/5 shadow-sm">
+        <div className="bg-[#FEFAE0] dark:bg-gray-900 rounded-3xl p-8 md:p-10 border border-[#344E41] dark:border-gray-700/5 shadow-sm">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-black text-[#344E41] tracking-tight">
+            <h1 className="text-3xl font-black text-[#344E41] dark:text-gray-100 tracking-tight">
               Add New Habit
             </h1>
             <button
               onClick={() => navigate('/dashboard')}
-              className="text-[#344E41] opacity-50 hover:opacity-100 transition-opacity p-2 bg-[#344E41]/5 rounded-xl hover:bg-[#344E41]/10"
+              className="text-[#344E41] dark:text-gray-100 opacity-50 hover:opacity-100 transition-opacity p-2 bg-[#344E41] dark:bg-gray-700/5 rounded-xl hover:bg-[#344E41] dark:bg-gray-700/10"
             >
               ✕
             </button>
@@ -125,7 +125,7 @@ const AddHabit: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Habit Name */}
             <div>
-              <label htmlFor="name" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
+              <label htmlFor="name" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-2 ml-1">
                 Habit Name *
               </label>
               <input
@@ -136,7 +136,7 @@ const AddHabit: React.FC = () => {
                 className={`w-full px-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-medium placeholder-[#344E41]/30 ${
                   errors.name 
                     ? 'border-2 border-red-400 bg-red-50 text-red-900' 
-                    : 'border-none bg-[#A3B18A]/10 text-[#344E41]'
+                    : 'border-none bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100'
                 }`}
                 placeholder="e.g., Drink 8 glasses of water"
                 maxLength={50}
@@ -148,7 +148,7 @@ const AddHabit: React.FC = () => {
 
             {/* Notes */}
             <div>
-              <label htmlFor="notes" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
+              <label htmlFor="notes" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-2 ml-1">
                 Notes (Optional)
               </label>
               <textarea
@@ -159,7 +159,7 @@ const AddHabit: React.FC = () => {
                 className={`w-full px-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-medium placeholder-[#344E41]/30 resize-none ${
                   errors.notes 
                     ? 'border-2 border-red-400 bg-red-50 text-red-900' 
-                    : 'border-none bg-[#A3B18A]/10 text-[#344E41]'
+                    : 'border-none bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100'
                 }`}
                 placeholder="Add notes to help you stay motivated..."
                 maxLength={200}
@@ -168,7 +168,7 @@ const AddHabit: React.FC = () => {
                 {errors.notes && (
                   <p className="text-xs font-semibold text-red-500">{errors.notes}</p>
                 )}
-                <p className="text-xs font-semibold text-[#344E41] opacity-50 ml-auto">
+                <p className="text-xs font-semibold text-[#344E41] dark:text-gray-100 opacity-50 ml-auto">
                   {(formData.notes || '').length}/200
                 </p>
               </div>
@@ -176,17 +176,17 @@ const AddHabit: React.FC = () => {
 
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
+              <label htmlFor="category" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-2 ml-1">
                 Category
               </label>
               <select
                 id="category"
                 value={formData.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
-                className="w-full px-4 py-3.5 border-none bg-[#A3B18A]/10 text-[#344E41] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold appearance-none"
+                className="w-full px-4 py-3.5 border-none bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold appearance-none"
               >
                 {HABIT_CATEGORIES.map(category => (
-                  <option key={category.value} value={category.value} className="bg-[#FEFAE0]">
+                  <option key={category.value} value={category.value} className="bg-[#FEFAE0] dark:bg-gray-900">
                     {category.icon} {category.label}
                   </option>
                 ))}
@@ -195,7 +195,7 @@ const AddHabit: React.FC = () => {
 
             {/* Frequency Type */}
             <div>
-              <label htmlFor="frequency" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
+              <label htmlFor="frequency" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-2 ml-1">
                 Frequency Type
               </label>
               <select
@@ -210,15 +210,15 @@ const AddHabit: React.FC = () => {
                     frequency_count: newFreq === 'flexible_weekly' ? (prev.frequency_count && prev.frequency_count > 1 ? prev.frequency_count : 3) : 1,
                   }));
                 }}
-                className="w-full px-4 py-3.5 border-none bg-[#A3B18A]/10 text-[#344E41] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold appearance-none"
+                className="w-full px-4 py-3.5 border-none bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold appearance-none"
               >
-                <option value="daily" className="bg-[#FEFAE0]">📅 Daily</option>
-                <option value="weekly" className="bg-[#FEFAE0]">📆 Weekly</option>
-                <option value="monthly" className="bg-[#FEFAE0]">🗓️ Monthly</option>
-                <option value="flexible_weekly" className="bg-[#FEFAE0]">🔄 Flexible Weekly</option>
+                <option value="daily" className="bg-[#FEFAE0] dark:bg-gray-900">📅 Daily</option>
+                <option value="weekly" className="bg-[#FEFAE0] dark:bg-gray-900">📆 Weekly</option>
+                <option value="monthly" className="bg-[#FEFAE0] dark:bg-gray-900">🗓️ Monthly</option>
+                <option value="flexible_weekly" className="bg-[#FEFAE0] dark:bg-gray-900">🔄 Flexible Weekly</option>
               </select>
               {formData.frequency === 'flexible_weekly' && (
-                <p className="mt-1.5 ml-1 text-xs font-medium text-[#344E41]/60">
+                <p className="mt-1.5 ml-1 text-xs font-medium text-[#344E41] dark:text-gray-100/60">
                   Set how many times per week you want to complete this habit.
                 </p>
               )}
@@ -226,27 +226,27 @@ const AddHabit: React.FC = () => {
 
             {/* Flexible Frequency Count — only visible for flexible_weekly */}
             {formData.frequency === 'flexible_weekly' && (
-              <div className="bg-[#A3B18A]/10 p-5 rounded-2xl border border-[#A3B18A]/20">
-                <label htmlFor="frequency_count" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-3 ml-1">
+              <div className="bg-[#A3B18A] dark:bg-gray-800/10 p-5 rounded-2xl border border-[#A3B18A]/20">
+                <label htmlFor="frequency_count" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-3 ml-1">
                   Times Per Week
                 </label>
                 <div className="flex items-center gap-4">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, frequency_count: Math.max(1, (prev.frequency_count || 1) - 1) }))}
-                    className="w-12 h-12 rounded-xl bg-[#344E41] text-[#FEFAE0] font-bold text-xl flex items-center justify-center hover:bg-[#2a3f35] transition-colors shadow-sm disabled:opacity-30"
+                    className="w-12 h-12 rounded-xl bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 font-bold text-xl flex items-center justify-center hover:bg-[#2a3f35] transition-colors shadow-sm disabled:opacity-30"
                     disabled={(formData.frequency_count || 1) <= 1}
                   >
                     −
                   </button>
                   <div className="flex-1 text-center">
-                    <span className="text-4xl font-black text-[#344E41]">{formData.frequency_count || 1}</span>
-                    <p className="text-xs font-semibold text-[#344E41]/50 mt-1">times / week</p>
+                    <span className="text-4xl font-black text-[#344E41] dark:text-gray-100">{formData.frequency_count || 1}</span>
+                    <p className="text-xs font-semibold text-[#344E41] dark:text-gray-100/50 mt-1">times / week</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, frequency_count: Math.min(7, (prev.frequency_count || 1) + 1) }))}
-                    className="w-12 h-12 rounded-xl bg-[#344E41] text-[#FEFAE0] font-bold text-xl flex items-center justify-center hover:bg-[#2a3f35] transition-colors shadow-sm disabled:opacity-30"
+                    className="w-12 h-12 rounded-xl bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 font-bold text-xl flex items-center justify-center hover:bg-[#2a3f35] transition-colors shadow-sm disabled:opacity-30"
                     disabled={(formData.frequency_count || 1) >= 7}
                   >
                     +
@@ -259,8 +259,8 @@ const AddHabit: React.FC = () => {
                       key={day}
                       className={`w-6 h-6 rounded-full transition-all duration-200 ${
                         day <= (formData.frequency_count || 1)
-                          ? 'bg-[#344E41] scale-100'
-                          : 'bg-[#A3B18A]/30 scale-90'
+                          ? 'bg-[#344E41] dark:bg-gray-700 scale-100'
+                          : 'bg-[#A3B18A] dark:bg-gray-800/30 scale-90'
                       }`}
                     />
                   ))}
@@ -270,7 +270,7 @@ const AddHabit: React.FC = () => {
 
             {/* Target */}
             <div>
-              <label htmlFor="target" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
+              <label htmlFor="target" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-2 ml-1">
                 Target
               </label>
               <input
@@ -283,7 +283,7 @@ const AddHabit: React.FC = () => {
                 className={`w-full px-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-bold ${
                   errors.target 
                     ? 'border-2 border-red-400 bg-red-50 text-red-900' 
-                    : 'border-none bg-[#A3B18A]/10 text-[#344E41]'
+                    : 'border-none bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100'
                 }`}
               />
               {errors.target && (
@@ -293,7 +293,7 @@ const AddHabit: React.FC = () => {
 
             {/* Unit */}
             <div>
-              <label htmlFor="unit" className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-2 ml-1">
+              <label htmlFor="unit" className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-2 ml-1">
                 Unit (Optional)
               </label>
               <input
@@ -301,7 +301,7 @@ const AddHabit: React.FC = () => {
                 id="unit"
                 value={formData.unit || ''}
                 onChange={(e) => handleInputChange('unit', e.target.value)}
-                className="w-full px-4 py-3.5 border-none bg-[#A3B18A]/10 text-[#344E41] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-medium placeholder-[#344E41]/30"
+                className="w-full px-4 py-3.5 border-none bg-[#A3B18A] dark:bg-gray-800/10 text-[#344E41] dark:text-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E9C46A] transition-colors font-medium placeholder-[#344E41]/30"
                 placeholder="e.g., times, minutes, pages"
                 maxLength={20}
               />
@@ -309,7 +309,7 @@ const AddHabit: React.FC = () => {
 
             {/* Color Selection */}
             <div>
-              <label className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-3 ml-1">
+              <label className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-3 ml-1">
                 Color Theme
               </label>
               <div className="flex flex-wrap gap-3 pl-1">
@@ -331,7 +331,7 @@ const AddHabit: React.FC = () => {
 
             {/* Icon Selection */}
             <div>
-              <label className="block text-xs font-bold text-[#344E41] uppercase tracking-wider mb-3 ml-1">
+              <label className="block text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-3 ml-1">
                 Icon
               </label>
               <div className="flex flex-wrap gap-3 pl-1">
@@ -342,8 +342,8 @@ const AddHabit: React.FC = () => {
                     onClick={() => handleInputChange('icon', icon)}
                     className={`w-12 h-12 text-2xl rounded-2xl transition-all flex items-center justify-center ${
                       formData.icon === icon 
-                        ? 'bg-[#E9C46A] shadow-md scale-110 border-none' 
-                        : 'bg-[#A3B18A]/10 text-gray-400 hover:bg-[#A3B18A]/30 hover:scale-105 border-none opacity-80 hover:opacity-100'
+                        ? 'bg-[#E9C46A] dark:bg-yellow-600 shadow-md scale-110 border-none' 
+                        : 'bg-[#A3B18A] dark:bg-gray-800/10 text-gray-400 hover:bg-[#A3B18A] dark:bg-gray-800/30 hover:scale-105 border-none opacity-80 hover:opacity-100'
                     }`}
                   >
                     {icon}
@@ -353,8 +353,8 @@ const AddHabit: React.FC = () => {
             </div>
 
             {/* Preview */}
-            <div className="bg-[#A3B18A]/10 p-6 rounded-2xl mt-4 border border-[#A3B18A]/20">
-              <h3 className="text-xs font-bold text-[#344E41] uppercase tracking-wider mb-4">Preview</h3>
+            <div className="bg-[#A3B18A] dark:bg-gray-800/10 p-6 rounded-2xl mt-4 border border-[#A3B18A]/20">
+              <h3 className="text-xs font-bold text-[#344E41] dark:text-gray-100 uppercase tracking-wider mb-4">Preview</h3>
               <div className="flex items-center space-x-4">
                 <div 
                   className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl shadow-sm"
@@ -363,10 +363,10 @@ const AddHabit: React.FC = () => {
                   {formData.icon}
                 </div>
                 <div>
-                  <h4 className="font-bold text-[#344E41] text-lg leading-tight">
+                  <h4 className="font-bold text-[#344E41] dark:text-gray-100 text-lg leading-tight">
                     {formData.name || 'Your habit name'}
                   </h4>
-                  <p className="text-sm font-semibold text-[#344E41] opacity-60 mt-1">
+                  <p className="text-sm font-semibold text-[#344E41] dark:text-gray-100 opacity-60 mt-1">
                     {formData.frequency === 'flexible_weekly'
                       ? `Flexible Weekly • ${formData.frequency_count || 1}× per week`
                       : `${formData.frequency.charAt(0).toUpperCase() + formData.frequency.slice(1)} • Target: ${formData.target || 1} ${formData.unit || 'time'}${(formData.target || 1) !== 1 ? 's' : ''}`
@@ -381,7 +381,7 @@ const AddHabit: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="w-1/3 px-4 py-4 bg-[#A3B18A]/20 text-[#344E41] font-bold rounded-xl hover:bg-[#A3B18A]/40 transition-colors"
+                className="w-1/3 px-4 py-4 bg-[#A3B18A] dark:bg-gray-800/20 text-[#344E41] dark:text-gray-100 font-bold rounded-xl hover:bg-[#A3B18A] dark:bg-gray-800/40 transition-colors"
                 disabled={loading}
               >
                 Cancel
@@ -389,7 +389,7 @@ const AddHabit: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-2/3 px-4 py-4 bg-[#344E41] text-[#FEFAE0] font-bold rounded-xl hover:bg-[#2a3f35] transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+                className="w-2/3 px-4 py-4 bg-[#344E41] dark:bg-gray-700 text-[#FEFAE0] dark:text-gray-300 font-bold rounded-xl hover:bg-[#2a3f35] transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
               >
                 {loading ? (
                   <div className="w-6 h-6 border-2 border-[#FEFAE0]/30 border-t-[#FEFAE0] rounded-full animate-spin"></div>

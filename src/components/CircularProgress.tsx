@@ -54,9 +54,9 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         />
       </svg>
       {/* Center text */}
-      <div className="absolute flex flex-col items-center justify-center text-[#344E41]">
+      <div className="absolute flex flex-col items-center justify-center text-[#344E41] dark:text-gray-100">
         <span className="text-3xl font-bold tracking-tighter">{completed}</span>
-        <span className="text-xs uppercase font-medium opacity-70 border-t border-[#344E41] border-opacity-20 pt-1 mt-1 w-8 text-center">
+        <span className="text-xs uppercase font-medium opacity-70 border-t border-[#344E41] dark:border-gray-700 border-opacity-20 pt-1 mt-1 w-8 text-center">
           {total}
         </span>
       </div>
