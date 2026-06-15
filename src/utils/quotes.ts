@@ -163,8 +163,11 @@ export function getDailyQuote(date?: Date): MotivationalQuote {
 }
 
 // Get random quote
-export function getRandomQuote(): MotivationalQuote {
-  const index = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+export function getRandomQuote(currentId?: string): MotivationalQuote {
+  let index;
+  do {
+    index = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+  } while (MOTIVATIONAL_QUOTES[index].id === currentId && MOTIVATIONAL_QUOTES.length > 1);
   return MOTIVATIONAL_QUOTES[index];
 }
 

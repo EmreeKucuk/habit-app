@@ -20,7 +20,7 @@ const MotivationalQuoteComponent: React.FC<MotivationalQuoteComponentProps> = ({
     
     // Add a small delay for better UX
     setTimeout(() => {
-      setQuote(getRandomQuote());
+      setQuote(prevQuote => getRandomQuote(prevQuote.id));
       setIsDaily(false);
       setIsRefreshing(false);
     }, 300);

@@ -158,23 +158,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
               {/* User Stats - Desktop */}
               <div className="hidden lg:flex items-center space-x-4 ml-auto">
-                <div className="flex items-center space-x-2 bg-[#E9C46A] dark:bg-yellow-600 bg-opacity-20 text-[#344E41] dark:text-gray-100 px-4 py-2 rounded-xl">
+                <div className="flex items-center space-x-2 bg-[#E9C46A] dark:bg-yellow-900/60 bg-opacity-20 text-[#344E41] dark:text-yellow-50 px-4 py-2 rounded-xl">
                   <Star className="w-4 h-4" />
                   <span className="font-bold">{user?.xp || 0} XP</span>
                 </div>
 
-                <div className="flex items-center space-x-2 bg-[#A3B18A] dark:bg-gray-800 bg-opacity-20 text-[#344E41] dark:text-gray-100 px-4 py-2 rounded-xl">
+                <div className="flex items-center space-x-2 bg-[#A3B18A] dark:bg-green-900/60 bg-opacity-20 text-[#344E41] dark:text-green-50 px-4 py-2 rounded-xl">
                   <Target className="w-4 h-4" />
                   <span className="font-bold">Level {user?.level || 1}</span>
                 </div>
 
-                <div className="flex items-center space-x-2 bg-[#E9C46A] dark:bg-yellow-600 bg-opacity-40 text-[#344E41] dark:text-gray-100 px-4 py-2 rounded-xl">
+                <div className="flex items-center space-x-2 bg-[#E9C46A] dark:bg-yellow-900/60 bg-opacity-40 text-[#344E41] dark:text-yellow-50 px-4 py-2 rounded-xl">
                   <Flame className="w-4 h-4" />
                   <span className="font-bold">{userStats?.currentStreak || user?.highestStreak || 0} Streak</span>
                 </div>
 
                 {motivationScore && (
-                  <div className="flex items-center space-x-2 bg-[#A3B18A] dark:bg-gray-800 bg-opacity-40 text-[#344E41] dark:text-gray-100 px-4 py-2 rounded-xl">
+                  <div className="flex items-center space-x-2 bg-[#A3B18A] dark:bg-green-900/60 bg-opacity-40 text-[#344E41] dark:text-green-50 px-4 py-2 rounded-xl">
                     <BarChart3 className="w-4 h-4" />
                     <span className="font-bold">
                       {Math.round(motivationScore.score)}/100 {motivationScore.level.charAt(0).toUpperCase() + motivationScore.level.slice(1)}

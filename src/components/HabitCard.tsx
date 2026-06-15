@@ -197,7 +197,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
   return (
     <motion.div
       layout
-      className="bg-[#FFFFFF] rounded-[20px] p-6 shadow-[0_4px_6px_rgba(0,0,0,0.05)] border border-[#344E41] dark:border-gray-700 border-opacity-5 hover:shadow-[0_8px_15px_rgba(0,0,0,0.08)] transition-all duration-300 group flex flex-col h-full"
+      className="bg-[#FFFFFF] dark:bg-gray-800 rounded-[20px] p-6 shadow-[0_4px_6px_rgba(0,0,0,0.05)] border border-[#344E41] dark:border-gray-700 border-opacity-5 hover:shadow-[0_8px_15px_rgba(0,0,0,0.08)] transition-all duration-300 group flex flex-col h-full"
       whileHover={{ y: -2 }}
     >
       {/* Header */}

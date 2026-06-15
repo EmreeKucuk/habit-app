@@ -59,14 +59,14 @@ const Heatmap: React.FC<HeatmapProps> = ({ data, weeks = 18 }) => {
     return cols;
   }, [days]);
 
-  // Color logic
-  const getColor = (value: number, isFuture: boolean) => {
-    if (isFuture) return '#FEFAE0'; // Background color for future days (invisible/transparent look)
-    if (value === 0) return '#FEFAE0'; // Empty day
-    if (value === 1) return '#A3B18A'; // Level 1
-    if (value === 2) return '#5D7C56'; // Level 2
-    if (value >= 3) return '#344E41'; // Level 3+
-    return '#FEFAE0';
+  // Color logic using Tailwind classes
+  const getColorClass = (value: number, isFuture: boolean) => {
+    if (isFuture) return 'bg-[#FEFAE0] dark:bg-gray-700'; // Background color for future days
+    if (value === 0) return 'bg-[#FEFAE0] dark:bg-gray-700'; // Empty day
+    if (value === 1) return 'bg-[#A3B18A] dark:bg-green-700/60'; // Level 1
+    if (value === 2) return 'bg-[#5D7C56] dark:bg-green-600/80'; // Level 2
+    if (value >= 3) return 'bg-[#344E41] dark:bg-green-500'; // Level 3+
+    return 'bg-[#FEFAE0] dark:bg-gray-700';
   };
 
   return (
@@ -104,9 +104,8 @@ const Heatmap: React.FC<HeatmapProps> = ({ data, weeks = 18 }) => {
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: (colIndex * 0.01) + (dayIndex * 0.01) }}
-                    className="w-3 h-3 rounded-[2px] relative group"
+                    className={`w-3 h-3 rounded-[2px] relative group ${getColorClass(day.value, day.isFuture)}`}
                     style={{ 
-                      backgroundColor: getColor(day.value, day.isFuture),
                       opacity: day.isFuture ? 0 : 1 
                     }}
                   >
