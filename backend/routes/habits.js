@@ -395,11 +395,19 @@ router.get('/stats', authenticateToken, async (req, res) => {
       const monthStr = String(d.getMonth() + 1).padStart(2, '0');
       const yearStr = d.getFullYear();
       
+      const startDate = `${yearStr}-${monthStr}-01`;
+      
+      // Calculate end date (first day of next month)
+      const nextMonthDate = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      const nextMonthStr = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+      const nextYearStr = nextMonthDate.getFullYear();
+      const endDate = `${nextYearStr}-${nextMonthStr}-01`;
+
       const monthCompletions = await getDatabase().get(`
         SELECT COUNT(id) as completed
         FROM habit_completions
-        WHERE user_id = ? AND strftime('%Y-%m', date) = ?
-      `, [userId, `${yearStr}-${monthStr}`]);
+        WHERE user_id = ? AND date >= ? AND date < ?
+      `, [userId, startDate, endDate]);
 
       // A rough estimate of total possible completions in that month
       const activeHabits = await getDatabase().get(`
