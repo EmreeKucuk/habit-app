@@ -369,22 +369,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onComplete, onDelete, isLo
         )}
       </div>
 
-      {/* Completion animation */}
-      {isCompletedToday && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ 
-            scale: [0, 1.1, 1], 
-            opacity: [0, 0.2, 0.1]
-          }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="absolute inset-0 pointer-events-none flex items-center justify-center"
-        >
-          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center opacity-20">
-            <Check className="w-8 h-8 text-white" />
-          </div>
-        </motion.div>
-      )}
+
     </motion.div>
   );
 };
