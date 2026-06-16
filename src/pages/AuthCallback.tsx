@@ -55,7 +55,7 @@ const AuthCallback: React.FC = () => {
   }, [location, navigate, setAuthData]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] dark:bg-gray-900 p-4 font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-[#FEFAE0] p-4 font-sans">
       <div className="text-center">
         {error ? (
           <div className="bg-red-50 text-red-600 px-6 py-4 rounded-xl font-bold">
@@ -65,7 +65,7 @@ const AuthCallback: React.FC = () => {
         ) : (
           <div className="flex flex-col items-center">
             <LoadingSpinner size="large" />
-            <p className="text-[#344E41] dark:text-gray-100 font-bold mt-4 tracking-wide">
+            <p className="text-[#344E41] font-bold mt-4 tracking-wide">
               Completing authentication...
             </p>
           </div>
