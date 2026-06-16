@@ -97,13 +97,10 @@ router.post('/register', [
       ]
     );
 
-    // Send verification email
-    try {
-      await emailService.sendVerificationEmail(email, username, verificationToken);
-    } catch (emailError) {
+    // Send verification email asynchronously so it doesn't block the response
+    emailService.sendVerificationEmail(email, username, verificationToken).catch(emailError => {
       console.error('Failed to send verification email:', emailError);
-      // Don't fail registration if email fails
-    }
+    });
 
     res.status(201).json({
       message: 'User registered successfully. Please check your email to verify your account.',
@@ -307,12 +304,10 @@ router.post('/forgot-password', [
       [resetToken, resetTokenExpires.toISOString(), user.id]
     );
 
-    // Send reset email
-    try {
-      await emailService.sendPasswordResetEmail(user.email, user.username, resetToken);
-    } catch (emailError) {
+    // Send reset email asynchronously
+    emailService.sendPasswordResetEmail(user.email, user.username, resetToken).catch(emailError => {
       console.error('Failed to send reset email:', emailError);
-    }
+    });
 
     res.json({ 
       message: 'If an account with that email exists, we will send a password reset link.' 
