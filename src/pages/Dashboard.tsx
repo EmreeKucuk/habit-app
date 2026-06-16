@@ -19,6 +19,7 @@ const Dashboard: React.FC = () => {
   
   const [loadingHabitId, setLoadingHabitId] = useState<string | null>(null);
   const [xpNotification, setXpNotification] = useState<{ xp: number; visible: boolean }>({ xp: 0, visible: false });
+  const [badgeNotification, setBadgeNotification] = useState<{ badges: Array<{id: string; name: string; icon: string}>; visible: boolean }>({ badges: [], visible: false });
   const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
 
   // Fetch habits
@@ -119,6 +120,15 @@ const Dashboard: React.FC = () => {
       
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['user-stats'] });
+
+      // Show badge notification if new badges were earned
+      if (data.newBadges && data.newBadges.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ['badges'] });
+        setBadgeNotification({ badges: data.newBadges, visible: true });
+        setTimeout(() => {
+          setBadgeNotification(prev => ({ ...prev, visible: false }));
+        }, 5000);
+      }
     },
     onError: (error, _vars, context) => {
       setLoadingHabitId(null);
@@ -234,6 +244,27 @@ const Dashboard: React.FC = () => {
             🎉 +{xpNotification.xp} XP Gained!
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Badge Notification */}
+      <AnimatePresence>
+        {badgeNotification.visible && badgeNotification.badges.map((badge, index) => (
+          <motion.div
+            key={badge.id}
+            initial={{ opacity: 0, y: -50, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.8 }}
+            transition={{ delay: index * 0.3 }}
+            className="fixed z-50 bg-[#344E41] text-[#FEFAE0] px-6 py-4 rounded-2xl shadow-2xl font-bold flex items-center gap-3"
+            style={{ top: `${4 + (index + 1) * 4}rem`, right: '1rem' }}
+          >
+            <span className="text-3xl">{badge.icon}</span>
+            <div>
+              <p className="text-xs uppercase tracking-wider opacity-70">Badge Earned!</p>
+              <p className="text-lg font-black">{badge.name}</p>
+            </div>
+          </motion.div>
+        ))}
       </AnimatePresence>
 
       <div className="max-w-5xl mx-auto space-y-8 pb-12">

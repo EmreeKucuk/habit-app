@@ -4,6 +4,7 @@ const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 const { getDatabase } = require('../database');
 const { calculateStreak } = require('../utils/streakCalculator');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 const router = express.Router();
 
@@ -163,9 +164,13 @@ router.post('/', authenticateToken, [
 
     const habit = await getDatabase().get('SELECT * FROM habits WHERE id = ?', [habitId]);
 
+    // Check badges (first-habit, habit-collector, etc.)
+    const newBadges = await checkAndAwardBadges(req.user.id);
+
     res.status(201).json({ 
       message: 'Habit created successfully', 
-      habit: { ...habit, completedDates: [], streak: 0 }
+      habit: { ...habit, completedDates: [], streak: 0 },
+      newBadges
     });
 
   } catch (error) {
@@ -276,11 +281,16 @@ router.post('/:id/complete', authenticateToken, async (req, res) => {
       }
 
       console.log(`✅ Habit completed. Duplicates synced: ${duplicatesSynced}`);
+
+      // Check and award badges after completion
+      const newBadges = await checkAndAwardBadges(req.user.id);
+
       res.json({ 
         message: 'Habit marked as completed', 
         completed: true, 
         xpGained: xpGain,
-        duplicatesSynced: duplicatesSynced 
+        duplicatesSynced: duplicatesSynced,
+        newBadges
       });
     }
 

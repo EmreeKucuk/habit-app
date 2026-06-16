@@ -2,6 +2,7 @@ const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
 const { getDatabase } = require('../database');
 const { calculateStreak } = require('../utils/streakCalculator');
+const { checkAndAwardBadges, getEarnedBadges, BADGE_DEFINITIONS } = require('../services/badgeService');
 const router = express.Router();
 
 // Discover users endpoint - MUST come before /:id route
@@ -160,6 +161,34 @@ router.get('/me/profile', authenticateToken, async (req, res) => {
   }
 });
 
+// Get current user's earned badges
+router.get('/me/badges', authenticateToken, async (req, res) => {
+  try {
+    // First run a badge check to ensure any newly earned badges are persisted
+    await checkAndAwardBadges(req.user.id);
+
+    // Then fetch all earned badges from DB
+    const earnedRows = await getEarnedBadges(req.user.id);
+
+    // Map DB rows to full badge objects with definitions
+    const badges = earnedRows.map(row => {
+      const def = BADGE_DEFINITIONS.find(b => b.id === row.badge_id);
+      return def ? {
+        id: def.id,
+        name: def.name,
+        icon: def.icon,
+        earned: true,
+        earnedAt: row.earned_at,
+      } : null;
+    }).filter(Boolean);
+
+    res.json({ badges });
+  } catch (error) {
+    console.error('Error fetching user badges:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Update user profile
 router.put('/profile', authenticateToken, async (req, res) => {
@@ -270,6 +299,11 @@ router.put('/profile', authenticateToken, async (req, res) => {
     );
     
     res.json(updatedUser);
+
+    // Check badges after profile update (profile-setup, habit-sharer)
+    checkAndAwardBadges(req.user.id).catch(err => {
+      console.error('Badge check after profile update failed:', err);
+    });
   } catch (error) {
     console.error('Error updating user profile:', error);
     res.status(500).json({ error: 'Internal server error' });

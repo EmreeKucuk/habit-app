@@ -9,7 +9,8 @@ import {
   ResetPasswordRequest,
   HabitStats,
   ProfileStats,
-  ProfileUpdateRequest
+  ProfileUpdateRequest,
+  Badge
 } from '../types';
 
 export const API_BASE_URL = import.meta.env.MODE === 'production' 
@@ -141,12 +142,12 @@ class ApiClient {
       return response.data;
     },
 
-    create: async (habit: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'completedDates' | 'streak' | 'comments'>): Promise<{ habit: Habit; message: string }> => {
+    create: async (habit: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'completedDates' | 'streak' | 'comments'>): Promise<{ habit: Habit; message: string; newBadges?: Array<{id: string; name: string; icon: string}> }> => {
       const response = await this.client.post('/habits', habit);
       return response.data;
     },
 
-    complete: async (habitId: string, data?: { date?: string; notes?: string; mood?: string; value?: number }): Promise<{ message: string; completed: boolean; xpGained?: number; duplicatesSynced?: number }> => {
+    complete: async (habitId: string, data?: { date?: string; notes?: string; mood?: string; value?: number }): Promise<{ message: string; completed: boolean; xpGained?: number; duplicatesSynced?: number; newBadges?: Array<{id: string; name: string; icon: string}> }> => {
       try {
         const response = await this.client.post(`/habits/${habitId}/complete`, data);
         return response.data;
@@ -266,6 +267,11 @@ class ApiClient {
         mutualFriends: userData.mutualFriends,
         recentActivity: userData.recentActivity
       }));
+    },
+
+    getBadges: async (): Promise<{ badges: Badge[] }> => {
+      const response = await this.client.get('/users/me/badges');
+      return response.data;
     },
   };
 

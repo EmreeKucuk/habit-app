@@ -15,7 +15,7 @@ import FriendsCard from '../components/FriendsCard';
 import { usersApi, habitsApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { User, ProfileUpdateRequest } from '../types';
-import { calculateEarnedBadges, AVAILABLE_BADGES } from '../utils/badges';
+import { AVAILABLE_BADGES } from '../utils/badges';
 
 const Profile: React.FC = () => {
   const { user: authUser, updateUser } = useAuth();
@@ -46,6 +46,8 @@ const Profile: React.FC = () => {
       // Invalidate and refetch profile data to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['profile', authUser?.id] });
       queryClient.invalidateQueries({ queryKey: ['user'] });
+      // Invalidate badges since profile-setup badge might be newly earned
+      queryClient.invalidateQueries({ queryKey: ['badges', authUser?.id] });
       
       // Force a refetch to ensure the UI updates
       queryClient.refetchQueries({ queryKey: ['profile', authUser?.id] });
@@ -85,6 +87,8 @@ const Profile: React.FC = () => {
       // Invalidate and refetch profile data to ensure persistence
       queryClient.invalidateQueries({ queryKey: ['profile', authUser?.id] });
       queryClient.invalidateQueries({ queryKey: ['user'] });
+      // Invalidate badges since profile-setup/habit-sharer badge might be newly earned
+      queryClient.invalidateQueries({ queryKey: ['badges', authUser?.id] });
       
       // Force a refetch to ensure the UI updates
       queryClient.refetchQueries({ queryKey: ['profile', authUser?.id] });
@@ -125,23 +129,28 @@ const Profile: React.FC = () => {
     enabled: !!authUser?.id,
   });
 
-  // Calculate badges
+  // Fetch earned badges from the server
+  const { data: earnedBadgesData, isLoading: badgesLoading } = useQuery({
+    queryKey: ['badges', authUser?.id],
+    queryFn: () => usersApi.getBadges(),
+    enabled: !!authUser?.id,
+    staleTime: 30 * 1000, // Cache for 30 seconds
+  });
+
+  // Merge server-earned badges with the full badge list for display
   const badges = React.useMemo(() => {
-    if (!currentUser || !habits?.habits) return [];
-    const earnedBadges = calculateEarnedBadges(currentUser, habits.habits);
-    
-    // Create a complete list with earned status
-    const allBadges = AVAILABLE_BADGES.map((availableBadge) => {
-      const earnedBadge = earnedBadges.find(earned => earned.id === availableBadge.id);
+    const earnedBadges = earnedBadgesData?.badges || [];
+    const earnedIds = new Set(earnedBadges.map(b => b.id));
+
+    return AVAILABLE_BADGES.map((availableBadge) => {
+      const earnedBadge = earnedBadges.find(eb => eb.id === availableBadge.id);
       return {
         ...availableBadge,
-        earned: !!earnedBadge,
-        earnedAt: earnedBadge?.earnedAt
+        earned: earnedIds.has(availableBadge.id),
+        earnedAt: earnedBadge?.earnedAt,
       };
     });
-    
-    return allBadges;
-  }, [currentUser, habits]);
+  }, [earnedBadgesData]);
 
   if (profileLoading) {
     return (
@@ -416,7 +425,7 @@ const Profile: React.FC = () => {
           <h3 className="text-xl font-black text-[#344E41] dark:text-gray-100 tracking-tight mb-6">
             🏆 Badges & Achievements
           </h3>
-          <ProfileBadges badges={badges} isLoading={habitsLoading || profileLoading} />
+          <ProfileBadges badges={badges} isLoading={badgesLoading || profileLoading} />
         </motion.div>
         </div>
 
