@@ -259,6 +259,29 @@ class DatabaseService {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
           )
+        `,
+        user_badges: `
+          CREATE TABLE IF NOT EXISTS user_badges (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL,
+            badge_id VARCHAR(50) NOT NULL,
+            earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            UNIQUE(user_id, badge_id)
+          )
+        `,
+        habit_comments: `
+          CREATE TABLE IF NOT EXISTS habit_comments (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            habit_id UUID NOT NULL,
+            user_id UUID NOT NULL,
+            completion_id UUID,
+            comment_text TEXT NOT NULL,
+            mood VARCHAR(20),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+          )
         `
       };
     } else {
@@ -361,6 +384,29 @@ class DatabaseService {
             difficulty_rating INTEGER,
             mood TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+          )
+        `,
+        user_badges: `
+          CREATE TABLE IF NOT EXISTS user_badges (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            badge_id TEXT NOT NULL,
+            earned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            UNIQUE(user_id, badge_id)
+          )
+        `,
+        habit_comments: `
+          CREATE TABLE IF NOT EXISTS habit_comments (
+            id TEXT PRIMARY KEY,
+            habit_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            completion_id TEXT,
+            comment_text TEXT NOT NULL,
+            mood TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
           )
         `
